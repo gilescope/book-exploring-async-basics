@@ -3,6 +3,6 @@ authors = ["Carl Fredrik Samson"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Investigating Async Basics By Implementing the Node.js Eventloop in Rust"
+title = "Investigating Async Basics - Implementing the Node.js Eventloop in Rust"
 [output.html]
 theme = "src/theme"
