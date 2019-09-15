@@ -1,0 +1,407 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>The Operating System and CPU - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_what_is_async.html"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_the_operating_system.html" class="active"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#the-operating-system" id="the-operating-system">The Operating System</a></h1>
+<p>The operating system stands in the center of everything we do as programmers, so there is no way for us to discuss any kind 
+of fundamentals in programming without talking about operating systems in a bit of detail.</p>
+<h2><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h2>
+<p>Communication with the operating system is done through <code>System Calls</code> or &quot;syscalls&quot;, this is a public API that the 
+operating system provides for applications to work. Most of the time these calls are abstracted away for us as programmers 
+by the language or the runtime we use. A language like Rust makes it trivial to make a syscall though which we will see below.</p>
+<p>Now syscalls is an example of something that is absolutely non-portable, but often (not always) BSD-family operating systems 
+uses the same syscalls as Linux-family of operating system. Often these are referred to as UNIX family of operating systems.</p>
+<p>Windows on the other hand has nothing in common with the UNIX family and uses it's own api, often referred to as WinAPI.</p>
+<h3><a class="header" href="#syscall-example" id="syscall-example">Syscall example</a></h3>
+<p>To get a bit more familiar with syscalls we'll implement a very basic one for the three arcitectures: BSD(macos), Linux and Windows.</p>
+<p>The syscall we'll implement is the one used when we write something to <code>stdout</code> since that is such a common operation it's interesting to 
+se how it really works:</p>
+<p>Fortunately for us in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on 
+Windows and therefore use the <code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the Windows syscall we do the opposite.</p>
+<h4><a class="header" href="#a-cross-platform-write-syscall" id="a-cross-platform-write-syscall">A cross platform Write syscall</a></h4>
+<p>You can run this directly here and see it work, but since the Rust playground runs on Linux, you'll need to copy the code over to
+a windows machine if you want to try it out.</p>
+<pre><pre class="playpen"><code class="language-rust">use std::io;
+
+fn main() {
+    let sys_message = String::from(&quot;Hello world from syscall!\n&quot;);
+    syscall(sys_message).unwrap();
+}
+
+// ===== WRITE SYSCALL ON LINUX/MACOS ======
+
+// and: http://man7.org/linux/man-pages/man2/write.2.html
+#[cfg(not(target_os = &quot;windows&quot;))]
+#[link(name = &quot;c&quot;)]
+extern &quot;C&quot; {
+    fn write(fd: u32, buf: *const u8, count: usize) -&gt; i32;
+}
+
+#[cfg(not(target_os = &quot;windows&quot;))]
+fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    let res = unsafe { write(1, msg_ptr, len) };
+
+    if res == -1 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+// ===== WRITE SYSCALL ON WINDOWS ======
+
+#[cfg(target_os = &quot;windows&quot;)]
+#[link(name = &quot;user32&quot;)]
+extern &quot;stdcall&quot; {
+    /// https://docs.microsoft.com/en-us/windows/console/getstdhandle
+    fn GetStdHandle(nStdHandle: i32) -&gt; i32;
+    /// https://docs.microsoft.com/en-us/windows/console/writeconsole
+    fn WriteConsoleA(
+        hConsoleOutput: i32,
+        lpBuffer: *const u8,
+        numberOfCharsToWrite: u32,
+        lpNumberOfCharsWritten: *mut u32,
+        lpReserved: *const std::ffi::c_void,
+    ) -&gt; i32;
+}
+
+#[cfg(target_os = &quot;windows&quot;)]
+fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    let mut output: u32 = 0;
+        let handle = unsafe { GetStdHandle(-11) };
+        if handle  == -1 {
+            return Err(io::Error::last_os_error())
+        }
+
+        let res = unsafe { WriteConsoleA(handle, msg_ptr, len as u32, &amp;mut output, std::ptr::null()) };
+        if res  == 0 {
+            return Err(io::Error::last_os_error());
+        }
+
+    assert_eq!(output as usize, len);
+    Ok(())
+}
+
+</code></pre></pre>
+<p>I'll explain what we just did here. I assume that the <code>main</code> method needs no comment.</p>
+<h4><a class="header" href="#linux-and-macos" id="linux-and-macos">Linux and Macos</a></h4>
+<pre><code class="language-rust no_run noplaypen">#[link(name = &quot;c&quot;)]
+</code></pre>
+<p>Every Linux installation comes with a version of <code>libc</code> which a C-library for communicating 
+with the operating system. Having a <code>libc</code> with a consistent API means they can change the underlying implementation without braking
+everyones code. This flag tells the compiler to link to the &quot;c&quot; library on the system we're compiling for.</p>
+<pre><code class="language-rust no_run noplaypen">extern &quot;C&quot; {
+    fn write(fd: u32, buf: *const u8, count: usize);
+}
+</code></pre>
+<p><code>extern &quot;C&quot;</code> or only <code>extern</code> (C is assumed if nothing is specified) means we're linking to specific functions in the &quot;c&quot; library using the &quot;C&quot; calling convention. As you'll see
+on Windows we'll need to change this since it uses a different calling convention than the UNIX family.</p>
+<p>The function we're linking to needs to have the exact same name, in this case <code>write</code>. The parameters doesn't need to have the same 
+name but they must be in the right order and it's good practice to name them the same as in the library you're linking to.</p>
+<p>The write function takes a <code>file descriptor</code> which in this case is a handle to <code>stdout</code>, a pointer to a array of <code>u8</code> values,
+and a count of how many values we want to read from the buffer.</p>
+<pre><code class="language-rust no_run noplaypen">#[cfg(not(target_os = &quot;windows&quot;))]
+fn syscall_libc(message: String) {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    unsafe { write(1, msg_ptr, len) };
+}
+</code></pre>
+<p>The first thing we do is to get the pointer to the underlying buffer for our string. That will be a pointer of type <code>*const u8</code>
+which matches our <code>buf</code> argument. The length of the message corresponds to the <code>count</code> argument.</p>
+<p>You might ask how we know that <code>1</code> is the file handle to <code>stdout</code> and where we found that value. You'll notice this a lot when writing syscalls from 
+Rust. Usually constants are defined in the C header files which we can't link to, so we need to search them up. 1 is always the file descriptor for
+<code>stdout</code> on UNIX systems.</p>
+<p>A call to a FFI function is always unsafe so we need to use the <code>unsafe</code> keyword here.</p>
+<p>Now for this simple example we'll only focus on the Unix family syscall. Don't worry, in the next book you'll get more than enough time
+with syscalls on all of the three big platforms.</p>
+<h2><a class="header" href="#about-writing-cross-platform-abstractions" id="about-writing-cross-platform-abstractions">About writing cross platform abstractions</a></h2>
+<p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you
+want to make a cross platform variant, the amount of code explodes. This is a problem when writing about this stuff in general,
+but we need some basic understanding on how the different operating systems work under the covers. </p>
+<p>My experience in general is that Linux and Macos have simpler
+api's requiring fewer lines of code, and often (but not always) the exact same call works for both systems.</p>
+<p>Windows on the other hand is mor complex, requires more &quot;magic&quot; constant numbers, requires you to set up more structures to pass in, 
+and way more lines of code. What Windows does have though are very good documentation so even though it's more work you'll also 
+find more official documentation.</p>
+<h1><a class="header" href="#threads" id="threads">Threads</a></h1>
+<p>Threads are one of the baisc constructs for running code that we programmers create. Like the syscall for outputting text to the console, 
+there is a syscall for asking the OS to create a thread. </p>
+<p>Now threads are a bit special, since they are the thing that actually makes us think that we write <strong>synchronous</strong> code at all.</p>
+<p>Let's stop for a second and think a bit about the significance of threads for our the problem domain we're investigating here:</p>
+<p>The &quot;naive&quot; way of thinking about your code is like this:</p>
+<p>Now threads</p>
+<p>memory</p>
+<p>faking sync</p>
+<p>I find it easy to forget is that everything I do goes through the operating system. Of course I know it's there, .</p>
+<p>When we ask for memory, like if we call <code>let my_vec = vec![0_u8;1040]</code> we actually ask the OS to map some memory for us and hand it over. </p>
+<p>Have you ever wondered how you can write plain assembly, which pretty much is CPU instructions, and execute them, but still get an error if you try to access memory that is not mapped to you?</p>
+<p>Let's say you execute the following code:</p>
+<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
+fn main() {
+    let t = 100;
+    let x = dereference(&amp;t);
+    
+    println!(&quot;{}&quot;, x);
+}
+
+fn dereference(ptr: *const usize) -&gt; usize {
+    let res: usize;
+    unsafe {
+    // Note: the parenthesis around ($1) means that we want to get the value at 
+    // the memory location which $1 is pointing at
+    asm!(&quot;mov ($1), $0&quot;:&quot;=r&quot;(res): &quot;r&quot;(ptr));
+    }
+ 
+    res
+}
+</code></pre></pre>
+<p>As you see, this code will output <code>100</code> as expected. But let's instead create a pointer with the address <code>9999999</code> which
+we know just points somewhere random and see what happens when we pass that into the same function:</p>
+<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
+fn main() {
+    let t = 9999999 as *const usize;
+    let x = dereference(t);
+    
+    println!(&quot;{}&quot;, x);
+}
+#
+# fn dereference(ptr: *const usize) -&gt; usize {
+#     let res: usize;
+#     unsafe {
+#     asm!(&quot;mov ($1), $0&quot;:&quot;=r&quot;(res): &quot;r&quot;(ptr));
+#     }
+#  
+#     res
+# }
+</code></pre></pre>
+<p>Now we get a segmentation fault. Not very surprising, and a complicated way of dereferencing a pointer but I wanted to stress 
+that we're &quot;talking&quot; directly with the CPU here. There are no checks in Rust, no syscalls or anything happening behind the 
+scenes that alerst the OS that we try to access memory we shouldn't access. So how does the CPU know that we can't access this memory location?</p>
+<p>This is a sure hint that the CPU does indeed operate in tandem with the operating system, we ask the operating system to map some
+memory for us, and somehow the CPU (MMU) know what memory we can access and not.</p>
+<h1><a class="header" href="#bonus-section" id="bonus-section">Bonus section</a></h1>
+<p>So how does the CPU know that we don't have access to the memory referenced in the example above?</p>
+<p>Most CPU's ca run in different memory protection levels.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="2_async_history.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="4_interrupts_firmware_io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="2_async_history.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="4_interrupts_firmware_io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

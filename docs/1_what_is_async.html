@@ -1,0 +1,309 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>What is async? - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_what_is_async.html" class="active"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#what-is-asynchronous-code-execution-and-concurrency" id="what-is-asynchronous-code-execution-and-concurrency">What is asynchronous code execution and concurrency?</a></h1>
+<p>Composition of independently executed processes.</p>
+<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. </p>
+<p>Parralellism is about <strong>doing</strong> a lot of things at the same time.</p>
+<p>We handle concurrency by executing tasks/processes in an asynchronous manner. Asynchronous code execution is therefore the 
+way we handle concurrency in programming.</p>
+<h2><a class="header" href="#the-mental-model-i-use" id="the-mental-model-i-use">The mental model I use.</a></h2>
+<p>I firmly believe the main reason we find parallel and concurrent programming hard to reason about is that it's very easy to 
+confuse parallel execution with concurrent execution. I think that most of this confusion stems from how we tend to 
+model events in our everyday life. We tend to not define these terms very precise so our intuition 
+is often wrong.</p>
+<p><strong>Let's model our world with these simple rules:</strong></p>
+<ol>
+<li>Everything you do requires resources</li>
+<li>Resources are limited</li>
+<li>Timing is important</li>
+<li>Our main purpose is to use resources as efficiently as possible</li>
+<li>Waiting is wasting resources</li>
+<li>We don't have enough resources</li>
+</ol>
+<p>Now, all of these need to be true for concurrency to even matter, but this is true from on perspective or another more often than you'd think.</p>
+<h3><a class="header" href="#parallelism" id="parallelism">Parallelism</a></h3>
+<p>Is increasing the resources we use to solve a task. It has nothing to do with efficiency.</p>
+<h3><a class="header" href="#concurrency" id="concurrency">Concurrency</a></h3>
+<p>Has everything to do with efficiency and resource utilization. Concurrency can never make <em>one single task go faster</em>. 
+It can only help us utilize our resources better and thereby <em>finish a set of tasks faster</em>.</p>
+<h3><a class="header" href="#lets-draw-some-parallels-to-process-economics" id="lets-draw-some-parallels-to-process-economics">Let's draw some parallels to process economics</a></h3>
+<p>In businesses that manufacture goods, we often talk about LEAN processes. And this is pretty easy to compare with what concurrency
+does for programmers. I'll let let this 3 minute video explain it for me:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Oz8BR5Lflzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p>Now would adding more resources (more workers) help in this case? Yes, but we use double the resources to produce the 
+same output as 1 person with a optimal process could do. That's not optimal utilization of our resources.</p>
+<p>If you consider the coffee machine as some I/O resource we would like to start that process, and move on to preparing the 
+next job, or do other work that needs to be done instead of waiting.</p>
+<p>But that means there are things happening in parallel here? Yes, the coffee machine is doing work while the &quot;worker&quot; is doing
+maintenance and filling water. But this is the crux: Our reference frame is the worker, not the whole system. The worker
+is doing things concurrently. The guy making coffee (the worker) is your code. </p>
+<p><strong>Concurrency is about working smarter and harder. Parallelism is throwing more resources at the problem</strong></p>
+<h3><a class="header" href="#what-about-threads" id="what-about-threads">What about threads</a></h3>
+<p>We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
+threads provided by the operating system is that they appear to be mapped to cores. But that is not neccicarely the truth even 
+though most operating systems will try to map one thread to a core up to the number of threads is equal to  the number of cores.</p>
+<p>Once we create more threads than there are cores, the OS will switch between our threads and progress each of them concurrently
+using the scheduler to give each thread some time to run. So in this way, threads can be a means to achieve parallelism, but 
+they can also be a means to achieve concurrency. Now if you find that confusing, I understand. There is a reason why this is 
+hard to understand. </p>
+<p>But it's a good time to talk about changing the reference frame.</p>
+<h3><a class="header" href="#changing-the-reference-frame" id="changing-the-reference-frame">Changing the reference frame</a></h3>
+<p>When you write code that is perfectly synchronous from your perspective, let's take a look at how that looks from the operating
+system perspective.</p>
+<p>The Operating System might not run your code from start to end at all. It might stop and resume your process many times. 
+The CPU might get interrupted and handle som inputs while you think it's only focused on your task. So synchronous execution is
+only an illusion. But from the perspective of you as a programmer it's not, and that is the important takeaway:</p>
+<p>When we talk about concurrency without providing any other context we are using you as a programmer and your code 
+(your process) as the reference frame.</p>
+<p>The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and
+learn that might seem contradictionary is not. You'll have to consider the reference frame first.</p>
+<p>If this sounds complicated, I promise that we'll get to see and know this better as we go on. So if you found this confusing, relax
+this will become clearer as we go on.</p>
+<h2><a class="header" href="#lets-finish-up-this-chapter-with-some-definitions" id="lets-finish-up-this-chapter-with-some-definitions">Lets finish up this chapter with some definitions</a></h2>
+<p>We can derive some definitions from all above paragraphs that will help us going forward:</p>
+<h3><a class="header" href="#resource" id="resource">Resource:</a></h3>
+<p>Something needed to perform work on a task. We have limited amounts of resources.</p>
+<h3><a class="header" href="#performing-a-task" id="performing-a-task">Performing a task:</a></h3>
+<p>For this to have any meaning we'll have to define this as work that requires some kind of resource, whether it's computational power 
+from the CPU or it's your brain processing something. </p>
+<h3><a class="header" href="#parallel" id="parallel">Parallel:</a></h3>
+<p>Something happening at the <strong>exact</strong> same time that requires some limited resource to happen.</p>
+<h3><a class="header" href="#concurrent" id="concurrent">Concurrent:</a></h3>
+<p>The ability to stop and resume a task. This means that we have more options when deciding how our limited resources are spent over time. 
+This enable us to respond to external events, change priorities or share resources more efficiently (or fairly).</p>
+<h3><a class="header" href="#reference-frame" id="reference-frame">Reference frame</a></h3>
+<p>Concurrency needs to have a frame of reference to have any meaning.</p>
+<h1><a class="header" href="#for-example-from-in-the-context-of-your-brain-talking-on-the-phone-is-not-a-task-when" id="for-example-from-in-the-context-of-your-brain-talking-on-the-phone-is-not-a-task-when">For example, from in the context of your brain, talking on the phone is not a task when:</a></h1>
+<h1><a class="header" href="#1-you-hold-the-phone-to-your-ear-and-there-is-silence-or-in-between-ring-tones-when-waiting-for-someone-to-pick-up" id="1-you-hold-the-phone-to-your-ear-and-there-is-silence-or-in-between-ring-tones-when-waiting-for-someone-to-pick-up">1. You hold the phone to your ear and there is silence or in between ring tones when waiting for someone to pick up</a></h1>
+<h1><a class="header" href="#2-when-there-are-silences-or-breaks-in-between-sentences-or-for-some-other-reason" id="2-when-there-are-silences-or-breaks-in-between-sentences-or-for-some-other-reason">2. When there are silences or breaks in between sentences or for some other reason</a></h1>
+<h1><a class="header" href="#3-if-youre-not-actively-listening-or-talking" id="3-if-youre-not-actively-listening-or-talking">3. If you're not actively listening or talking</a></h1>
+<h1><a class="header" href="#" id=""></a></h1>
+<h1><a class="header" href="#now-a-very-efficient-person-can-do-some-other-work-while-waiting-on-the-phone-for-someone-to-pick-up-as-long-as-that-task-is" id="now-a-very-efficient-person-can-do-some-other-work-while-waiting-on-the-phone-for-someone-to-pick-up-as-long-as-that-task-is">Now a very efficient person can do some other work while waiting on the phone for someone to pick up, as long as that task is</a></h1>
+<h1><a class="header" href="#quick-to-stop-and-resume-later-on-short-notice-there-might-even-be-reason-to-do-some-tasks-while-on-the-phone-if-you-can-context" id="quick-to-stop-and-resume-later-on-short-notice-there-might-even-be-reason-to-do-some-tasks-while-on-the-phone-if-you-can-context">quick to stop and resume later on short notice. There might even be reason to do some tasks while on the phone if you can context</a></h1>
+<h1><a class="header" href="#switch-good-enough-but-even-though-we-tend-to-say-we-do-this-i-parallel-we-dont-we-just-pause-and-resume-tasks-very-quickly" id="switch-good-enough-but-even-though-we-tend-to-say-we-do-this-i-parallel-we-dont-we-just-pause-and-resume-tasks-very-quickly">switch good enough. But even though we tend to say we do this i parallel we don't, we just pause and resume tasks very quickly.</a></h1>
+<h1><a class="header" href="#-1" id="-1"></a></h1>
+<h1><a class="header" href="#from-the-perspective-of-you-physical-body" id="from-the-perspective-of-you-physical-body">From the perspective of you physical body:</a></h1>
+<h1><a class="header" href="#1-youre-on-the-phone-as-long-as-you-hold-your-phone-to-your-ear" id="1-youre-on-the-phone-as-long-as-you-hold-your-phone-to-your-ear">1. You're on the phone as long as you hold your phone to your ear</a></h1>
+<h1><a class="header" href="#2-being-on-the-phone-uses-some-of-limited-resources-12-arms" id="2-being-on-the-phone-uses-some-of-limited-resources-12-arms">2. Being on the phone uses some of limited resources (1/2 arms)</a></h1>
+<h1><a class="header" href="#3" id="3">3.</a></h1>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="2_async_history.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="2_async_history.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Async history - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_what_is_async.html"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html" class="active"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#async-history" id="async-history">Async history</a></h1>
+<p>In the beginning.
+Everything was synchronous. Computers had one CPU and it executed a piece of code written by a programmer and then returned. No scheduling, no threads, no multitasking. We're talking back when the days where a program looked like this:</p>
+<p><img src="./images/punched_card_deck.jpg" alt="Image" /></p>
+<p>There were operating systems though, and when personal computing started to grow in the 80's we had operating systems like DOS, but they usually yielded control of the entire CPU to the program (and the programmer) that was currently running.
+This worked fine, but as interactive UI's using a mouse and windowed operating systems became the norm, this simply couldn't work anymore.</p>
+<h2><a class="header" href="#hyperthreading" id="hyperthreading">Hyperthreading</a></h2>
+<p>As CPU's evolved and added more functionality like several ALUs (Algorithmic Logical Unit) and more logical units in general, the CPU manufacturers realized that the entire CPU was never utilitized fully. For example when an operation only required some parts of the CPU, an instruction could be run on the ALU simultainiously. This became the start of Hyperthreading.¨</p>
+<p>You see, on your computer today that it has i.e. 6 cores, and 12 logical cores. This is exactly where Hyperthreading comes in. It &quot;simulates&quot; two cores on the same core by using unused parts of the CPU to drive progress on thread &quot;2&quot; simultainiously as it's running the code on thread &quot;1&quot; by using a number of smart tricks (like the one with the ALU). Now we could actually offload some work on one thread while keeping the UI interactive by responding to events in the second thread event though we only have one CPU core.</p>
+<p>You might wonder how this is really different from multicore processors? What about performance? I turns out that Hyperthreading has been improved since the 90's all the time. Since you're not actually running two CPU's there will be some operations that need to wait for each other to finish, and how much of a penalty this gives compared to two seperate cores might depend a bit on exactly what the code is doing, but the numbers I have seen shows &quot;only&quot; a 30 % penalty comparted to two seperate CPU's. In other words, it's pretty good!</p>
+<h2><a class="header" href="#non-preemptive-multitasking" id="non-preemptive-multitasking">Non-preemptive multitasking</a></h2>
+<p>The method used to be able to keep the UI interactive and running background processes, was accomplished by non-preemtive multitasking. This kind of multitasking put the responsibility of letting the OS run other tasks like responding to input from the mouse, or running a background task in the hands of the programmer. Typically the programmeryieldedcontrol to the OS.</p>
+<p>Beside offloading a huge responsibility to every programmer writing a program for your platform, this was also error prone. A small mistake in a programs code could halt or crash the entire system. If you remember Windows 95, you also remember the times when a window hung and you could paint the entire screen with it (almost the same way as the end in Solitare, the card game that came with Windows). This was a typical error in the code that was supposed to yield control to the operating system.</p>
+<p>If you're not sure about what this is I can recommend my previous book that explains this part of multitasking pretty well. You'll know everything you need about threads, contexts, stacks and scheduling for following along.</p>
+<h2><a class="header" href="#preemtive-multitasking" id="preemtive-multitasking">Preemtive multitasking</a></h2>
+<p>While non-preemtive multitasking sounded like a good idea, it turned out to create serious problems as well. I will not list them here but as you can imagine, letting every program and programmer out there be responsible for parts of the scheduling of tasks in an operating system will be chaos and ultimately lead to a bad user experience.
+So they put the responsibility of scheduling the CPU resources between the programs that requested it (including to OS itself) in the hands of the OS. The OS can stop execution of a process, do something else, and switch back.</p>
+<p>In a single core machine you can visualize this as running a program you wrote, and the OS stops to update the mouse position, and witches back to your program. This can happen many times each second, not only to keep the UI responsive but it can also give some time to other background tasks and IO events.</p>
+<p>This is now the prevailing way to design an operating system. </p>
+<h2><a class="header" href="#so-how-synchronous-is-the-code-you-write-really-" id="so-how-synchronous-is-the-code-you-write-really-">So how synchronous is the code you write, really ?</a></h2>
+<p>As many things this depends on your perspective. From the perspective of the code you write, and you as a programmer, everything will happen in the order you write it.
+From the OS perspective it might, or might not, interrupt your code, pause it and run some other code in the meantime before resuming. 
+From the perspective of the CPU it will mostly execute* instructions one at a time. They don't care who wrote the code though so when a hardware interrupt happens, they will immediately stop and give control to an interrupt handler, so the CPU doesn't have any concept of asynchronous execution.</p>
+<p>However, modern CPU can also do a lot if things in parallel. Most CPUs are pipelined, meaning that the next instruction is loaded while the current is executing. It might have a branch predictor that tries to figure out what instructions to load next. The processor can also reorder instructions by using &quot;out of order execution&quot; if it believes it makes things faster this way without &quot;asking&quot; or &quot;telling&quot; the programmer or the OS so you might not have any guarantee that A happens before B. The CPU offloads some work to separate &quot;coprocessors&quot; like the FPU for for floating point calculations leaving the main CPU ready to do other tasks et cetera.
+*As a high level overview, it's OK to model the CPU as operating in a synchronous manner, but lets for now just make a mental note that this is a model with a ton caveats that becomes especially important when talking about parallelism, synchronization primitives like mutexes and atomics and security.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="1_what_is_async.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="3_the_operating_system.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="1_what_is_async.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="3_the_operating_system.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
