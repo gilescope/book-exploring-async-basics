@@ -90,37 +90,20 @@ this will become clearer as we go on.
 
 We can derive some definitions from all above paragraphs that will help us going forward:
 
-### Resource:
+### Resource
 Something needed to perform work on a task. We have limited amounts of resources.
 
-### Performing a task:
+### Performing a task
 For this to have any meaning we'll have to define this as work that requires some kind of resource, whether it's computational power 
 from the CPU or it's your brain processing something. 
 
-### Parallel:
+### Parallel
 Something happening at the **exact** same time that requires some limited resource to happen.
 
-### Concurrent:
+### Concurrent
 The ability to stop and resume a task. This means that we have more options when deciding how our limited resources are spent over time. 
 This enable us to respond to external events, change priorities or share resources more efficiently (or fairly).
 
 ### Reference frame
-Concurrency needs to have a frame of reference to have any meaning.
-
-
-# For example, from in the context of your brain, talking on the phone is not a task when:
-# 1. You hold the phone to your ear and there is silence or in between ring tones when waiting for someone to pick up
-# 2. When there are silences or breaks in between sentences or for some other reason
-# 3. If you're not actively listening or talking
-# 
-# Now a very efficient person can do some other work while waiting on the phone for someone to pick up, as long as that task is
-# quick to stop and resume later on short notice. There might even be reason to do some tasks while on the phone if you can context 
-# switch good enough. But even though we tend to say we do this i parallel we don't, we just pause and resume tasks very quickly.
-# 
-# From the perspective of you physical body:
-# 1. You're on the phone as long as you hold your phone to your ear
-# 2. Being on the phone uses some of limited resources (1/2 arms)
-# 3. 
-
-
+You need to know what reference frame you use when talking about concurrency.
 
