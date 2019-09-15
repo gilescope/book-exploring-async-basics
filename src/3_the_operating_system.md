@@ -31,28 +31,75 @@ You can run this directly here and see it work, but since the Rust playground ru
 a windows machine if you want to try it out.
 
 ```rust
+use std::io;
+
 fn main() {
     let sys_message = String::from("Hello world from syscall!\n");
-    syscall_libc(sys_message);
+    syscall(sys_message).unwrap();
 }
 
+// ===== WRITE SYSCALL ON LINUX/MACOS ======
+
+// and: http://man7.org/linux/man-pages/man2/write.2.html
 #[cfg(not(target_os = "windows"))]
 #[link(name = "c")]
 extern "C" {
-    // http://man7.org/linux/man-pages/man2/write.2.html
-    fn write(fd: u32, buf: *const u8, count: usize);
+    fn write(fd: u32, buf: *const u8, count: usize) -> i32;
 }
 
 #[cfg(not(target_os = "windows"))]
-fn syscall_libc(message: String) {
+fn syscall(message: String) -> io::Result<()> {
     let msg_ptr = message.as_ptr();
     let len = message.len();
-    unsafe { write(1, msg_ptr, len) };
+    let res = unsafe { write(1, msg_ptr, len) };
+
+    if res == -1 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+// ===== WRITE SYSCALL ON WINDOWS ======
+
+#[cfg(target_os = "windows")]
+#[link(name = "user32")]
+extern "stdcall" {
+    /// https://docs.microsoft.com/en-us/windows/console/getstdhandle
+    fn GetStdHandle(nStdHandle: i32) -> i32;
+    /// https://docs.microsoft.com/en-us/windows/console/writeconsole
+    fn WriteConsoleA(
+        hConsoleOutput: i32,
+        lpBuffer: *const u8,
+        numberOfCharsToWrite: u32,
+        lpNumberOfCharsWritten: *mut u32,
+        lpReserved: *const std::ffi::c_void,
+    ) -> i32;
+}
+
+#[cfg(target_os = "windows")]
+fn syscall(message: String) -> io::Result<()> {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    let mut output: u32 = 0;
+        let handle = unsafe { GetStdHandle(-11) };
+        if handle  == -1 {
+            return Err(io::Error::last_os_error())
+        }
+
+        let res = unsafe { WriteConsoleA(handle, msg_ptr, len as u32, &mut output, std::ptr::null()) };
+        if res  == 0 {
+            return Err(io::Error::last_os_error());
+        }
+
+    assert_eq!(output as usize, len);
+    Ok(())
 }
 
 ```
 
 I'll explain what we just did here. I assume that the `main` method needs no comment.
+
+#### Linux and Macos
 
 ```rust, no_run, noplaypen
 #[link(name = "c")]
@@ -98,6 +145,20 @@ A call to a FFI function is always unsafe so we need to use the `unsafe` keyword
 Now for this simple example we'll only focus on the Unix family syscall. Don't worry, in the next book you'll get more than enough time
 with syscalls on all of the three big platforms.
 
+
+
+
+## About writing cross platform abstractions
+If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you
+want to make a cross platform variant, the amount of code explodes. This is a problem when writing about this stuff in general,
+but we need some basic understanding on how the different operating systems work under the covers. 
+
+My experience in general is that Linux and Macos have simpler
+api's requiring fewer lines of code, and often (but not always) the exact same call works for both systems.
+
+Windows on the other hand is mor complex, requires more "magic" constant numbers, requires you to set up more structures to pass in, 
+and way more lines of code. What Windows does have though are very good documentation so even though it's more work you'll also 
+find more official documentation.
 
 # Threads
 
