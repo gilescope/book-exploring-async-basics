@@ -1,6 +1,6 @@
 # Investigating Async Basics - Implementing the Node Eventloop in Rust Book
 
-This is the repo for the book. It aims to be a good Async primer and will also demystify a bit of what the eventloop in Node is all about.
+This is the repo for the book: [Investigating Async Basics - Implementing the Node Eventloop in Rust](https://cfsamson.github.io/book-investigating-async-basics/). It aims to be a good Async primer and will also demystify a bit of what the eventloop in Node is all about.
 
 ## Building
 You'll need to install [mdbook](https://github.com/rust-lang-nursery/mdBook) to build this book for yourself. 
