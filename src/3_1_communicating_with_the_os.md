@@ -291,11 +291,11 @@ we do.
 What return codes to expect is also documented thoroughly so we handle potential 
 errors here in the same way as we did for the Linux/Macos syscalls.
 
-```rust
+```rust, no_run, noplaypen
 let res = unsafe { 
     WriteConsoleW(handle, msg_ptr, len, &mut output, std::ptr::null()) 
     };
-    
+
 if res  == 0 {
     return Err(io::Error::last_os_error());
 }

@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_what_is_async.html" class="active"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_what_is_async.html" class="active"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.2.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -146,26 +146,49 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#what-is-asynchronous-code-execution-and-concurrency" id="what-is-asynchronous-code-execution-and-concurrency">What is asynchronous code execution and concurrency?</a></h1>
-<p>Composition of independently executed processes.</p>
-<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. </p>
-<p>Parralellism is about <strong>doing</strong> a lot of things at the same time.</p>
-<p>We handle concurrency by executing tasks/processes in an asynchronous manner. Asynchronous code execution is therefore the 
-way we handle concurrency in programming.</p>
+<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. Rob Pike
+defines this as &quot;the composition of independently executed processes.&quot;</p>
+<p>Parallelism is about <strong>doing</strong> a lot of things at the same time.</p>
+<p>We handle concurrency by executing tasks/processes in an asynchronous manner. 
+Asynchronous code execution is therefore the way we handle concurrency in programming.</p>
+<h2><a class="header" href="#lets-start-off-with-some-definitions" id="lets-start-off-with-some-definitions">Lets start off with some definitions</a></h2>
+<h3><a class="header" href="#resource" id="resource">Resource</a></h3>
+<p>Something we need to perform work on a task. Our resources is limited.</p>
+<h3><a class="header" href="#progressing-a-task" id="progressing-a-task">Progressing a task</a></h3>
+<p>Perform work that requires some kind of resource, whether it's computational power 
+from the CPU or it's your brain using its processing power to process something. </p>
+<h3><a class="header" href="#parallel" id="parallel">Parallel</a></h3>
+<p>Something happening independently at the <strong>exact</strong> same time.</p>
+<h3><a class="header" href="#concurrent" id="concurrent">Concurrent</a></h3>
+<p>Tasks that are &quot;in progress&quot; at the same time, but not neccicarely progressing
+simultaneously. In computer programming this most often implies that the 
+tasks which run concurrently can be stopped and resumed. </p>
+<h3><a class="header" href="#reference-frame" id="reference-frame">Reference frame</a></h3>
+<p>The frame of reference when we use when we define what we operate concurrent relative
+to. Most often it's the tasks we control in our process, but as you'll see, not
+being aware that it's important that we use the same reference frame can cause 
+some confusion.</p>
 <h2><a class="header" href="#the-mental-model-i-use" id="the-mental-model-i-use">The mental model I use.</a></h2>
 <p>I firmly believe the main reason we find parallel and concurrent programming hard to reason about is that it's very easy to 
 confuse parallel execution with concurrent execution. I think that most of this confusion stems from how we tend to 
 model events in our everyday life. We tend to not define these terms very precise so our intuition 
-is often wrong.</p>
+is often wrong. </p>
+<blockquote>
+<p>It doesn't help that <strong>concurrent</strong> is defined in the dictionary as: <em>operating or occurring at the same time</em> which 
+doesn't really help us much when trying to describe how it differs from <strong>parallel</strong></p>
+</blockquote>
 <p><strong>Let's model our world with these simple rules:</strong></p>
 <ol>
 <li>Everything you do requires resources</li>
-<li>Resources are limited</li>
-<li>Timing is important</li>
+<li>Resources are limited and/or timing is important</li>
 <li>Our main purpose is to use resources as efficiently as possible</li>
-<li>Waiting is wasting resources</li>
-<li>We don't have enough resources</li>
+<li>Waiting is performing work, however it's useless work</li>
+<li>Resources are limited</li>
 </ol>
-<p>Now, all of these need to be true for concurrency to even matter, but this is true from on perspective or another more often than you'd think.</p>
+<p>Now, all of these need to be true for concurrency to even matter, but this is 
+true from on perspective or another more often than you'd think. Even in the 
+simple case that your server or computer has more than enough resources, you still
+waste energy if you're inefficient or your users might wait longer then they should.</p>
 <h3><a class="header" href="#parallelism" id="parallelism">Parallelism</a></h3>
 <p>Is increasing the resources we use to solve a task. It has nothing to do with efficiency.</p>
 <h3><a class="header" href="#concurrency" id="concurrency">Concurrency</a></h3>
@@ -175,15 +198,52 @@ It can only help us utilize our resources better and thereby <em>finish a set of
 <p>In businesses that manufacture goods, we often talk about LEAN processes. And this is pretty easy to compare with what concurrency
 does for programmers. I'll let let this 3 minute video explain it for me:</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Oz8BR5Lflzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p>This very modern video might not make you a LEAN expert, but it does explain some
+of the gains we try to achieve when applying LEAN techniques, amongst those: 
+eliminate waiting and non-value-adding tasks.</p>
+<blockquote>
+<p>In programming we could say that we want to avoid <code>blocking</code> and <code>polling</code> in a busy loop.</p>
+</blockquote>
 <p>Now would adding more resources (more workers) help in this case? Yes, but we use double the resources to produce the 
 same output as 1 person with a optimal process could do. That's not optimal utilization of our resources.</p>
-<p>If you consider the coffee machine as some I/O resource we would like to start that process, and move on to preparing the 
+<blockquote>
+<p>To continue our metaphor, we could say that we could solve the problem of a freezing UI while waiting for an I/O event to occur 
+by using a new thread and <code>poll</code>in a loop or <code>block</code> there instead. However, that thread is either consuming resources doing
+nothing or worse, using one core to busy loop while checking if an event is ready. Either way it's not optimal, especially
+if you run a server you want to utilize fully.</p>
+</blockquote>
+<p>If you consider the coffee machine as some I/O resource, we would like to start that process, then move on to preparing the 
 next job, or do other work that needs to be done instead of waiting.</p>
 <p>But that means there are things happening in parallel here? Yes, the coffee machine is doing work while the &quot;worker&quot; is doing
 maintenance and filling water. But this is the crux: Our reference frame is the worker, not the whole system. The worker
 is doing things concurrently. The guy making coffee (the worker) is your code. </p>
 <p><strong>Concurrency is about working smarter and harder. Parallelism is throwing more resources at the problem</strong></p>
-<h3><a class="header" href="#what-about-threads" id="what-about-threads">What about threads</a></h3>
+<h2><a class="header" href="#concurrency-and-its-relation-to-io" id="concurrency-and-its-relation-to-io">Concurrency and its relation to I/O</a></h2>
+<p>As you might understand from what I've written so far, writing async code mostly
+makes sense when you need to be smart to make optimal use of your resources.</p>
+<p>Now if you're code is working hard to solve a problem, there often is no help
+in concurrency, this is where parallelism comes in to play since it gives you
+a way to throw more resources at the problem if you can split it into parts that
+you can work on in parallel.</p>
+<p><strong>I can see two major use cases for concurrency:</strong></p>
+<ol>
+<li>When performing I/O and you need to wait for some external event to occur</li>
+<li>When you need to divide your attention and prevent one task from waiting too 
+long</li>
+</ol>
+<p>The first is the classic I/O example, where you will have to wait for a network
+call, a file operation or something else to happen before you can progress one 
+task, but you have many tasks to do so instead of waiting you continue work 
+elsewhere and either check in regularly to see if the task is ready to progress
+or make sure you are notified when that task is ready to progress.</p>
+<p>The second is an example that is often the case when having an UI. Let's pretend
+you only have one core. How do you prevent the whole UI from becoming unresponsive
+while performing other CPU intensive tasks?</p>
+<p>Well, you can stop what ever task you're doing every 16ms, and run the &quot;update UI&quot;
+task, and then resume whatever you were doing afterwards. This way, you will have
+to stop/resume your task 60 times a second, but you will also have a fully 
+responsive UI which has roughly a 60 Hz refresh rate.</p>
+<h2><a class="header" href="#what-about-threads" id="what-about-threads">What about threads</a></h2>
 <p>We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
 threads provided by the operating system is that they appear to be mapped to cores. But that is not neccicarely the truth even 
 though most operating systems will try to map one thread to a core up to the number of threads is equal to  the number of cores.</p>
@@ -192,7 +252,7 @@ using the scheduler to give each thread some time to run. So in this way, thread
 they can also be a means to achieve concurrency. Now if you find that confusing, I understand. There is a reason why this is 
 hard to understand. </p>
 <p>But it's a good time to talk about changing the reference frame.</p>
-<h3><a class="header" href="#changing-the-reference-frame" id="changing-the-reference-frame">Changing the reference frame</a></h3>
+<h2><a class="header" href="#changing-the-reference-frame" id="changing-the-reference-frame">Changing the reference frame</a></h2>
 <p>When you write code that is perfectly synchronous from your perspective, let's take a look at how that looks from the operating
 system perspective.</p>
 <p>The Operating System might not run your code from start to end at all. It might stop and resume your process many times. 
@@ -201,36 +261,9 @@ only an illusion. But from the perspective of you as a programmer it's not, and 
 <p>When we talk about concurrency without providing any other context we are using you as a programmer and your code 
 (your process) as the reference frame.</p>
 <p>The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and
-learn that might seem contradictionary is not. You'll have to consider the reference frame first.</p>
+learn that might seem contradicting really is not. You'll just have to consider the reference frame first.</p>
 <p>If this sounds complicated, I promise that we'll get to see and know this better as we go on. So if you found this confusing, relax
 this will become clearer as we go on.</p>
-<h2><a class="header" href="#lets-finish-up-this-chapter-with-some-definitions" id="lets-finish-up-this-chapter-with-some-definitions">Lets finish up this chapter with some definitions</a></h2>
-<p>We can derive some definitions from all above paragraphs that will help us going forward:</p>
-<h3><a class="header" href="#resource" id="resource">Resource:</a></h3>
-<p>Something needed to perform work on a task. We have limited amounts of resources.</p>
-<h3><a class="header" href="#performing-a-task" id="performing-a-task">Performing a task:</a></h3>
-<p>For this to have any meaning we'll have to define this as work that requires some kind of resource, whether it's computational power 
-from the CPU or it's your brain processing something. </p>
-<h3><a class="header" href="#parallel" id="parallel">Parallel:</a></h3>
-<p>Something happening at the <strong>exact</strong> same time that requires some limited resource to happen.</p>
-<h3><a class="header" href="#concurrent" id="concurrent">Concurrent:</a></h3>
-<p>The ability to stop and resume a task. This means that we have more options when deciding how our limited resources are spent over time. 
-This enable us to respond to external events, change priorities or share resources more efficiently (or fairly).</p>
-<h3><a class="header" href="#reference-frame" id="reference-frame">Reference frame</a></h3>
-<p>Concurrency needs to have a frame of reference to have any meaning.</p>
-<h1><a class="header" href="#for-example-from-in-the-context-of-your-brain-talking-on-the-phone-is-not-a-task-when" id="for-example-from-in-the-context-of-your-brain-talking-on-the-phone-is-not-a-task-when">For example, from in the context of your brain, talking on the phone is not a task when:</a></h1>
-<h1><a class="header" href="#1-you-hold-the-phone-to-your-ear-and-there-is-silence-or-in-between-ring-tones-when-waiting-for-someone-to-pick-up" id="1-you-hold-the-phone-to-your-ear-and-there-is-silence-or-in-between-ring-tones-when-waiting-for-someone-to-pick-up">1. You hold the phone to your ear and there is silence or in between ring tones when waiting for someone to pick up</a></h1>
-<h1><a class="header" href="#2-when-there-are-silences-or-breaks-in-between-sentences-or-for-some-other-reason" id="2-when-there-are-silences-or-breaks-in-between-sentences-or-for-some-other-reason">2. When there are silences or breaks in between sentences or for some other reason</a></h1>
-<h1><a class="header" href="#3-if-youre-not-actively-listening-or-talking" id="3-if-youre-not-actively-listening-or-talking">3. If you're not actively listening or talking</a></h1>
-<h1><a class="header" href="#" id=""></a></h1>
-<h1><a class="header" href="#now-a-very-efficient-person-can-do-some-other-work-while-waiting-on-the-phone-for-someone-to-pick-up-as-long-as-that-task-is" id="now-a-very-efficient-person-can-do-some-other-work-while-waiting-on-the-phone-for-someone-to-pick-up-as-long-as-that-task-is">Now a very efficient person can do some other work while waiting on the phone for someone to pick up, as long as that task is</a></h1>
-<h1><a class="header" href="#quick-to-stop-and-resume-later-on-short-notice-there-might-even-be-reason-to-do-some-tasks-while-on-the-phone-if-you-can-context" id="quick-to-stop-and-resume-later-on-short-notice-there-might-even-be-reason-to-do-some-tasks-while-on-the-phone-if-you-can-context">quick to stop and resume later on short notice. There might even be reason to do some tasks while on the phone if you can context</a></h1>
-<h1><a class="header" href="#switch-good-enough-but-even-though-we-tend-to-say-we-do-this-i-parallel-we-dont-we-just-pause-and-resume-tasks-very-quickly" id="switch-good-enough-but-even-though-we-tend-to-say-we-do-this-i-parallel-we-dont-we-just-pause-and-resume-tasks-very-quickly">switch good enough. But even though we tend to say we do this i parallel we don't, we just pause and resume tasks very quickly.</a></h1>
-<h1><a class="header" href="#-1" id="-1"></a></h1>
-<h1><a class="header" href="#from-the-perspective-of-you-physical-body" id="from-the-perspective-of-you-physical-body">From the perspective of you physical body:</a></h1>
-<h1><a class="header" href="#1-youre-on-the-phone-as-long-as-you-hold-your-phone-to-your-ear" id="1-youre-on-the-phone-as-long-as-you-hold-your-phone-to-your-ear">1. You're on the phone as long as you hold your phone to your ear</a></h1>
-<h1><a class="header" href="#2-being-on-the-phone-uses-some-of-limited-resources-12-arms" id="2-being-on-the-phone-uses-some-of-limited-resources-12-arms">2. Being on the phone uses some of limited resources (1/2 arms)</a></h1>
-<h1><a class="header" href="#3" id="3">3.</a></h1>
 
                     </main>
 
@@ -269,21 +302,6 @@ This enable us to respond to external events, change priorities or share resourc
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3001");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload(true); // force reload from server (not from cache)
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         
