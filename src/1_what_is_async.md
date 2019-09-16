@@ -1,29 +1,51 @@
 # What is asynchronous code execution and concurrency?
 
-Concurrency is about **dealing** with a lot of things at the same time. Rob Pike
-defines this as "the composition of independently executed processes."
+Concurrency is about **dealing** with a lot of things at the same time. 
 
 Parallelism is about **doing** a lot of things at the same time.
 
-We handle concurrency by executing tasks/processes in an asynchronous manner. 
+We call the concept of progressing multiple tasks at the same time `Multitasking`.
+There are several ways to multitask. One is by progressing tasks concurrently, 
+but not at the same time. Another is to progress two tasks at the same time in parallel.
+
+When we progress tasks concurrently we say they progress in an asynchronous manner. 
 Asynchronous code execution is therefore the way we handle concurrency in programming.
+
+![paralell vs concurrency](./images/definitions.jpg)
 
 ## Lets start off with some definitions
 
 ### Resource
-Something we need to perform work on a task. Our resources is limited.
+Something we need to be able to progress a task. Our resources is limited. This
+could be CPU time or memory.
 
-### Progressing a task
-Perform work that requires some kind of resource, whether it's computational power 
-from the CPU or it's your brain using its processing power to process something. 
+### Task
+A set of operations that requires some kind of resource to progress. A task must
+consist of several sub-operations.
 
 ### Parallel
 Something happening independently at the **exact** same time.
 
 ### Concurrent
-Tasks that are "in progress" at the same time, but not neccicarely progressing
-simultaneously. In computer programming this most often implies that the 
-tasks which run concurrently can be stopped and resumed. 
+Tasks that are `in progress` at the same time, but not necessarily progressing
+simultaneously. 
+
+In computer programming this most often implies that the tasks which run 
+concurrently can be stopped and resumed. 
+
+> **Think about this:** \
+> Let's say you have some absolute minimal operation or action you can do, and lets call that
+> an *Operational Atom*. There is no smaller sub-operations you can divide this into (just like atoms
+> in physics*). That means there is no point where you can stop this operation, right? 
+> 
+> *Ok, so at this level, can there be concurrency?* \
+> I would say no, since every operation is either `NotStarted` or `Finished` there 
+> is no way to divide the tasks into sub tasks, which means that we can't have a
+> task that is `InProcess`. Since we can't have anything `in progress` the concept 
+> of concurrency is meaningless to us. 
+
+> *Let's pretend this is before we discovered sub-atomic particles...
+
 
 ### Reference frame
 The frame of reference when we use when we define what we operate concurrent relative
@@ -43,15 +65,10 @@ is often wrong.
 
 **Let's model our world with these simple rules:**
 1. Everything you do requires resources
-2. Resources are limited and/or timing is important
+2. Resources are limited
+3. Timing is important
 4. Our main purpose is to use resources as efficiently as possible
-5. Waiting is performing work, however it's useless work
-6. Resources are limited
-
-Now, all of these need to be true for concurrency to even matter, but this is 
-true from on perspective or another more often than you'd think. Even in the 
-simple case that your server or computer has more than enough resources, you still
-waste energy if you're inefficient or your users might wait longer then they should.
+5. Resources are limited
 
 ### Parallelism
 
@@ -74,26 +91,27 @@ This very modern video might not make you a LEAN expert, but it does explain som
 of the gains we try to achieve when applying LEAN techniques, amongst those: 
 eliminate waiting and non-value-adding tasks.
 
-> In programming we could say that we want to avoid `blocking` and `polling` in a busy loop.
+> In programming we could say that we want to avoid `blocking` and `polling` (in a busy loop).
 
-Now would adding more resources (more workers) help in this case? Yes, but we use double the resources to produce the 
-same output as 1 person with a optimal process could do. That's not optimal utilization of our resources.
+Now would adding more resources (more workers) help in the video above? Yes, but we use double the resources to produce the 
+same output as 1 person with a optimal process could do. That's not the best utilization of our resources.
 
 > To continue our metaphor, we could say that we could solve the problem of a freezing UI while waiting for an I/O event to occur 
-> by using a new thread and `poll`in a loop or `block` there instead. However, that thread is either consuming resources doing
-> nothing or worse, using one core to busy loop while checking if an event is ready. Either way it's not optimal, especially
-> if you run a server you want to utilize fully.
+> by spawning a new thread and `poll`in a loop or `block` there instead of our main thread. However, that new 
+> thread is either consuming resources doing nothing, or worse, using one core to busy loop while checking if 
+> an event is ready. Either way it's not optimal, especially if you run a server you want to utilize fully.
 
 If you consider the coffee machine as some I/O resource, we would like to start that process, then move on to preparing the 
 next job, or do other work that needs to be done instead of waiting.
 
-
-
 But that means there are things happening in parallel here? Yes, the coffee machine is doing work while the "worker" is doing
-maintenance and filling water. But this is the crux: Our reference frame is the worker, not the whole system. The worker
-is doing things concurrently. The guy making coffee (the worker) is your code. 
+maintenance and filling water. But this is the crux: _Our reference frame is the worker, not the whole system. The guy making coffee is your code._ 
 
-**Concurrency is about working smarter and harder. Parallelism is throwing more resources at the problem**
+It's the same when you make a database query. After you've sent the query to the database server, 
+the CPU on the database server will be working on your request while you wait for a response. In practice, it's a way
+of parallelizing your work. 
+
+**Concurrency is about working smarter. Parallelism is throwing more resources at the problem**
 
 
 ## Concurrency and its relation to I/O
@@ -130,7 +148,7 @@ responsive UI which has roughly a 60 Hz refresh rate.
 ## What about threads
 
 We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
-threads provided by the operating system is that they appear to be mapped to cores. But that is not neccicarely the truth even 
+threads provided by the operating system is that they appear to be mapped to cores. But that is not necessarily the truth even 
 though most operating systems will try to map one thread to a core up to the number of threads is equal to  the number of cores.
 
 Once we create more threads than there are cores, the OS will switch between our threads and progress each of them concurrently
