@@ -234,7 +234,7 @@ maintenance and filling water. But this is the crux: <em>Our reference frame is 
 <p>It's the same when you make a database query. After you've sent the query to the database server, 
 the CPU on the database server will be working on your request while you wait for a response. In practice, it's a way
 of parallelizing your work. </p>
-<p><strong>Concurrency is about working smarter. Parallelism is throwing more resources at the problem</strong></p>
+<p><strong>Concurrency is about working smarter. Parallelism is a way of throwing more resources at the problem.</strong></p>
 <h2><a class="header" href="#concurrency-and-its-relation-to-io" id="concurrency-and-its-relation-to-io">Concurrency and its relation to I/O</a></h2>
 <p>As you might understand from what I've written so far, writing async code mostly
 makes sense when you need to be smart to make optimal use of your resources.</p>
@@ -260,7 +260,7 @@ while performing other CPU intensive tasks?</p>
 task, and then resume whatever you were doing afterwards. This way, you will have
 to stop/resume your task 60 times a second, but you will also have a fully 
 responsive UI which has roughly a 60 Hz refresh rate.</p>
-<h2><a class="header" href="#what-about-threads" id="what-about-threads">What about threads</a></h2>
+<h2><a class="header" href="#what-about-threads-provided-by-the-os" id="what-about-threads-provided-by-the-os">What about threads provided by the OS?</a></h2>
 <p>We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
 threads provided by the operating system is that they appear to be mapped to cores. But that is not necessarily the truth even 
 though most operating systems will try to map one thread to a core up to the number of threads is equal to  the number of cores.</p>
@@ -279,8 +279,8 @@ only an illusion. But from the perspective of you as a programmer it's not, and 
 (your process) as the reference frame.</p>
 <p>The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and
 learn that might seem contradicting really is not. You'll just have to consider the reference frame first.</p>
-<p>If this sounds complicated, I promise that we'll get to see and know this better as we go on. So if you found this confusing, relax
-this will become clearer as we go on.</p>
+<p>If this still sounds complicated, I understand and I promise that we'll get to 
+reach a better understanding as we go on.</p>
 
                     </main>
 

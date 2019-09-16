@@ -111,7 +111,7 @@ It's the same when you make a database query. After you've sent the query to the
 the CPU on the database server will be working on your request while you wait for a response. In practice, it's a way
 of parallelizing your work. 
 
-**Concurrency is about working smarter. Parallelism is throwing more resources at the problem**
+**Concurrency is about working smarter. Parallelism is a way of throwing more resources at the problem.**
 
 
 ## Concurrency and its relation to I/O
@@ -145,7 +145,7 @@ task, and then resume whatever you were doing afterwards. This way, you will hav
 to stop/resume your task 60 times a second, but you will also have a fully 
 responsive UI which has roughly a 60 Hz refresh rate.
 
-## What about threads
+## What about threads provided by the OS?
 
 We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
 threads provided by the operating system is that they appear to be mapped to cores. But that is not necessarily the truth even 
@@ -173,6 +173,6 @@ When we talk about concurrency without providing any other context we are using 
 The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and
 learn that might seem contradicting really is not. You'll just have to consider the reference frame first.
 
-If this sounds complicated, I promise that we'll get to see and know this better as we go on. So if you found this confusing, relax
-this will become clearer as we go on.
+If this still sounds complicated, I understand and I promise that we'll get to 
+reach a better understanding as we go on.
 
