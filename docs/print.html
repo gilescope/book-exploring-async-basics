@@ -180,23 +180,42 @@
 <p>I'm curious, and I really hate the feeling of having big gaps in my understanding of a subject. I initially wanted to write a short article about async code and tie it in to Rust Futures. As I started digging and uncover the gaps I had, that idea for an article have expanded into 4 small books on the subject.</p>
 <p>Now, some of this information and insight is hard to come by, so I write it down in these books and share my findings with everyone else. I hope you find it as interesting as me.</p>
 <h1><a class="header" href="#what-is-asynchronous-code-execution-and-concurrency" id="what-is-asynchronous-code-execution-and-concurrency">What is asynchronous code execution and concurrency?</a></h1>
-<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. Rob Pike
-defines this as &quot;the composition of independently executed processes.&quot;</p>
+<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. </p>
 <p>Parallelism is about <strong>doing</strong> a lot of things at the same time.</p>
-<p>We handle concurrency by executing tasks/processes in an asynchronous manner. 
+<p>We call the concept of progressing multiple tasks at the same time <code>Multitasking</code>.
+There are several ways to multitask. One is by progressing tasks concurrently, 
+but not at the same time. Another is to progress two tasks at the same time in parallel.</p>
+<p>When we progress tasks concurrently we say they progress in an asynchronous manner. 
 Asynchronous code execution is therefore the way we handle concurrency in programming.</p>
+<p><img src="./images/definitions.jpg" alt="paralell vs concurrency" /></p>
 <h2><a class="header" href="#lets-start-off-with-some-definitions" id="lets-start-off-with-some-definitions">Lets start off with some definitions</a></h2>
 <h3><a class="header" href="#resource" id="resource">Resource</a></h3>
-<p>Something we need to perform work on a task. Our resources is limited.</p>
-<h3><a class="header" href="#progressing-a-task" id="progressing-a-task">Progressing a task</a></h3>
-<p>Perform work that requires some kind of resource, whether it's computational power 
-from the CPU or it's your brain using its processing power to process something. </p>
+<p>Something we need to be able to progress a task. Our resources is limited. This
+could be CPU time or memory.</p>
+<h3><a class="header" href="#task" id="task">Task</a></h3>
+<p>A set of operations that requires some kind of resource to progress. A task must
+consist of several sub-operations.</p>
 <h3><a class="header" href="#parallel" id="parallel">Parallel</a></h3>
 <p>Something happening independently at the <strong>exact</strong> same time.</p>
 <h3><a class="header" href="#concurrent" id="concurrent">Concurrent</a></h3>
-<p>Tasks that are &quot;in progress&quot; at the same time, but not neccicarely progressing
-simultaneously. In computer programming this most often implies that the 
-tasks which run concurrently can be stopped and resumed. </p>
+<p>Tasks that are <code>in progress</code> at the same time, but not necessarily progressing
+simultaneously. </p>
+<p>In computer programming this most often implies that the tasks which run 
+concurrently can be stopped and resumed. </p>
+<blockquote>
+<p><strong>Think about this:</strong> <br />
+Let's say you have some absolute minimal operation or action you can do, and lets call that
+an <em>Operational Atom</em>. There is no smaller sub-operations you can divide this into (just like atoms
+in physics*). That means there is no point where you can stop this operation, right? </p>
+<p><em>Ok, so at this level, can there be concurrency?</em> <br />
+I would say no, since every operation is either <code>NotStarted</code> or <code>Finished</code> there 
+is no way to divide the tasks into sub tasks, which means that we can't have a
+task that is <code>InProcess</code>. Since we can't have anything <code>in progress</code> the concept 
+of concurrency is meaningless to us. </p>
+</blockquote>
+<blockquote>
+<p>*Let's pretend this is before we discovered sub-atomic particles...</p>
+</blockquote>
 <h3><a class="header" href="#reference-frame" id="reference-frame">Reference frame</a></h3>
 <p>The frame of reference when we use when we define what we operate concurrent relative
 to. Most often it's the tasks we control in our process, but as you'll see, not
@@ -214,15 +233,11 @@ doesn't really help us much when trying to describe how it differs from <strong>
 <p><strong>Let's model our world with these simple rules:</strong></p>
 <ol>
 <li>Everything you do requires resources</li>
-<li>Resources are limited and/or timing is important</li>
+<li>Resources are limited</li>
+<li>Timing is important</li>
 <li>Our main purpose is to use resources as efficiently as possible</li>
-<li>Waiting is performing work, however it's useless work</li>
 <li>Resources are limited</li>
 </ol>
-<p>Now, all of these need to be true for concurrency to even matter, but this is 
-true from on perspective or another more often than you'd think. Even in the 
-simple case that your server or computer has more than enough resources, you still
-waste energy if you're inefficient or your users might wait longer then they should.</p>
 <h3><a class="header" href="#parallelism" id="parallelism">Parallelism</a></h3>
 <p>Is increasing the resources we use to solve a task. It has nothing to do with efficiency.</p>
 <h3><a class="header" href="#concurrency" id="concurrency">Concurrency</a></h3>
@@ -236,22 +251,24 @@ does for programmers. I'll let let this 3 minute video explain it for me:</p>
 of the gains we try to achieve when applying LEAN techniques, amongst those: 
 eliminate waiting and non-value-adding tasks.</p>
 <blockquote>
-<p>In programming we could say that we want to avoid <code>blocking</code> and <code>polling</code> in a busy loop.</p>
+<p>In programming we could say that we want to avoid <code>blocking</code> and <code>polling</code> (in a busy loop).</p>
 </blockquote>
-<p>Now would adding more resources (more workers) help in this case? Yes, but we use double the resources to produce the 
-same output as 1 person with a optimal process could do. That's not optimal utilization of our resources.</p>
+<p>Now would adding more resources (more workers) help in the video above? Yes, but we use double the resources to produce the 
+same output as 1 person with a optimal process could do. That's not the best utilization of our resources.</p>
 <blockquote>
 <p>To continue our metaphor, we could say that we could solve the problem of a freezing UI while waiting for an I/O event to occur 
-by using a new thread and <code>poll</code>in a loop or <code>block</code> there instead. However, that thread is either consuming resources doing
-nothing or worse, using one core to busy loop while checking if an event is ready. Either way it's not optimal, especially
-if you run a server you want to utilize fully.</p>
+by spawning a new thread and <code>poll</code>in a loop or <code>block</code> there instead of our main thread. However, that new 
+thread is either consuming resources doing nothing, or worse, using one core to busy loop while checking if 
+an event is ready. Either way it's not optimal, especially if you run a server you want to utilize fully.</p>
 </blockquote>
 <p>If you consider the coffee machine as some I/O resource, we would like to start that process, then move on to preparing the 
 next job, or do other work that needs to be done instead of waiting.</p>
 <p>But that means there are things happening in parallel here? Yes, the coffee machine is doing work while the &quot;worker&quot; is doing
-maintenance and filling water. But this is the crux: Our reference frame is the worker, not the whole system. The worker
-is doing things concurrently. The guy making coffee (the worker) is your code. </p>
-<p><strong>Concurrency is about working smarter and harder. Parallelism is throwing more resources at the problem</strong></p>
+maintenance and filling water. But this is the crux: <em>Our reference frame is the worker, not the whole system. The guy making coffee is your code.</em> </p>
+<p>It's the same when you make a database query. After you've sent the query to the database server, 
+the CPU on the database server will be working on your request while you wait for a response. In practice, it's a way
+of parallelizing your work. </p>
+<p><strong>Concurrency is about working smarter. Parallelism is throwing more resources at the problem</strong></p>
 <h2><a class="header" href="#concurrency-and-its-relation-to-io" id="concurrency-and-its-relation-to-io">Concurrency and its relation to I/O</a></h2>
 <p>As you might understand from what I've written so far, writing async code mostly
 makes sense when you need to be smart to make optimal use of your resources.</p>
@@ -279,7 +296,7 @@ to stop/resume your task 60 times a second, but you will also have a fully
 responsive UI which has roughly a 60 Hz refresh rate.</p>
 <h2><a class="header" href="#what-about-threads" id="what-about-threads">What about threads</a></h2>
 <p>We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
-threads provided by the operating system is that they appear to be mapped to cores. But that is not neccicarely the truth even 
+threads provided by the operating system is that they appear to be mapped to cores. But that is not necessarily the truth even 
 though most operating systems will try to map one thread to a core up to the number of threads is equal to  the number of cores.</p>
 <p>Once we create more threads than there are cores, the OS will switch between our threads and progress each of them concurrently
 using the scheduler to give each thread some time to run. So in this way, threads can be a means to achieve parallelism, but 
@@ -329,6 +346,38 @@ of fundamentals in programming without talking about operating systems in a bit 
 operating system as much as we usually do when performing I/O operations we'll have to learn how to communicate with the
 OS.</p>
 <h2><a class="header" href="#concurrency-from-the-operating-systems-perspective" id="concurrency-from-the-operating-systems-perspective">Concurrency from the operating systems perspective</a></h2>
+<blockquote>
+<p>Operating systems has been &quot;faking&quot; synchronous execution since the 90's.</p>
+</blockquote>
+<p>This ties into what I talked about in the first chapter when I said that <code>concurrent</code>
+needs to be talked about within a reference frame and I explained that the OS
+might stop and start your process at any time.</p>
+<p>What we call synchronous code is in most cases code that appears as synchronous 
+to us as programmers. Neither the OS or the CPU live in a fully synchronous world.</p>
+<p>Operating systems uses <code>preemptive multitasking</code> and as long as the operating 
+system you're running is preemptively scheduling processes, you won't have a 
+guarantee that your code instruction by instruction without interruption. </p>
+<p>The operating system will make sure everything that all important processes gets 
+some time from the CPU to make progress. </p>
+<blockquote>
+<p>This is not as simple when we're talking about modern machines with 4-6-8-12 
+physical cores since you might actually execute code on one of the CPU's 
+uninterrupted if the system is under very little load. The important part here 
+is that you can't know for sure and there is no guarantee that you code will be 
+left to run uninterrupted.</p>
+</blockquote>
+<h2><a class="header" href="#teaming-up-with-the-os" id="teaming-up-with-the-os">Teaming up with the OS.</a></h2>
+<p>When programming it's often easy to forget how many moving pieces that need to 
+cooperate to reach maximum efficiency. When you make a web request, you're not 
+asking the CPU or the network card to do something for you, you're asking the 
+operating system to talk to the network card for you. </p>
+<p>There is no way for you as a programmer to make your system optimally efficient 
+without playing to the operating systems strengths. You basically don't have 
+access to the hardware directly. </p>
+<p>The good thing is that most operating systems are more secure and more optimized 
+than what we would most likely end up with if we had direct access to the hardware.</p>
+<p>However this also means that to understand everything from the ground up, you'll
+also need to know how your operating system handles these tasks.</p>
 <h2><a class="header" href="#writing-cross-platform-abstractions" id="writing-cross-platform-abstractions">Writing cross platform abstractions</a></h2>
 <p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you
 want to make a cross platform variant, the amount of code explodes. This is a problem when writing about this stuff in general,
@@ -346,9 +395,6 @@ there is a syscall for asking the OS to create a thread. </p>
 <p>Now threads are a bit special, since they are the thing that actually makes us think that we write <strong>synchronous</strong> code at all.</p>
 <p>Let's stop for a second and think a bit about the significance of threads for our the problem domain we're investigating here:</p>
 <p>The &quot;naive&quot; way of thinking about your code is like this:</p>
-<p>Now threads</p>
-<p>memory</p>
-<p>faking sync</p>
 <h2><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h2>
 <p>Communication with the operating system is done through <code>System Calls</code> or 
 &quot;syscalls&quot;, this is a public API that the operating system provides for 
@@ -673,56 +719,114 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
     Ok(())
 }
 </code></pre></pre>
-<p>I find it easy to forget is that everything I do goes through the operating system. Of course I know it's there, .</p>
-<p>When we ask for memory, like if we call <code>let my_vec = vec![0_u8;1040]</code> we actually ask the OS to map some memory for us and hand it over. </p>
-<p>Have you ever wondered how you can write plain assembly, which pretty much is CPU instructions, and execute them, but still get an error if you try to access memory that is not mapped to you?</p>
-<p>Let's say you execute the following code:</p>
+<h2><a class="header" href="#" id=""></a></h2>
+<h1><a class="header" href="#does-the-cpu-and-the-os-cooperate" id="does-the-cpu-and-the-os-cooperate">Does the CPU and the OS cooperate?</a></h1>
+<p>If you would have asked me this question a year ago I would most likely answer
+no. The OS operates on top of the CPU and is the &quot;gateway&quot; all other application
+uses. Now, first of all, I wouldn't have thought this through, but unless you
+learn how this work from the bottom up, it's not easy to know for sure.</p>
+<p>What started to make me think I was very wrong was some code looking like this:</p>
+<blockquote>
+<p>We'll write instructions directly to the CPU so there know there are no 
+abstractions, syscalls or runtime of some sort that might do some magic for us</p>
+</blockquote>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
     let t = 100;
-    let x = dereference(&amp;t);
+    let t_ptr: *const usize = &amp;t;
+    let x = dereference(t_ptr);
     
     println!(&quot;{}&quot;, x);
 }
 
 fn dereference(ptr: *const usize) -&gt; usize {
     let res: usize;
-    unsafe {
-    // Note: the parenthesis around ($1) means that we want to get the value at 
-    // the memory location which $1 is pointing at
-    asm!(&quot;mov ($1), $0&quot;:&quot;=r&quot;(res): &quot;r&quot;(ptr));
-    }
- 
+    unsafe { 
+        asm!(&quot;mov ($1), $0&quot;:&quot;=r&quot;(res): &quot;r&quot;(ptr)) 
+        };
     res
 }
 </code></pre></pre>
-<p>As you see, this code will output <code>100</code> as expected. But let's instead create a pointer with the address <code>9999999</code> which
-we know just points somewhere random and see what happens when we pass that into the same function:</p>
+<p>Here we write a <code>dereference</code> function using assembly instructions. We know there
+is no way the OS is involved here.</p>
+<p>As you see, this code will output <code>100</code> as expected. But let's now instead create a 
+pointer with the address <code>99999999999999</code> which we know is invalid and see what 
+happens when we pass that into the same function:</p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
-    let t = 9999999 as *const usize;
+    let t = 99999999999999 as *const usize;
     let x = dereference(t);
     
     println!(&quot;{}&quot;, x);
 }
-#
 # fn dereference(ptr: *const usize) -&gt; usize {
 #     let res: usize;
 #     unsafe {
 #     asm!(&quot;mov ($1), $0&quot;:&quot;=r&quot;(res): &quot;r&quot;(ptr));
 #     }
-#  
+# 
 #     res
 # }
 </code></pre></pre>
-<p>Now we get a segmentation fault. Not very surprising, and a complicated way of dereferencing a pointer but I wanted to stress 
-that we're &quot;talking&quot; directly with the CPU here. There are no checks in Rust, no syscalls or anything happening behind the 
-scenes that alerst the OS that we try to access memory we shouldn't access. So how does the CPU know that we can't access this memory location?</p>
-<p>This is a sure hint that the CPU does indeed operate in tandem with the operating system, we ask the operating system to map some
-memory for us, and somehow the CPU (MMU) know what memory we can access and not.</p>
-<h1><a class="header" href="#bonus-section" id="bonus-section">Bonus section</a></h1>
-<p>So how does the CPU know that we don't have access to the memory referenced in the example above?</p>
-<p>Most CPU's ca run in different memory protection levels.</p>
+<p>Now we get a segmentation fault. Not surprising really, but how does the CPU
+know that we're not allowed to dereference this memory?</p>
+<ul>
+<li>Does the CPU ask the OS if this process is allowed to access this memory location?</li>
+<li>Won't that be very slow? </li>
+<li>How does the CPU know that it has an OS running on top of it at all? D</li>
+<li>Does all CPUs know what a segmentation fault is? </li>
+<li>Does the CPU have any concept of memory segmentation at all? </li>
+<li>Why do we get an error message at all and not just a crash?</li>
+</ul>
+<h2><a class="header" href="#down-the-rabbit-hole" id="down-the-rabbit-hole">Down the rabbit hole</a></h2>
+<p>Yes, this is a small rabbit hole. It turns out that there
+os some kind of corporation, but maybe not the way you naively would think.</p>
+<p>Many modern CPUs provide some infrastructure that Operating Systems need to 
+implement and give us the security and stability we expect. Actually, most 
+advanced CPUs provide a lot more options than operating systems like Linux, BSD and
+Windows actually uses.</p>
+<p>There is especially two that I want to address here:</p>
+<ol>
+<li>How the CPU prevents us from accessing memory we're not supposed to access</li>
+<li>How the CPU handles asynchronous events like I/O</li>
+</ol>
+<blockquote>
+<p>If you want to know more about how this works in detail I will absolutely
+recommend that you give <a href="https://os.phil-opp.com/">Philipp Oppermann excelent series</a>
+a read. It's extremely well written and will answer all these questions and many more.</p>
+</blockquote>
+<h2><a class="header" href="#how-does-the-cpu-prevent-us-from-accessing-memory-were-not-supposed-to" id="how-does-the-cpu-prevent-us-from-accessing-memory-were-not-supposed-to">How does the CPU prevent us from accessing memory we're not supposed to?</a></h2>
+<p>As I mentioned, modern CPUs have already some definition of basic concepts. Some
+concepts the CPU is aware of are (there are more but we can't cover everything here):</p>
+<ul>
+<li>Virtual memory </li>
+<li>Page table</li>
+<li>Page fault</li>
+<li>Exceptions</li>
+</ul>
+<p>Exactly how this works will differ depending on the exact CPU so we'll treat them 
+in general terms here.</p>
+<p>Most modern CPUs however has a MMU (Memory Management Unit). This is a part of the
+CPU (often etched on the same dye even). The MMUs job is to translate between
+the virtual address we use in our programs, to a physical address.</p>
+<p>When the OS starts a process (like our program) it sets up a page table for our
+process, and makes sure a special register on the CPU points to this page table.</p>
+<p>Now, when we try to dereference <code>t_ptr</code> in the code above, the address is at some point
+sent to the MMU for translation, which looks it up in the page table which translates
+it to the physical address.</p>
+<p>In this case it will point to a memory address on our stack that holds the value <code>100</code>.</p>
+<p>When we pass in <code>99999999999999</code> and ask it to fetch what's stored at that address 
+(which is what dereferencing does) it looks for the translation in the page table but
+can't find it.</p>
+<p>The CPU then treats this as a <code>page fault</code>. </p>
+<p>At boot, the OS at provided the CPU with a Interrupt Descriptor Table. This table
+has a predefined format where the OS has to provide handlers for the predefined 
+exceptions the CPU can encounter.</p>
+<p>Since the OS provided ha pointer to a function that handles <code>Page Fault</code> the CPU 
+jumps to that function and thereby hands over control to the Operating System. </p>
+<p>The OS then prints a nice message for us letting us know that we encountered 
+what it calls a <code>segmentation fault</code>. This message will therefore wary depending on the OS you 
+run the code on.</p>
 <h1><a class="header" href="#interrupts-firmware-and-io" id="interrupts-firmware-and-io">Interrupts, Firmware and I/O</a></h1>
 <h1><a class="header" href="#strategies-for-handling-io" id="strategies-for-handling-io">Strategies for handling I/O</a></h1>
 <h1><a class="header" href="#implementing-the-node-eventloop" id="implementing-the-node-eventloop">Implementing the Node Eventloop</a></h1>

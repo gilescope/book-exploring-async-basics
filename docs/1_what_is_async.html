@@ -146,23 +146,42 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#what-is-asynchronous-code-execution-and-concurrency" id="what-is-asynchronous-code-execution-and-concurrency">What is asynchronous code execution and concurrency?</a></h1>
-<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. Rob Pike
-defines this as &quot;the composition of independently executed processes.&quot;</p>
+<p>Concurrency is about <strong>dealing</strong> with a lot of things at the same time. </p>
 <p>Parallelism is about <strong>doing</strong> a lot of things at the same time.</p>
-<p>We handle concurrency by executing tasks/processes in an asynchronous manner. 
+<p>We call the concept of progressing multiple tasks at the same time <code>Multitasking</code>.
+There are several ways to multitask. One is by progressing tasks concurrently, 
+but not at the same time. Another is to progress two tasks at the same time in parallel.</p>
+<p>When we progress tasks concurrently we say they progress in an asynchronous manner. 
 Asynchronous code execution is therefore the way we handle concurrency in programming.</p>
+<p><img src="./images/definitions.jpg" alt="paralell vs concurrency" /></p>
 <h2><a class="header" href="#lets-start-off-with-some-definitions" id="lets-start-off-with-some-definitions">Lets start off with some definitions</a></h2>
 <h3><a class="header" href="#resource" id="resource">Resource</a></h3>
-<p>Something we need to perform work on a task. Our resources is limited.</p>
-<h3><a class="header" href="#progressing-a-task" id="progressing-a-task">Progressing a task</a></h3>
-<p>Perform work that requires some kind of resource, whether it's computational power 
-from the CPU or it's your brain using its processing power to process something. </p>
+<p>Something we need to be able to progress a task. Our resources is limited. This
+could be CPU time or memory.</p>
+<h3><a class="header" href="#task" id="task">Task</a></h3>
+<p>A set of operations that requires some kind of resource to progress. A task must
+consist of several sub-operations.</p>
 <h3><a class="header" href="#parallel" id="parallel">Parallel</a></h3>
 <p>Something happening independently at the <strong>exact</strong> same time.</p>
 <h3><a class="header" href="#concurrent" id="concurrent">Concurrent</a></h3>
-<p>Tasks that are &quot;in progress&quot; at the same time, but not neccicarely progressing
-simultaneously. In computer programming this most often implies that the 
-tasks which run concurrently can be stopped and resumed. </p>
+<p>Tasks that are <code>in progress</code> at the same time, but not necessarily progressing
+simultaneously. </p>
+<p>In computer programming this most often implies that the tasks which run 
+concurrently can be stopped and resumed. </p>
+<blockquote>
+<p><strong>Think about this:</strong> <br />
+Let's say you have some absolute minimal operation or action you can do, and lets call that
+an <em>Operational Atom</em>. There is no smaller sub-operations you can divide this into (just like atoms
+in physics*). That means there is no point where you can stop this operation, right? </p>
+<p><em>Ok, so at this level, can there be concurrency?</em> <br />
+I would say no, since every operation is either <code>NotStarted</code> or <code>Finished</code> there 
+is no way to divide the tasks into sub tasks, which means that we can't have a
+task that is <code>InProcess</code>. Since we can't have anything <code>in progress</code> the concept 
+of concurrency is meaningless to us. </p>
+</blockquote>
+<blockquote>
+<p>*Let's pretend this is before we discovered sub-atomic particles...</p>
+</blockquote>
 <h3><a class="header" href="#reference-frame" id="reference-frame">Reference frame</a></h3>
 <p>The frame of reference when we use when we define what we operate concurrent relative
 to. Most often it's the tasks we control in our process, but as you'll see, not
@@ -180,15 +199,11 @@ doesn't really help us much when trying to describe how it differs from <strong>
 <p><strong>Let's model our world with these simple rules:</strong></p>
 <ol>
 <li>Everything you do requires resources</li>
-<li>Resources are limited and/or timing is important</li>
+<li>Resources are limited</li>
+<li>Timing is important</li>
 <li>Our main purpose is to use resources as efficiently as possible</li>
-<li>Waiting is performing work, however it's useless work</li>
 <li>Resources are limited</li>
 </ol>
-<p>Now, all of these need to be true for concurrency to even matter, but this is 
-true from on perspective or another more often than you'd think. Even in the 
-simple case that your server or computer has more than enough resources, you still
-waste energy if you're inefficient or your users might wait longer then they should.</p>
 <h3><a class="header" href="#parallelism" id="parallelism">Parallelism</a></h3>
 <p>Is increasing the resources we use to solve a task. It has nothing to do with efficiency.</p>
 <h3><a class="header" href="#concurrency" id="concurrency">Concurrency</a></h3>
@@ -202,22 +217,24 @@ does for programmers. I'll let let this 3 minute video explain it for me:</p>
 of the gains we try to achieve when applying LEAN techniques, amongst those: 
 eliminate waiting and non-value-adding tasks.</p>
 <blockquote>
-<p>In programming we could say that we want to avoid <code>blocking</code> and <code>polling</code> in a busy loop.</p>
+<p>In programming we could say that we want to avoid <code>blocking</code> and <code>polling</code> (in a busy loop).</p>
 </blockquote>
-<p>Now would adding more resources (more workers) help in this case? Yes, but we use double the resources to produce the 
-same output as 1 person with a optimal process could do. That's not optimal utilization of our resources.</p>
+<p>Now would adding more resources (more workers) help in the video above? Yes, but we use double the resources to produce the 
+same output as 1 person with a optimal process could do. That's not the best utilization of our resources.</p>
 <blockquote>
 <p>To continue our metaphor, we could say that we could solve the problem of a freezing UI while waiting for an I/O event to occur 
-by using a new thread and <code>poll</code>in a loop or <code>block</code> there instead. However, that thread is either consuming resources doing
-nothing or worse, using one core to busy loop while checking if an event is ready. Either way it's not optimal, especially
-if you run a server you want to utilize fully.</p>
+by spawning a new thread and <code>poll</code>in a loop or <code>block</code> there instead of our main thread. However, that new 
+thread is either consuming resources doing nothing, or worse, using one core to busy loop while checking if 
+an event is ready. Either way it's not optimal, especially if you run a server you want to utilize fully.</p>
 </blockquote>
 <p>If you consider the coffee machine as some I/O resource, we would like to start that process, then move on to preparing the 
 next job, or do other work that needs to be done instead of waiting.</p>
 <p>But that means there are things happening in parallel here? Yes, the coffee machine is doing work while the &quot;worker&quot; is doing
-maintenance and filling water. But this is the crux: Our reference frame is the worker, not the whole system. The worker
-is doing things concurrently. The guy making coffee (the worker) is your code. </p>
-<p><strong>Concurrency is about working smarter and harder. Parallelism is throwing more resources at the problem</strong></p>
+maintenance and filling water. But this is the crux: <em>Our reference frame is the worker, not the whole system. The guy making coffee is your code.</em> </p>
+<p>It's the same when you make a database query. After you've sent the query to the database server, 
+the CPU on the database server will be working on your request while you wait for a response. In practice, it's a way
+of parallelizing your work. </p>
+<p><strong>Concurrency is about working smarter. Parallelism is throwing more resources at the problem</strong></p>
 <h2><a class="header" href="#concurrency-and-its-relation-to-io" id="concurrency-and-its-relation-to-io">Concurrency and its relation to I/O</a></h2>
 <p>As you might understand from what I've written so far, writing async code mostly
 makes sense when you need to be smart to make optimal use of your resources.</p>
@@ -245,7 +262,7 @@ to stop/resume your task 60 times a second, but you will also have a fully
 responsive UI which has roughly a 60 Hz refresh rate.</p>
 <h2><a class="header" href="#what-about-threads" id="what-about-threads">What about threads</a></h2>
 <p>We'll cover threads a bit more when we talk about operating systems, but I'll mention them here as well. The problem with
-threads provided by the operating system is that they appear to be mapped to cores. But that is not neccicarely the truth even 
+threads provided by the operating system is that they appear to be mapped to cores. But that is not necessarily the truth even 
 though most operating systems will try to map one thread to a core up to the number of threads is equal to  the number of cores.</p>
 <p>Once we create more threads than there are cores, the OS will switch between our threads and progress each of them concurrently
 using the scheduler to give each thread some time to run. So in this way, threads can be a means to achieve parallelism, but 
