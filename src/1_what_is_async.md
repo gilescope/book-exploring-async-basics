@@ -7,6 +7,7 @@ Parallelism is about **doing** a lot of things at the same time.
 We call the concept of progressing multiple tasks at the same time `Multitasking`.
 There are several ways to multitask. One is by progressing tasks concurrently, 
 but not at the same time. Another is to progress two tasks at the same time in parallel.
+Parallelism can be a kind of concurrency, but it's not the only way.
 
 When we progress tasks concurrently we say they progress in an asynchronous manner. 
 Asynchronous code execution is therefore the way we handle concurrency in programming.
@@ -27,52 +28,51 @@ consist of several sub-operations.
 Something happening independently at the **exact** same time.
 
 ### Concurrent
-Tasks that are `in progress` at the same time, but not necessarily progressing
+Tasks that are **`in progress`** at the same time, but not *necessarily* progressing
 simultaneously. 
 
-In computer programming this most often implies that the tasks which run 
-concurrently can be stopped and resumed. 
+This is an important distinction. If two tasks are running concurrently, 
+but are not running in parallel, they must be able to stop and resume their progress. 
+We say that a task is `interruptable` if it allows for this kind of concurrency.
+
 
 > **Think about this:** \
-> Let's say you have some absolute minimal operation or action you can do, and lets call that
-> an *Operational Atom*. There is no smaller sub-operations you can divide this into (just like atoms
-> in physics*). That means there is no point where you can stop this operation, right? 
+> Let's say you have some absolute minimal operation or action you can do, for example
+> CPU instructions. There is no smaller sub-operations you can divide this into (just like atoms
+> in physics*). That means there is no point where you can stop this operation, right? You can't
+> stop a `add` assembly instruction half way. 
 > 
 > *Ok, so at this level, can there be concurrency?* \
-> I would say no, since every operation is either `NotStarted` or `Finished` there 
-> is no way to divide the tasks into sub tasks, which means that we can't have a
-> task that is `InProcess`. Since we can't have anything `in progress` the concept 
-> of concurrency is meaningless to us. 
+> Yes, in the form of parallelism. 
+>
+> Since every operation is either `NotStarted` or `Finished` there is no way to divide the tasks into 
+> sub tasks, which means that we can't have a task that is `InProcess`. Since 
+> we can't have anything `in progress` the only kind of concurrency we can have 
+> is tasks that run in parallel.
 
 > *Let's pretend this is before we discovered sub-atomic particles...
 
 
-### Reference frame
-The frame of reference when we use when we define what we operate concurrent relative
-to. Most often it's the tasks we control in our process, but as you'll see, not
-being aware that it's important that we use the same reference frame can cause 
-some confusion.
-
-
 ## The mental model I use.
 
-I firmly believe the main reason we find parallel and concurrent programming hard to reason about is that it's very easy to 
-confuse parallel execution with concurrent execution. I think that most of this confusion stems from how we tend to 
-model events in our everyday life. We tend to not define these terms very precise so our intuition 
-is often wrong. 
+I firmly believe the main reason we find parallel and concurrent programming 
+hard to reason stems from how we tend to model events in our everyday life. We 
+tend to define these terms loosely so our intuition is often wrong. 
 > It doesn't help that **concurrent** is defined in the dictionary as: _operating or occurring at the same time_ which 
 > doesn't really help us much when trying to describe how it differs from **parallel**
 
-**Let's model our world with these simple rules:**
-1. Everything you do requires resources
-2. Resources are limited
-3. Timing is important
-4. Our main purpose is to use resources as efficiently as possible
-5. Resources are limited
+## Why do we need to make this distinction?
+
+I think the next step to get a good understanding of this is to look at _why_ we
+want to make a distinction between parallel and concurrent at all? Sometimes parallel
+**is** concurrent, and other times not and it definitely is not the only way we
+can have concurrency. 
+
+The **why** has everything to do with resource utilization and [efficiency](https://en.wikipedia.org/wiki/Efficiency).
 
 ### Parallelism
 
-Is increasing the resources we use to solve a task. It has nothing to do with efficiency.
+Is increasing the resources we use to solve a task. It has nothing to do with _efficiency_.
 
 ### Concurrency
 
@@ -82,8 +82,11 @@ It can only help us utilize our resources better and thereby _finish a set of ta
 
 ### Let's draw some parallels to process economics
 
-In businesses that manufacture goods, we often talk about LEAN processes. And this is pretty easy to compare with what concurrency
-does for programmers. I'll let let this 3 minute video explain it for me:
+In businesses that manufacture goods, we often talk about LEAN processes. And 
+this is pretty easy to compare with why programmers care so much about what we can 
+achieve if we handle tasks concurrently. 
+
+I'll let let this 3 minute video explain it for me:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Oz8BR5Lflzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
