@@ -150,7 +150,8 @@
 <p>Parallelism is about <strong>doing</strong> a lot of things at the same time.</p>
 <p>We call the concept of progressing multiple tasks at the same time <code>Multitasking</code>.
 There are several ways to multitask. One is by progressing tasks concurrently, 
-but not at the same time. Another is to progress two tasks at the same time in parallel.</p>
+but not at the same time. Another is to progress two tasks at the same time in parallel.
+Parallelism can be a kind of concurrency, but it's not the only way.</p>
 <p>When we progress tasks concurrently we say they progress in an asynchronous manner. 
 Asynchronous code execution is therefore the way we handle concurrency in programming.</p>
 <p><img src="./images/definitions.jpg" alt="paralell vs concurrency" /></p>
@@ -164,54 +165,51 @@ consist of several sub-operations.</p>
 <h3><a class="header" href="#parallel" id="parallel">Parallel</a></h3>
 <p>Something happening independently at the <strong>exact</strong> same time.</p>
 <h3><a class="header" href="#concurrent" id="concurrent">Concurrent</a></h3>
-<p>Tasks that are <code>in progress</code> at the same time, but not necessarily progressing
+<p>Tasks that are <strong><code>in progress</code></strong> at the same time, but not <em>necessarily</em> progressing
 simultaneously. </p>
-<p>In computer programming this most often implies that the tasks which run 
-concurrently can be stopped and resumed. </p>
+<p>This is an important distinction. If two tasks are running concurrently, 
+but are not running in parallel, they must be able to stop and resume their progress. 
+We say that a task is <code>interruptable</code> if it allows for this kind of concurrency.</p>
 <blockquote>
 <p><strong>Think about this:</strong> <br />
-Let's say you have some absolute minimal operation or action you can do, and lets call that
-an <em>Operational Atom</em>. There is no smaller sub-operations you can divide this into (just like atoms
-in physics*). That means there is no point where you can stop this operation, right? </p>
+Let's say you have some absolute minimal operation or action you can do, for example
+CPU instructions. There is no smaller sub-operations you can divide this into (just like atoms
+in physics*). That means there is no point where you can stop this operation, right? You can't
+stop a <code>add</code> assembly instruction half way. </p>
 <p><em>Ok, so at this level, can there be concurrency?</em> <br />
-I would say no, since every operation is either <code>NotStarted</code> or <code>Finished</code> there 
-is no way to divide the tasks into sub tasks, which means that we can't have a
-task that is <code>InProcess</code>. Since we can't have anything <code>in progress</code> the concept 
-of concurrency is meaningless to us. </p>
+Yes, in the form of parallelism. </p>
+<p>Since every operation is either <code>NotStarted</code> or <code>Finished</code> there is no way to divide the tasks into 
+sub tasks, which means that we can't have a task that is <code>InProcess</code>. Since 
+we can't have anything <code>in progress</code> the only kind of concurrency we can have 
+is tasks that run in parallel.</p>
 </blockquote>
 <blockquote>
 <p>*Let's pretend this is before we discovered sub-atomic particles...</p>
 </blockquote>
-<h3><a class="header" href="#reference-frame" id="reference-frame">Reference frame</a></h3>
-<p>The frame of reference when we use when we define what we operate concurrent relative
-to. Most often it's the tasks we control in our process, but as you'll see, not
-being aware that it's important that we use the same reference frame can cause 
-some confusion.</p>
 <h2><a class="header" href="#the-mental-model-i-use" id="the-mental-model-i-use">The mental model I use.</a></h2>
-<p>I firmly believe the main reason we find parallel and concurrent programming hard to reason about is that it's very easy to 
-confuse parallel execution with concurrent execution. I think that most of this confusion stems from how we tend to 
-model events in our everyday life. We tend to not define these terms very precise so our intuition 
-is often wrong. </p>
+<p>I firmly believe the main reason we find parallel and concurrent programming 
+hard to reason stems from how we tend to model events in our everyday life. We 
+tend to define these terms loosely so our intuition is often wrong. </p>
 <blockquote>
 <p>It doesn't help that <strong>concurrent</strong> is defined in the dictionary as: <em>operating or occurring at the same time</em> which 
 doesn't really help us much when trying to describe how it differs from <strong>parallel</strong></p>
 </blockquote>
-<p><strong>Let's model our world with these simple rules:</strong></p>
-<ol>
-<li>Everything you do requires resources</li>
-<li>Resources are limited</li>
-<li>Timing is important</li>
-<li>Our main purpose is to use resources as efficiently as possible</li>
-<li>Resources are limited</li>
-</ol>
+<h2><a class="header" href="#why-do-we-need-to-make-this-distinction" id="why-do-we-need-to-make-this-distinction">Why do we need to make this distinction?</a></h2>
+<p>I think the next step to get a good understanding of this is to look at <em>why</em> we
+want to make a distinction between parallel and concurrent at all? Sometimes parallel
+<strong>is</strong> concurrent, and other times not and it definitely is not the only way we
+can have concurrency. </p>
+<p>The <strong>why</strong> has everything to do with resource utilization and <a href="https://en.wikipedia.org/wiki/Efficiency">efficiency</a>.</p>
 <h3><a class="header" href="#parallelism" id="parallelism">Parallelism</a></h3>
-<p>Is increasing the resources we use to solve a task. It has nothing to do with efficiency.</p>
+<p>Is increasing the resources we use to solve a task. It has nothing to do with <em>efficiency</em>.</p>
 <h3><a class="header" href="#concurrency" id="concurrency">Concurrency</a></h3>
 <p>Has everything to do with efficiency and resource utilization. Concurrency can never make <em>one single task go faster</em>. 
 It can only help us utilize our resources better and thereby <em>finish a set of tasks faster</em>.</p>
 <h3><a class="header" href="#lets-draw-some-parallels-to-process-economics" id="lets-draw-some-parallels-to-process-economics">Let's draw some parallels to process economics</a></h3>
-<p>In businesses that manufacture goods, we often talk about LEAN processes. And this is pretty easy to compare with what concurrency
-does for programmers. I'll let let this 3 minute video explain it for me:</p>
+<p>In businesses that manufacture goods, we often talk about LEAN processes. And 
+this is pretty easy to compare with why programmers care so much about what we can 
+achieve if we handle tasks concurrently. </p>
+<p>I'll let let this 3 minute video explain it for me:</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Oz8BR5Lflzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <p>This very modern video might not make you a LEAN expert, but it does explain some
 of the gains we try to achieve when applying LEAN techniques, amongst those: 
