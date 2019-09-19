@@ -1,53 +1,70 @@
 # Introduction
 
-We’ll dive deep down into the why and how of concurrent programming. I try to cover a lot of ground here. Maybe too much but if you’re like me, and curious I hope you’ll enjoy it anyways.
+This book aims to take a deep down into the why and how of concurrent programming. First we build
+a good foundation of knowledge, before we use that knowledge to implement a toy version of the
+Node.js runtime.
+
+> This book is developed in the open and has [it's repository here](https://github.com/cfsamson/book-investigating-async-basics).
+> The final code in this book is located here if you want to clone it and play with it or improve it.
+
+Don't block! Dont poll! Increase throughput! Don't block the eventloop! Async code. Concurreny. Paralellism. You've most
+likely read this before, and maybe, at some point you've thoguht you've understood everything
+only to find yourself confused a moment later. Join me as we try to fix that. I warn you though, we need to venture
+from philosophical heights where we try to formally define a "task" all the way down to the deep waters where
+firmware and other strange creatures rule.
+
 
 > Everything in this book will cover the topics for the three major Operating Systems
-> Linux, Macos and Windows.
+> Linux, Macos and Windows. 
 
-The parts I found the coolest to research and write about were:
+# Who is this book for?
 
-- Defining the difference between parallel and concurrent, and finding a mental model to explain why concurrency is valuable.
+You'll have to be adventorous, and curious, and a bit forgiving. Even though we cover some complex 
+topics we'll have to simplify them significantly to be able to learn anything from them in a small book. 
+You can probably spend the better part of a carrear to be an expert in several of the fields we cover, 
+so forgive me already now for not beeing able to cover all of them with the precision and thoroughness
+they deserve.
 
-- Learning to make syscalls on three different platforms using only Rusts standard library.
+However, this book might be interesting for you if you:
 
-- Finding a short and easy way to generate a software interrupt and make a syscall using inline assembly.
+- Want to know the difference between parallel and concurrent, and finding a mental model to explain why concurrency is valuable.
 
-- Learning how the OS and the CPU handles concurrency, and seeing how the pieces fit together in the light of my previous book about `green threads`.
+- Are curious on how to make syscalls on three different platforms using only Rusts standard library.
 
-- Figuring out how the the firmware and the device driver plays a role when we write code that does I/O.
+- Think it's fun to see if you can generate a software interrupt and make a syscall using inline assembly.
 
-- Solving a question that been nagging me about exactly how the CPU know we’re accessing invalid memory when writing assembly.
+- Want to know more about how OS and the CPU handles concurrency.
 
-- Learning what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.
+- Think figuring out how your code, the OS, your CPU, a device driver and some firmware handles I/O is interesting.
 
-- Using the knowledge from our research to write a **toy** node.js runtime.
+- Can accept a detour where we see how the CPU "knows" if a memory address is invalid.
 
-- Digging into what epoll, kqueue and IOCP and digging into the source code of `mio` and `libc` (next book)
+- Have read enough articles about it but want to know more about what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.
 
-- Implementing a very bad, but working cross platform eventloop using nothing but the standard library (next book)
+- Think using the knowledge from our research to write a **toy** node.js runtime is pretty cool.
 
-So check this list. Do you know all of this already? No? Are you curious about any of this? We’ll join me as we dig into these topics and venture down the rabbit hole.
+- Already know some Rust but want to learn more.
 
+So, what du you think? Is the answer yes? We'll then join me on this venture where we try to get a better understanding of all these subjects.
 
-This book is part of a series investigating several aspects and methods of handling async code execution:
+> We'll only use Rusts standard library. The reason for this is that we really want to know how tings
+> work, and Rusts standard library strikes the perfect balance for this task. 
 
-- [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
-- Investigating Async Basics by Implementing the Node.js Eventloop in Rust (The book you're reading now)
-- Investigating Epoll, Kqueue and IOCP with Rust (Will be released October 2. 2019)
-- Investigating Rusts Futures (TBD)
+You don't have to be a Rust programmer to follow along. This book will have numerous chapters where
+we explore concepts, and where the code examples are small and easy to understand. But if you want
+to follow along when we try to write more code or clonde the repo and play around with the code you
+should probably learn the basics first.
 
-Our main goal is to get a solid understanding of the inner secrets of Async code, using that knowledge to demystify Rusts Futures evolving async story.
+> [You will find everything you need to set up Rust here](https://www.rust-lang.org/tools/install)
 
+## Following along
 
-## External dependencies
-We will only rely in the standard library for this, making sure that we understand everything and leave no gaps uncovered. While this is a pretty big constraint when using Rust it does require us to answer certain basic questions that would otherwise go unasked.
+For this book I use `mdbook`, which has the nice benefit of 
 
-For this to work I had to make a library for the cross platform epoll/kqueue/IOCP eventloop that is explained in depth in the next book.
 
 ## Disclaimer
 - We'll implement a **toy** version of the Node.js eventloop (a bad, but working and conceptually similar eventloop)
-- We'll not primarily focus on code quality and safety, though this is important, we want to understand the concepts and ideas behind the code. We will have to take many shortcuts to keep this concise and short. If we don't we end up reimplementing `libuv` at some point :)
+- We'll **not** primarily focus on code quality and safety, though this is important, we want to understand the concepts and ideas behind the code. We will have to take many shortcuts to keep this concise and short. If we don't we end up reimplementing `libuv` at some point :)
 - I will however do my best to point out hazards and the shortcuts we make. I will try to point out obvious places we could do a better job, and I will not use `unsafe` needlessly unless there is a very good reason to do it.
 - The book(s) you're reading is the result of a few hundred hours of investigations. I will not claim expertise beyond that, but I will guarantee that I try to verify all the information from more than one source unless it's directly from official documentation.
 
@@ -57,3 +74,13 @@ For this to work I had to make a library for the cross platform epoll/kqueue/IOC
 I'm curious, and I really hate the feeling of having big gaps in my understanding of a subject. I initially wanted to write a short article about async code and tie it in to Rust Futures. As I started digging and uncover the gaps I had, that idea for an article have expanded into 4 small books on the subject.
 
 Now, some of this information and insight is hard to come by, so I write it down in these books and share my findings with everyone else. I hope you find it as interesting as me.
+
+
+
+
+This book is part of a series investigating several aspects and methods of handling async code execution:
+
+- [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
+- Investigating Async Basics by Implementing the Node.js Eventloop in Rust (The book you're reading now)
+- Investigating Epoll, Kqueue and IOCP with Rust (Will be released October 2. 2019)
+- Investigating Rusts Futures (TBD)
