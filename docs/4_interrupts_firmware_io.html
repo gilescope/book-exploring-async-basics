@@ -166,17 +166,25 @@ on the OS we either get a  <code>file descriptor</code> (Macos/Linux) or a <code
 <p>The next step is that we register our interest in <code>read</code> events on that socket.</p>
 <h2><a class="header" href="#2-we-register-events-with-the-os" id="2-we-register-events-with-the-os">2. We register events with the OS</a></h2>
 <p>The operating systems we focus on handles this in one of three ways:</p>
-<p>A. We tell the operating system that we're interested in <code>Read</code> events but we want
+<ol>
+<li>We tell the operating system that we're interested in <code>Read</code> events but we want
 to wait for it to happen by <code>yielding</code> control over our thread to the OS. The OS
 then suspends our thread by storing the register state and switch to some other 
-thread. </p>
+thread. </li>
+</ol>
 <p>From our perspective this will be blocking our thread until we have data to read.</p>
-<p>B. We tell the operating system that we're interested in <code>Read</code> events but we
+<ol start="2">
+<li>
+<p>We tell the operating system that we're interested in <code>Read</code> events but we
 just want a handle to a the task which we can <code>poll</code> to check if the event is
 ready or not. The OS will not suspend our thread.</p>
-<p>C. We tell the operating system that we are probably going to be interested in 
+</li>
+<li>
+<p>We tell the operating system that we are probably going to be interested in 
 many events, but we want to subscribe to one event queue. When we <code>poll</code> this
 queue it will block until one or more event occurs.</p>
+</li>
+</ol>
 <blockquote>
 <p>My next book will be about about alternative C since that is a very interesting
 model of handling I/O events that's going to be important later on to understand 
@@ -230,10 +238,12 @@ diagram above. It's not too important for us right now so let's move on.</p>
 At <em>some point</em> the buffers are filled and the OS gets notified that the data is ready
 to be read. </p>
 <h2><a class="header" href="#8-reading-the-data" id="8-reading-the-data">8. Reading the data</a></h2>
-<p>Depending on wether we chose alternative A, B or C the OS will:</p>
-<p>A. Wake our thread
-B. Return <code>Ready</code> on the next <code>poll</code>
-C. Wake the thread and return a <code>Read</code> event for the handler we registered.</p>
+<p>Depending on whether we chose alternative A, B or C the OS will:</p>
+<ol>
+<li>Wake our thread</li>
+<li>Return <code>Ready</code> on the next <code>poll</code></li>
+<li>Wake the thread and return a <code>Read</code> event for the handler we registered.</li>
+</ol>
 
                     </main>
 
