@@ -8,11 +8,17 @@ Node.js runtime.
 > The final code in this book is located here if you want to clone it and play with it or improve it.
 
 Don't block the eventloop! Don't poll in a loop! Increase throughput! Concurrency.
-Parallelism. You've most likely heard and read about this many times before,
-and maybe, at some point you've at some point thought you understood everything
-only to find yourself confused a moment later. Me too. So I spent a couple of
-hundred hours to try to fix that for myself. Then I wrote this story and now
-I invite you to join me on that journey.
+Parallelism.
+
+You've most likely heard and read about this many times before,
+and maybe, at some point you've thought you understood everything
+only to find yourself confused a moment later. Especially when you want to
+understand how it works on three different Operating Systems.
+
+Me too.
+
+So I spent a couple of hundred hours to try to fix that for myself. Then I wrote
+this story and now I invite you to join me on that journey.
 
 I warn you though, we need to venture from philosophical heights where we try to
 formally define a "task" all the way down to the deep waters where firmware and
@@ -96,7 +102,7 @@ contributing to make this better for the next person reading it.
 
 Substantial contributions will be credited here.
 
-## Why I write this and future reading
+## Why I wrote this and companion books
 
 This started as a wish to write an article about Rusts Futures 3.0, but has now
 expanded into 3 finished books about concurrency in general and hopefully, at
@@ -107,7 +113,7 @@ of threats being made about stopping the car and letting me off if I didn't stop
 asking "why?" to everything.
 
 Basically, the list below is a result of this urge to understand _why_ while
-reading the RFC's and discussions about Rusts futures: 
+reading the RFC's and discussions about Rusts async story: 
 
 - [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
 
