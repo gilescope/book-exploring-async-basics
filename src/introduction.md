@@ -56,7 +56,8 @@ So, what du you think? Is the answer yes? We'll then join me on this venture
 where we try to get a better understanding of all these subjects.
 
 > We'll only use Rusts standard library. The reason for this is that we really want to know how tings
-> work, and Rusts standard library strikes the perfect balance for this task.
+> work, and Rusts standard library strikes the perfect balance for this task providing abstractions
+> but they're thin enough to let us easily peek under the covers to see how things work.
 
 You don't have to be a Rust programmer to follow along. This book will have numerous chapters where
 we explore concepts, and where the code examples are small and easy to understand, but it will
