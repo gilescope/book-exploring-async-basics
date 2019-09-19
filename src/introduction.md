@@ -127,7 +127,7 @@ This is the book you're reading now.
  
 Will be released October 2. 2019. We implement an extremely simple and limited
 cross platform eventloop based on Epoll, Kqueue and IOCP. Even though it's simple
-and bad, it's will be working and will be "easy" to understand. A good place
+and bad, it will be working and will be "easy" to understand. A good place
 to start if you want to dig further.
 
 We use this library in this book, but it was too much to include here.
