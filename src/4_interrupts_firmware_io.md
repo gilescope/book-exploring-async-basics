@@ -29,18 +29,18 @@ The next step is that we register our interest in `read` events on that socket.
 ## 2. We register events with the OS
 The operating systems we focus on handles this in one of three ways:
 
-A. We tell the operating system that we're interested in `Read` events but we want
+1. We tell the operating system that we're interested in `Read` events but we want
 to wait for it to happen by `yielding` control over our thread to the OS. The OS
 then suspends our thread by storing the register state and switch to some other 
 thread. 
 
 From our perspective this will be blocking our thread until we have data to read.
 
-B. We tell the operating system that we're interested in `Read` events but we
+2. We tell the operating system that we're interested in `Read` events but we
 just want a handle to a the task which we can `poll` to check if the event is
 ready or not. The OS will not suspend our thread.
 
-C. We tell the operating system that we are probably going to be interested in 
+3. We tell the operating system that we are probably going to be interested in 
 many events, but we want to subscribe to one event queue. When we `poll` this
 queue it will block until one or more event occurs.  
 
@@ -106,9 +106,9 @@ to be read.
 
 ## 8. Reading the data
 
-Depending on wether we chose alternative A, B or C the OS will:
+Depending on whether we chose alternative A, B or C the OS will:
 
-A. Wake our thread
-B. Return `Ready` on the next `poll`
-C. Wake the thread and return a `Read` event for the handler we registered.
+1. Wake our thread
+2. Return `Ready` on the next `poll`
+3. Wake the thread and return a `Read` event for the handler we registered.
 

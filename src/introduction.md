@@ -1,5 +1,35 @@
 # Introduction
 
+We’ll dive deep down into the why and how of concurrent programming. I try to cover a lot of ground here. Maybe too much but if you’re like me, and curious I hope you’ll enjoy it anyways.
+
+> Everything in this book will cover the topics for the three major Operating Systems
+> Linux, Macos and Windows.
+
+The parts I found the coolest to research and write about were:
+
+- Defining the difference between parallel and concurrent, and finding a mental model to explain why concurrency is valuable.
+
+- Learning to make syscalls on three different platforms using only Rusts standard library.
+
+- Finding a short and easy way to generate a software interrupt and make a syscall using inline assembly.
+
+- Learning how the OS and the CPU handles concurrency, and seeing how the pieces fit together in the light of my previous book about `green threads`.
+
+- Figuring out how the the firmware and the device driver plays a role when we write code that does I/O.
+
+- Solving a question that been nagging me about exactly how the CPU know we’re accessing invalid memory when writing assembly.
+
+- Learning what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.
+
+- Using the knowledge from our research to write a **toy** node.js runtime.
+
+- Digging into what epoll, kqueue and IOCP and digging into the source code of `mio` and `libc` (next book)
+
+- Implementing a very bad, but working cross platform eventloop using nothing but the standard library (next book)
+
+So check this list. Do you know all of this already? No? Are you curious about any of this? We’ll join me as we dig into these topics and venture down the rabbit hole.
+
+
 This book is part of a series investigating several aspects and methods of handling async code execution:
 
 - [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
@@ -9,16 +39,6 @@ This book is part of a series investigating several aspects and methods of handl
 
 Our main goal is to get a solid understanding of the inner secrets of Async code, using that knowledge to demystify Rusts Futures evolving async story.
 
-
-## What we'll do
-
-- Go through the basics of asynchronous code execution, some history and basic definitions
-- Be very precise and define the difference between async and parallel
-- Talk about how the Operating System and the CPU in regards to I/O and async
-- Dig into how interrupts, scheduling, firmware and threads relate to our subject
-- Go through different methods of handling async, like green threads, threadpools and event queues
-- Look at how Nodes eventloop works and how it manages to be so efficient in execution async code
-- Implement our own working toy version of the Node.js eventloop using our knowledge
 
 ## External dependencies
 We will only rely in the standard library for this, making sure that we understand everything and leave no gaps uncovered. While this is a pretty big constraint when using Rust it does require us to answer certain basic questions that would otherwise go unasked.
