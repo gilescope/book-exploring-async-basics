@@ -1,7 +1,7 @@
 # Summary
 
 [Introduction](./introduction.md)
-- [What is async?](./1_what_is_async.md)
+- [Concurrent vs Parallel](./1_concurrent_vs_parallel.md)
 - [Async history](./2_async_history.md)
 - [The Operating System and CPU](./3_0_the_operating_system.md)
   - [Communicating with the OS](./3_1_communicating_with_the_os.md)

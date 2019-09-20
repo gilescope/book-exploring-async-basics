@@ -1,9 +1,10 @@
 # The Operating System
 
-The operating system stands in the center of everything we do as programmers, so there is no way for us to discuss any kind 
-of fundamentals in programming without talking about operating systems in a bit of detail. But since we rely on the 
-operating system as much as we usually do when performing I/O operations we'll have to learn how to communicate with the
-OS.
+The operating system stands in the center of everything we do as programmers,
+so there is no way for us to discuss any kind of fundamentals in programming
+without talking about operating systems in a bit of detail. But since we rely on
+the operating system as much as we usually do when performing I/O operations
+we'll have to learn how to communicate with the OS.
 
 ## Concurrency from the operating systems perspective
 

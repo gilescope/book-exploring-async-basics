@@ -73,11 +73,11 @@ Now we could actually offload some work on one thread while keeping the UI
 interactive by responding to events in the second thread even though we only
 had one CPU core.
 
-> You might wonder about the performance of HT? 
+> You might wonder about the performance of Hyper Threading? 
 > 
 > It turns out that Hyperthreading has been continuously improved since the 90's.
 > Since you're not actually running two CPU's there will be some operations that
-> need to wait for each other to finish. The performance gain of hyperthreading 
+> need to wait for each other to finish. The performance gain of hyperthreading
 > compared to multithreading in a single core seems to be [somewhere close
 > to 30 %](https://en.wikipedia.org/wiki/Hyper-threading#Performance_claims) but
 > it largely depends in the workload.

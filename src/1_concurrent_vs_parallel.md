@@ -1,13 +1,26 @@
-# What is asynchronous code execution and concurrency?
+# What's the difference between concurrency and parallelism? 
 
-Concurrency is about **dealing** with a lot of things at the same time. 
+We'll right of the bat dive into define what concurrency is, and since it's very
+easy to confuse concurrent with parallel we have to try to make the difference
+clear sooner than later.
+
+Concurrency is about **dealing** with a lot of things at the same time.
 
 Parallelism is about **doing** a lot of things at the same time.
 
 We call the concept of progressing multiple tasks at the same time `Multitasking`.
-There are several ways to multitask. One is by progressing tasks concurrently, 
+There are several ways to multitask. One is by **progressing** tasks concurrently,
 but not at the same time. Another is to progress two tasks at the same time in parallel.
 Parallelism can be a kind of concurrency, but it's not the only way.
+
+             Parallel  | Concurrent
+                /\     |     /\
+               /  \    |    /  \
+              /    \   |   /    \
+             /      \  |  /      \
+            /        \   /        \
+           /          \ /          \
+                  Indipendant   Interruptable
 
 When we progress tasks concurrently we say they progress in an asynchronous manner. 
 Asynchronous code execution is therefore the way we handle concurrency in programming.
