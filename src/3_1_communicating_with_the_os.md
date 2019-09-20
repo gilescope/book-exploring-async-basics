@@ -1,4 +1,4 @@
-## Communicating with the operating system
+# Communicating with the operating system
 
 Communication with the operating system is done through `System Calls` or 
 "syscalls", this is a public API that the operating system provides for 
@@ -14,21 +14,21 @@ operating systems.
 Windows on the other hand has nothing in common with the UNIX family and uses 
 it's own api, often referred to as WinAPI.
 
-### Syscall example
+##Syscall example
 
 To get a bit more familiar with syscalls we'll implement a very basic one for 
 the three arcitectures: BSD(macos), Linux and Windows.
 
-The syscall we'll implement is the one used when we write something to `stdout` 
+The syscall we'll implement is the one used when we write something to `stdout`
 since that is such a common operation it's interesting to se how it really works:
 
-
-Fortunately for us in this specific example, the syscall is the same on Linux 
-and on Macos so we only need to worry if we're on Windows and therefore use the 
-`#[cfg(not(target_os = "windows"))]` conditional compilation flag. For the 
+Fortunately for us in this specific example, the syscall is the same on Linux
+and on Macos so we only need to worry if we're on Windows and therefore use the
+`#[cfg(not(target_os = "windows"))]` conditional compilation flag. For the
 Windows syscall we do the opposite.
 
-#### A cross platform Write syscall
+
+## A cross platform Write syscall
 
 You can run this code directly here in the window. However, the Rust playground 
 runs on Linux, you'll need to copy the code over to a Windows machine if you 

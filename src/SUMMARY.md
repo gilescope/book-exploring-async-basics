@@ -5,6 +5,7 @@
 - [Async history](./2_async_history.md)
 - [The Operating System and CPU](./3_0_the_operating_system.md)
   - [Communicating with the OS](./3_1_communicating_with_the_os.md)
+  - [Writing Cross Platform Abstractions](./3_1_1_cross_platform_abstractions.md)
   - [The CPU and the OS](./3_2_the_cpu_and_the_os.md)
 - [Interrupts, Firmware and I/O](./4_interrupts_firmware_io.md)
 - [Strategies for handling I/O](./5_strategies_for_handling_io.md)

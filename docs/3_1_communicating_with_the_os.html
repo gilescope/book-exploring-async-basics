@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_what_is_async.html"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html" class="active"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.2.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html" class="active"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,7 +145,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h2><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h2>
+                        <h1><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h1>
 <p>Communication with the operating system is done through <code>System Calls</code> or 
 &quot;syscalls&quot;, this is a public API that the operating system provides for 
 applications to work. Most of the time these calls are abstracted away for us as 
@@ -157,16 +157,16 @@ Linux-family of operating system. Often these are referred to as UNIX family of
 operating systems.</p>
 <p>Windows on the other hand has nothing in common with the UNIX family and uses 
 it's own api, often referred to as WinAPI.</p>
-<h3><a class="header" href="#syscall-example" id="syscall-example">Syscall example</a></h3>
+<p>##Syscall example</p>
 <p>To get a bit more familiar with syscalls we'll implement a very basic one for 
 the three arcitectures: BSD(macos), Linux and Windows.</p>
-<p>The syscall we'll implement is the one used when we write something to <code>stdout</code> 
+<p>The syscall we'll implement is the one used when we write something to <code>stdout</code>
 since that is such a common operation it's interesting to se how it really works:</p>
-<p>Fortunately for us in this specific example, the syscall is the same on Linux 
-and on Macos so we only need to worry if we're on Windows and therefore use the 
-<code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the 
+<p>Fortunately for us in this specific example, the syscall is the same on Linux
+and on Macos so we only need to worry if we're on Windows and therefore use the
+<code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the
 Windows syscall we do the opposite.</p>
-<h4><a class="header" href="#a-cross-platform-write-syscall" id="a-cross-platform-write-syscall">A cross platform Write syscall</a></h4>
+<h2><a class="header" href="#a-cross-platform-write-syscall" id="a-cross-platform-write-syscall">A cross platform Write syscall</a></h2>
 <p>You can run this code directly here in the window. However, the Rust playground 
 runs on Linux, you'll need to copy the code over to a Windows machine if you 
 want to try it out the code for Windows further down.</p>
@@ -481,7 +481,7 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
                         
 
                         
-                            <a rel="next" href="3_2_the_cpu_and_the_os.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="3_1_1_cross_platform_abstractions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -499,7 +499,7 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
                 
 
                 
-                    <a href="3_2_the_cpu_and_the_os.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="3_1_1_cross_platform_abstractions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

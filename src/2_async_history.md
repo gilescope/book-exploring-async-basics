@@ -101,13 +101,13 @@ write it.
 From the OS perspective it might, or might not, interrupt your code, pause it
 and run some other code in the meantime before resuming your process.
 
-From the perspective of the CPU it will mostly execute instructions one at a time*.
+From the perspective of the CPU it will mostly execute instructions one at a time[1].
 They don't care who wrote the code though so when a hardware interrupt happens,
 they will immediately stop and give control to an interrupt handler. This is how
 the CPU handles concurrency.
 
 
-> * However, modern CPU can also do a lot if things in parallel. Most CPUs are
+> [1] However, modern CPU can also do a lot if things in parallel. Most CPUs are
 > pipelined, meaning that the next instruction is loaded while the current is
 > executing. It might have a branch predictor that tries to figure out what
 > instructions to load next. The processor can also reorder instructions by using

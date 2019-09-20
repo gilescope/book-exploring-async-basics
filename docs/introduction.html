@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html" class="active">Introduction</a></li><li><a href="1_what_is_async.html"><strong aria-hidden="true">1.</strong> What is async?</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.2.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html" class="active">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_node_the_threadpool.html"><strong aria-hidden="true">6.4.</strong> The threadpool</a></li><li><a href="6_5_node_the_io_eventqueue.html"><strong aria-hidden="true">6.5.</strong> The I/O eventqueue</a></li><li><a href="6_6_node_final_code.html"><strong aria-hidden="true">6.6.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -271,7 +271,7 @@ reading the RFC's and discussions about Rusts async story: </p>
 </ul>
 <p>Will be released October 2. 2019. We implement an extremely simple and limited
 cross platform eventloop based on Epoll, Kqueue and IOCP. Even though it's simple
-and bad, it's will be working and will be &quot;easy&quot; to understand. A good place
+and bad, it will be working and will be &quot;easy&quot; to understand. A good place
 to start if you want to dig further.</p>
 <p>We use this library in this book, but it was too much to include here.</p>
 <ul>
@@ -288,7 +288,7 @@ about this right now.</p>
                         
 
                         
-                            <a rel="next" href="1_what_is_async.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="1_concurrent_vs_parallel.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -302,7 +302,7 @@ about this right now.</p>
                 
 
                 
-                    <a href="1_what_is_async.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="1_concurrent_vs_parallel.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
