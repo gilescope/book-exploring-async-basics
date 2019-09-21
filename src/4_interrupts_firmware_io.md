@@ -130,51 +130,16 @@ Hardware interrupts are created by sending an electrical signal through an [Inte
 
 This is interrupts issued from software instead of hardware. As in the case of a hardware interrupt the CPU jumps to the Interrupt Descriptor Table and runs the handler for the specified interrupt.
 
-Let's see how that works in practice.
 
-You remember from earlier when we used a syscall to write a message to `stdout`? Let's see how we can use a software interrupt to do the same:
+### Firmware
 
-> If you want a more torough introduction to inline assembly I can refer you to the [relevant chapter in my previous book](https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon) if you haven't read it already.
+Firmware doesn't get much attention from most of us, however, they're a crucial part of the world we live in. They run on all kinds of hardware, and has all kinds of strange and peculiar ways to make the computer we program on work.
 
-On Linux this would look something like this:
+When I think about firmware, I think about the scenes from Star Wars where they walk into a bar with all kinds of strange and obscure creatures. I imagine the world of firmware is much like this, few us of know what they do or how they work on a particular system.
 
-```rust
-#![feature(asm)]
-fn main() {
-    let message = String::from("Hello world from interrupt!\n");
-    syscall(message);
-}
+Now, firmware needs a microcontroller or similar to be able to work. Even the CPU has firmware which makes it work. That means there are many more small "CPUs" on our system than the cores we program against.
 
-#[cfg(target_os = "linux")]
-fn syscall(message: String) {
-    let msg_ptr = message.as_ptr();
-    let len = message.len();
-    unsafe {
-        asm!("
-        mov     $$1, %rax   # system call 1 is write on linux
-        mov     $$1, %rdi   # file handle 1 is stdout
-        mov     $0, %rsi    # address of string to output
-        mov     $1, %rdx    # number of bytes
-        syscall             # call kernel, syscall interrupt
-    "
-        :
-        : "r"(msg_ptr), "r"(len)
+Why is this important? Well, you remember that concurrency is all about efficiency right? We'll since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.
 
-        )
-    }
-}
-```
-
-> First of all this is not really a software interrupt. Creating a proper software interrupt on x84_64 (64 bit systems) is not easy. On the earlier x86 systems you could do this exact same call (only exchanging the 64 bit `r__` registers with `e__` registers) and calling `int $$0x80` instead of `syscall`. Syscall was added later since a software interrupt is a costly operation. The `syscall` instruction uses [VDSO](http://articles.manugarg.com/systemcallinlinux2_6.html) which is a memory page attached to each process so no context switch is necessary to execute the system call.
-
-For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.
-
-The code to initiate the `write` syscall on Linux is `1` so when we write `$$1` we're writing the literal value 1 to the `rax` register.
-
-> `$$` in inline assembly using the AT&T syntax is how you write a literal value. A single `$` means you're referring to parameter so when we write `$0` we're referring to the first parameter `msg_ptr`.
-
-Coincidentially, placing the value `1` in to the `rdi` register means that we're referring to `stdout` which is the file descriptor we want to write to.
-
-Secondly we pass in the adress of our string buffer and the length of the buffer, and call the `syscall` instruction.
-
+If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, get's notified when data has arrived for us.
 

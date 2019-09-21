@@ -255,47 +255,12 @@ to be read. </p>
 <p>Hardware interrupts are created by sending an electrical signal through an <a href="https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)#x86_IRQs">Interrupt Request Line (IRQ)</a>. These are hardware lines signalling the CPU directly. </p>
 <h3><a class="header" href="#software-interrupts" id="software-interrupts">Software Interrupts</a></h3>
 <p>This is interrupts issued from software instead of hardware. As in the case of a hardware interrupt the CPU jumps to the Interrupt Descriptor Table and runs the handler for the specified interrupt.</p>
-<p>Let's see how that works in practice.</p>
-<p>You remember from earlier when we used a syscall to write a message to <code>stdout</code>? Let's see how we can use a software interrupt to do the same:</p>
-<blockquote>
-<p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
-</blockquote>
-<p>On Linux this would look something like this:</p>
-<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
-fn main() {
-    let message = String::from(&quot;Hello world from interrupt!\n&quot;);
-    syscall(message);
-}
-
-#[cfg(target_os = &quot;linux&quot;)]
-fn syscall(message: String) {
-    let msg_ptr = message.as_ptr();
-    let len = message.len();
-    unsafe {
-        asm!(&quot;
-        mov     $$1, %rax   # system call 1 is write on linux
-        mov     $$1, %rdi   # file handle 1 is stdout
-        mov     $0, %rsi    # address of string to output
-        mov     $1, %rdx    # number of bytes
-        syscall             # call kernel, syscall interrupt
-    &quot;
-        :
-        : &quot;r&quot;(msg_ptr), &quot;r&quot;(len)
-
-        )
-    }
-}
-</code></pre></pre>
-<blockquote>
-<p>First of all this is not really a software interrupt. Creating a proper software interrupt on x84_64 (64 bit systems) is not easy. On the earlier x86 systems you could do this exact same call (only exchanging the 64 bit <code>r__</code> registers with <code>e__</code> registers) and calling <code>int $$0x80</code> instead of <code>syscall</code>. Syscall was added later since a software interrupt is a costly operation. The <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a> which is a memory page attached to each process so no context switch is necessary to execute the system call.</p>
-</blockquote>
-<p>For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.</p>
-<p>The code to initiate the <code>write</code> syscall on Linux is <code>1</code> so when we write <code>$$1</code> we're writing the literal value 1 to the <code>rax</code> register.</p>
-<blockquote>
-<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to parameter so when we write <code>$0</code> we're referring to the first parameter <code>msg_ptr</code>.</p>
-</blockquote>
-<p>Coincidentially, placing the value <code>1</code> in to the <code>rdi</code> register means that we're referring to <code>stdout</code> which is the file descriptor we want to write to.</p>
-<p>Secondly we pass in the adress of our string buffer and the length of the buffer, and call the <code>syscall</code> instruction.</p>
+<h3><a class="header" href="#firmware" id="firmware">Firmware</a></h3>
+<p>Firmware doesn't get much attention from most of us, however, they're a crucial part of the world we live in. They run on all kinds of hardware, and has all kinds of strange and peculiar ways to make the computer we program on work.</p>
+<p>When I think about firmware, I think about the scenes from Star Wars where they walk into a bar with all kinds of strange and obscure creatures. I imagine the world of firmware is much like this, few us of know what they do or how they work on a particular system.</p>
+<p>Now, firmware needs a microcontroller or similar to be able to work. Even the CPU has firmware which makes it work. That means there are many more small &quot;CPUs&quot; on our system than the cores we program against.</p>
+<p>Why is this important? Well, you remember that concurrency is all about efficiency right? We'll since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.</p>
+<p>If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, get's notified when data has arrived for us.</p>
 
                     </main>
 

@@ -1,34 +1,125 @@
 # Communicating with the operating system
 
+In this chapter I want to dive into:
+
+- What is a System Call
+- Abstractions over syscalls
+- Challenges low level cross platform code
+
+## What is a syscall
 Communication with the operating system is done through `System Calls` or 
-"syscalls", this is a public API that the operating system provides for 
-applications to work. Most of the time these calls are abstracted away for us as 
+"syscalls". This is a public API that the operating system provides and that programs
+can use to communicate with the OS. Most of the time these calls are abstracted away for us as 
 programmers by the language or the runtime we use. A language like Rust makes it 
-trivial to make a syscall though which we will see below.
+trivial to make a syscall though which we'll see below.
 
-Now syscalls is an example of something that is absolutely non-portable, but 
-often (not always) BSD-family operating systems uses the same syscalls as 
-Linux-family of operating system. Often these are referred to as UNIX family of 
-operating systems.
+Now syscalls is an example of something that is unique to the kernel you're communicating with, but the UNIX family of kernels has many similarities especially the API exposed by `libc`.
 
-Windows on the other hand has nothing in common with the UNIX family and uses 
-it's own api, often referred to as WinAPI.
+Windows on the other hand  uses it's own api, often referred to as WinAPI, and that can be radically different from how the UNIX based systems operate. Most often though there is a way to achieve the same things. In terms of functionality you might not notice a big difference but as we'll see below and especially when we dig into how `epoll`, `kqueue` and `IOCP`, they can differ a lot on how this functionality is implemented.
 
-##Syscall example
+## Syscall example
 
 To get a bit more familiar with syscalls we'll implement a very basic one for 
-the three arcitectures: BSD(macos), Linux and Windows.
+the three arcitectures: BSD(macos), Linux and Windows. We'll also see how this is implemented in three levels of abstractions.
 
-The syscall we'll implement is the one used when we write something to `stdout`
-since that is such a common operation it's interesting to se how it really works:
+The syscall we'll implement is the one used when we write something to `stdout` since that is such a common operation it's interesting to se how it really works.
 
-Fortunately for us in this specific example, the syscall is the same on Linux
-and on Macos so we only need to worry if we're on Windows and therefore use the
-`#[cfg(not(target_os = "windows"))]` conditional compilation flag. For the
-Windows syscall we do the opposite.
+### The lowest level of abstraction
+
+For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.
+
+> If you want a more torough introduction to inline assembly I can refer you to the [relevant chapter in my previous book](https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon) if you haven't read it already.
+
+Now at this level of abstraction, we'll write different code for all three platforms.
+
+On both Linux and Macos the syscall we want to invole is called `write`. Both systems operates based on the concept of `file descriptors` and `stdout` is one of these alredy present when you start a proccess.
+
+**On Linux a `write` syscall can look like this**
+
+> If you want a more torough introduction to inline assembly I can refer you to the [relevant chapter in my previous book](https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon) if you haven't read it already.
+
+```rust
+#![feature(asm)]
+fn main() {
+    let message = String::from("Hello world from interrupt!\n");
+    syscall(message);
+}
+
+#[cfg(target_os = "linux")]
+fn syscall(message: String) {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    unsafe {
+        asm!("
+        mov     $$1, %rax   # system call 1 is write on linux
+        mov     $$1, %rdi   # file handle 1 is stdout
+        mov     $0, %rsi    # address of string to output
+        mov     $1, %rdx    # number of bytes
+        syscall             # call kernel, syscall interrupt
+    "
+        :
+        : "r"(msg_ptr), "r"(len)
+
+        )
+    }
+}
+```
+
+The code to initiate the `write` syscall on Linux is `1` so when we write `$$1` we're writing the literal value 1 to the `rax` register.
+
+> `$$` in inline assembly using the AT&T syntax is how you write a literal value. A single `$` means you're referring to parameter so when we write `$0` we're referring to the first parameter `msg_ptr`.
+
+Coincidentally, placing the value `1` in to the `rdi` register means that we're referring to `stdout` which is the file descriptor we want to write to. This has nothing to do with the fact that the `write` syscall also has the code `1`.
+
+Secondly we pass in the address of our string buffer and the length of the buffer in the registers `rsi` and `rdx` respectively, and call the `syscall` instruction.
+
+> The `syscall` is a rather new one. On the earlier 32-bit systems in the `x86` arcitecture, you invoked a syscall by issuing a software interrupt `int 0x80`. A software interrupt is considered slow at the level we're working at here so later it was added a seperate instruction for it called `syscall`. he `syscall` instruction uses [VDSO](http://articles.manugarg.com/systemcallinlinux2_6.html) which is a memory page attached to each process so no context switch is necessary to execute the system call.
+
+On Macos, the syscall will look something like this:
+
+```rust
+#![feature(asm)]
+fn main() {
+    let message = String::from("Hello world from interrupt!\n");
+    syscall(message);
+}
+
+#[cfg(target_os = "macos")]
+fn syscall(message: String) {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    unsafe {
+        asm!(
+            "
+        mov     $$0x2000004, %rax   # system call 0x2000004 is write on macos
+        mov     $$1, %rdi           # file handle 1 is stdout
+        mov     $0, %rsi            # address of string to output
+        mov     $1, %rdx            # number of bytes
+        syscall                     # call kernel, syscall interrupt
+    "
+        :
+        : "r"(msg_ptr), "r"(len)
+        )
+    };
+}
+```
+
+As you see this is not that different from the one we wrote for Linux, with the exception of the fact that syscall `write` has the code `0x2000004` instead of `1`.
+
+**What about Windows?**
+
+It's a good opportunity to explain why writing code like we do above is a bad idea. You see, if you want your code to work for a long time you have to worry about what `guarantees` the OS gives you. As far as I know, there are no guarantees that `$$0x2000004` on Macos will always refer to `write`. I do think Linux has better guarantees, but I know for a fact that Windows makes absolutely zero guarantees about this.
+
+Windows has changed it's internals about this numerous times and provide no official documentation. The only thing we got is reverse engineered tables like [this](https://j00ru.vexillium.org/syscalls/nt/64/). That means that what was `write` can be changed to `delete` the next time you update Windows.
+
+Even though it would be fun, as a curiosity, to include it I haven't managed to get it to work and have no idea how much code that would be. See [contributing](./introduction.md) if you have the answer dear reader, and I'll include it if it's not too much code.
 
 
-## A cross platform Write syscall
+## The next level of abstraction
+
+The next level of abstraction is to use the API which all three operating systems provide for us. Already we can see that this abstraction helps us remove some code since fortunately for us in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on Windows and therefore use the `#[cfg(not(target_os = "windows"))]` conditional compilation flag. For the Windows syscall we do the opposite.
+
+### Using the API in Linux and Macos
 
 You can run this code directly here in the window. However, the Rust playground 
 runs on Linux, you'll need to copy the code over to a Windows machine if you 
@@ -66,7 +157,6 @@ fn syscall(message: String) -> io::Result<()> {
 I'll explain what we just did here. I assume that the `main` method needs no 
 comment.
 
-#### Linux and Macos
 
 ```rust, no_run, noplaypen
 #[link(name = "c")]
@@ -120,7 +210,7 @@ A call to a FFI function is always unsafe so we need to use the `unsafe` keyword
 here.
 
 
-### Syscall on Windows
+### Using the API on Windows
 
 ```rust, no_run, noplaypen
 use std::io;
@@ -304,7 +394,15 @@ if res  == 0 {
 Next up is the call to the `WriteConsoleW` function. Now that we have explained 
 everything else there is nothing too fancy about this.
 
-### A note about complexity
+## The highest level of abstraction
+
+This is simple, most standard libraies provide this abstraction for you. In rust that would simple be:
+
+```rust
+println!("Hello world from Stdlib");
+```
+
+## A note about complexity
 There is a lot of "hidden" complexity when writing cross platform code at this 
 level. One hurdle is to get something working, which can prove to be quite a 
 challenge. Getting it to work **correctly** and **safely** while covering edge 

@@ -146,6 +146,50 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#strategies-for-handling-io" id="strategies-for-handling-io">Strategies for handling I/O</a></h1>
+<p>Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency.</p>
+<h2><a class="header" href="#the-perfect-solution" id="the-perfect-solution">The perfect solution</a></h2>
+<p>Let's start off by picturing a perfect world, and how the most efficient way of handelig I/O in a concurrent manner could look like.</p>
+<p>If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?</p>
+<p><img src="../book/images/AsyncBasicsSimplified.png" alt="overview" /></p>
+<p>The best way would be the following:</p>
+<ol>
+<li>We give the Network Card a message that we want to be notified <strong>immediately</strong> when new data has arrived for us.</li>
+<li>The network card is hyper optimized in the way it checks for data, it's firmware makes sure of that.</li>
+<li>As soon as some data has arrived for us the Network Card let's us know</li>
+<li>We either finish what we're doing or handle that data immediately</li>
+</ol>
+<p>Now we'll look at some ways we normally handle this:</p>
+<h2><a class="header" href="#using-os-threads" id="using-os-threads">Using OS threads</a></h2>
+<p>Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.</p>
+<p>Pros:</p>
+<ul>
+<li>Simple</li>
+<li>Easy to code</li>
+<li>Reasonably performant</li>
+<li>You get paralellism for free</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>OS level threads come with a rather large stack. If you have many tasks happening simultaniously (like in a webserver under heavy load) you'll run out of memory pretty soon.</li>
+<li>There are a lot of syscalls involved this can be pretty costly</li>
+<li>The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish</li>
+<li>The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.</li>
+</ul>
+<h2><a class="header" href="#green-threads" id="green-threads">Green threads</a></h2>
+<p>Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
+<p>Pros:</p>
+<ul>
+<li>Simple to use, your code will look like it does when using OS threas</li>
+<li>Reasonably performant</li>
+<li>Abundant memory usage is less of a problem</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>You need a runtime, and by having that you are duplicating part of the work the OS already does. The rundime will have a cost.</li>
+<li></li>
+<li>Can be difficult to implement in a flexible way</li>
+<li></li>
+</ul>
 
                     </main>
 

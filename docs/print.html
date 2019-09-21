@@ -540,27 +540,103 @@ is unavoidable.</p>
 also need to know how your operating system handles these tasks.</p>
 <p>To be able to work with the operating system, we'll need to know how we can communicate with it and that's exactly what we're going to go through next.</p>
 <h1><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h1>
+<p>In this chapter I want to dive into:</p>
+<ul>
+<li>What is a System Call</li>
+<li>Abstractions over syscalls</li>
+<li>Challenges low level cross platform code</li>
+</ul>
+<h2><a class="header" href="#what-is-a-syscall" id="what-is-a-syscall">What is a syscall</a></h2>
 <p>Communication with the operating system is done through <code>System Calls</code> or 
-&quot;syscalls&quot;, this is a public API that the operating system provides for 
-applications to work. Most of the time these calls are abstracted away for us as 
+&quot;syscalls&quot;. This is a public API that the operating system provides and that programs
+can use to communicate with the OS. Most of the time these calls are abstracted away for us as 
 programmers by the language or the runtime we use. A language like Rust makes it 
-trivial to make a syscall though which we will see below.</p>
-<p>Now syscalls is an example of something that is absolutely non-portable, but 
-often (not always) BSD-family operating systems uses the same syscalls as 
-Linux-family of operating system. Often these are referred to as UNIX family of 
-operating systems.</p>
-<p>Windows on the other hand has nothing in common with the UNIX family and uses 
-it's own api, often referred to as WinAPI.</p>
-<p>##Syscall example</p>
+trivial to make a syscall though which we'll see below.</p>
+<p>Now syscalls is an example of something that is unique to the kernel you're communicating with, but the UNIX family of kernels has many similarities especially the API exposed by <code>libc</code>.</p>
+<p>Windows on the other hand  uses it's own api, often referred to as WinAPI, and that can be radically different from how the UNIX based systems operate. Most often though there is a way to achieve the same things. In terms of functionality you might not notice a big difference but as we'll see below and especially when we dig into how <code>epoll</code>, <code>kqueue</code> and <code>IOCP</code>, they can differ a lot on how this functionality is implemented.</p>
+<h2><a class="header" href="#syscall-example" id="syscall-example">Syscall example</a></h2>
 <p>To get a bit more familiar with syscalls we'll implement a very basic one for 
-the three arcitectures: BSD(macos), Linux and Windows.</p>
-<p>The syscall we'll implement is the one used when we write something to <code>stdout</code>
-since that is such a common operation it's interesting to se how it really works:</p>
-<p>Fortunately for us in this specific example, the syscall is the same on Linux
-and on Macos so we only need to worry if we're on Windows and therefore use the
-<code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the
-Windows syscall we do the opposite.</p>
-<h2><a class="header" href="#a-cross-platform-write-syscall" id="a-cross-platform-write-syscall">A cross platform Write syscall</a></h2>
+the three arcitectures: BSD(macos), Linux and Windows. We'll also see how this is implemented in three levels of abstractions.</p>
+<p>The syscall we'll implement is the one used when we write something to <code>stdout</code> since that is such a common operation it's interesting to se how it really works.</p>
+<h3><a class="header" href="#the-lowest-level-of-abstraction" id="the-lowest-level-of-abstraction">The lowest level of abstraction</a></h3>
+<p>For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.</p>
+<blockquote>
+<p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
+</blockquote>
+<p>Now at this level of abstraction, we'll write different code for all three platforms.</p>
+<p>On both Linux and Macos the syscall we want to invole is called <code>write</code>. Both systems operates based on the concept of <code>file descriptors</code> and <code>stdout</code> is one of these alredy present when you start a proccess.</p>
+<p><strong>On Linux a <code>write</code> syscall can look like this</strong></p>
+<blockquote>
+<p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
+</blockquote>
+<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
+fn main() {
+    let message = String::from(&quot;Hello world from interrupt!\n&quot;);
+    syscall(message);
+}
+
+#[cfg(target_os = &quot;linux&quot;)]
+fn syscall(message: String) {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    unsafe {
+        asm!(&quot;
+        mov     $$1, %rax   # system call 1 is write on linux
+        mov     $$1, %rdi   # file handle 1 is stdout
+        mov     $0, %rsi    # address of string to output
+        mov     $1, %rdx    # number of bytes
+        syscall             # call kernel, syscall interrupt
+    &quot;
+        :
+        : &quot;r&quot;(msg_ptr), &quot;r&quot;(len)
+
+        )
+    }
+}
+</code></pre></pre>
+<p>The code to initiate the <code>write</code> syscall on Linux is <code>1</code> so when we write <code>$$1</code> we're writing the literal value 1 to the <code>rax</code> register.</p>
+<blockquote>
+<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to parameter so when we write <code>$0</code> we're referring to the first parameter <code>msg_ptr</code>.</p>
+</blockquote>
+<p>Coincidentally, placing the value <code>1</code> in to the <code>rdi</code> register means that we're referring to <code>stdout</code> which is the file descriptor we want to write to. This has nothing to do with the fact that the <code>write</code> syscall also has the code <code>1</code>.</p>
+<p>Secondly we pass in the address of our string buffer and the length of the buffer in the registers <code>rsi</code> and <code>rdx</code> respectively, and call the <code>syscall</code> instruction.</p>
+<blockquote>
+<p>The <code>syscall</code> is a rather new one. On the earlier 32-bit systems in the <code>x86</code> arcitecture, you invoked a syscall by issuing a software interrupt <code>int 0x80</code>. A software interrupt is considered slow at the level we're working at here so later it was added a seperate instruction for it called <code>syscall</code>. he <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a> which is a memory page attached to each process so no context switch is necessary to execute the system call.</p>
+</blockquote>
+<p>On Macos, the syscall will look something like this:</p>
+<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
+fn main() {
+    let message = String::from(&quot;Hello world from interrupt!\n&quot;);
+    syscall(message);
+}
+
+#[cfg(target_os = &quot;macos&quot;)]
+fn syscall(message: String) {
+    let msg_ptr = message.as_ptr();
+    let len = message.len();
+    unsafe {
+        asm!(
+            &quot;
+        mov     $$0x2000004, %rax   # system call 0x2000004 is write on macos
+        mov     $$1, %rdi           # file handle 1 is stdout
+        mov     $0, %rsi            # address of string to output
+        mov     $1, %rdx            # number of bytes
+        syscall                     # call kernel, syscall interrupt
+    &quot;
+        :
+        : &quot;r&quot;(msg_ptr), &quot;r&quot;(len)
+        )
+    };
+}
+</code></pre></pre>
+<p>As you see this is not that different from the one we wrote for Linux, with the exception of the fact that syscall <code>write</code> has the code <code>0x2000004</code> instead of <code>1</code>.</p>
+<p><strong>What about Windows?</strong></p>
+<p>It's a good opportunity to explain why writing code like we do above is a bad idea. You see, if you want your code to work for a long time you have to worry about what <code>guarantees</code> the OS gives you. As far as I know, there are no guarantees that <code>$$0x2000004</code> on Macos will always refer to <code>write</code>. I do think Linux has better guarantees, but I know for a fact that Windows makes absolutely zero guarantees about this.</p>
+<p>Windows has changed it's internals about this numerous times and provide no official documentation. The only thing we got is reverse engineered tables like <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>. That means that what was <code>write</code> can be changed to <code>delete</code> the next time you update Windows.</p>
+<p>Even though it would be fun, as a curiosity, to include it I haven't managed to get it to work and have no idea how much code that would be. See <a href="./introduction.html">contributing</a> if you have the answer dear reader, and I'll include it if it's not too much code.</p>
+<h2><a class="header" href="#the-next-level-of-abstraction" id="the-next-level-of-abstraction">The next level of abstraction</a></h2>
+<p>The next level of abstraction is to use the API which all three operating systems provide for us. Already we can see that this abstraction helps us remove some code since fortunately for us in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on Windows and therefore use the <code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the Windows syscall we do the opposite.</p>
+<h3><a class="header" href="#using-the-api-in-linux-and-macos" id="using-the-api-in-linux-and-macos">Using the API in Linux and Macos</a></h3>
 <p>You can run this code directly here in the window. However, the Rust playground 
 runs on Linux, you'll need to copy the code over to a Windows machine if you 
 want to try it out the code for Windows further down.</p>
@@ -593,7 +669,6 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 </code></pre></pre>
 <p>I'll explain what we just did here. I assume that the <code>main</code> method needs no 
 comment.</p>
-<h4><a class="header" href="#linux-and-macos" id="linux-and-macos">Linux and Macos</a></h4>
 <pre><code class="language-rust no_run noplaypen">#[link(name = &quot;c&quot;)]
 </code></pre>
 <p>Every Linux installation comes with a version of <code>libc</code> which a C-library for 
@@ -633,7 +708,7 @@ we need to search them up. 1 is always the file descriptor for <code>stdout</cod
 systems.</p>
 <p>A call to a FFI function is always unsafe so we need to use the <code>unsafe</code> keyword 
 here.</p>
-<h3><a class="header" href="#syscall-on-windows" id="syscall-on-windows">Syscall on Windows</a></h3>
+<h3><a class="header" href="#using-the-api-on-windows" id="using-the-api-on-windows">Using the API on Windows</a></h3>
 <pre><code class="language-rust no_run noplaypen">use std::io;
 
 fn main() {
@@ -787,7 +862,14 @@ if res  == 0 {
 </code></pre>
 <p>Next up is the call to the <code>WriteConsoleW</code> function. Now that we have explained 
 everything else there is nothing too fancy about this.</p>
-<h3><a class="header" href="#a-note-about-complexity" id="a-note-about-complexity">A note about complexity</a></h3>
+<h2><a class="header" href="#the-highest-level-of-abstraction" id="the-highest-level-of-abstraction">The highest level of abstraction</a></h2>
+<p>This is simple, most standard libraies provide this abstraction for you. In rust that would simple be:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+println!(&quot;Hello world from Stdlib&quot;);
+#}</code></pre></pre>
+<h2><a class="header" href="#a-note-about-complexity" id="a-note-about-complexity">A note about complexity</a></h2>
 <p>There is a lot of &quot;hidden&quot; complexity when writing cross platform code at this 
 level. One hurdle is to get something working, which can prove to be quite a 
 challenge. Getting it to work <strong>correctly</strong> and <strong>safely</strong> while covering edge 
@@ -1086,48 +1168,57 @@ to be read. </p>
 <p>Hardware interrupts are created by sending an electrical signal through an <a href="https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)#x86_IRQs">Interrupt Request Line (IRQ)</a>. These are hardware lines signalling the CPU directly. </p>
 <h3><a class="header" href="#software-interrupts" id="software-interrupts">Software Interrupts</a></h3>
 <p>This is interrupts issued from software instead of hardware. As in the case of a hardware interrupt the CPU jumps to the Interrupt Descriptor Table and runs the handler for the specified interrupt.</p>
-<p>Let's see how that works in practice.</p>
-<p>You remember from earlier when we used a syscall to write a message to <code>stdout</code>? Let's see how we can use a software interrupt to do the same:</p>
-<blockquote>
-<p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
-</blockquote>
-<p>On Linux this would look something like this:</p>
-<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
-fn main() {
-    let message = String::from(&quot;Hello world from interrupt!\n&quot;);
-    syscall(message);
-}
-
-#[cfg(target_os = &quot;linux&quot;)]
-fn syscall(message: String) {
-    let msg_ptr = message.as_ptr();
-    let len = message.len();
-    unsafe {
-        asm!(&quot;
-        mov     $$1, %rax   # system call 1 is write on linux
-        mov     $$1, %rdi   # file handle 1 is stdout
-        mov     $0, %rsi    # address of string to output
-        mov     $1, %rdx    # number of bytes
-        syscall             # call kernel, syscall interrupt
-    &quot;
-        :
-        : &quot;r&quot;(msg_ptr), &quot;r&quot;(len)
-
-        )
-    }
-}
-</code></pre></pre>
-<blockquote>
-<p>First of all this is not really a software interrupt. Creating a proper software interrupt on x84_64 (64 bit systems) is not easy. On the earlier x86 systems you could do this exact same call (only exchanging the 64 bit <code>r__</code> registers with <code>e__</code> registers) and calling <code>int $$0x80</code> instead of <code>syscall</code>. Syscall was added later since a software interrupt is a costly operation. The <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a> which is a memory page attached to each process so no context switch is necessary to execute the system call.</p>
-</blockquote>
-<p>For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.</p>
-<p>The code to initiate the <code>write</code> syscall on Linux is <code>1</code> so when we write <code>$$1</code> we're writing the literal value 1 to the <code>rax</code> register.</p>
-<blockquote>
-<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to parameter so when we write <code>$0</code> we're referring to the first parameter <code>msg_ptr</code>.</p>
-</blockquote>
-<p>Coincidentially, placing the value <code>1</code> in to the <code>rdi</code> register means that we're referring to <code>stdout</code> which is the file descriptor we want to write to.</p>
-<p>Secondly we pass in the adress of our string buffer and the length of the buffer, and call the <code>syscall</code> instruction.</p>
+<h3><a class="header" href="#firmware" id="firmware">Firmware</a></h3>
+<p>Firmware doesn't get much attention from most of us, however, they're a crucial part of the world we live in. They run on all kinds of hardware, and has all kinds of strange and peculiar ways to make the computer we program on work.</p>
+<p>When I think about firmware, I think about the scenes from Star Wars where they walk into a bar with all kinds of strange and obscure creatures. I imagine the world of firmware is much like this, few us of know what they do or how they work on a particular system.</p>
+<p>Now, firmware needs a microcontroller or similar to be able to work. Even the CPU has firmware which makes it work. That means there are many more small &quot;CPUs&quot; on our system than the cores we program against.</p>
+<p>Why is this important? Well, you remember that concurrency is all about efficiency right? We'll since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.</p>
+<p>If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, get's notified when data has arrived for us.</p>
 <h1><a class="header" href="#strategies-for-handling-io" id="strategies-for-handling-io">Strategies for handling I/O</a></h1>
+<p>Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency.</p>
+<h2><a class="header" href="#the-perfect-solution" id="the-perfect-solution">The perfect solution</a></h2>
+<p>Let's start off by picturing a perfect world, and how the most efficient way of handelig I/O in a concurrent manner could look like.</p>
+<p>If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?</p>
+<p><img src="../book/images/AsyncBasicsSimplified.png" alt="overview" /></p>
+<p>The best way would be the following:</p>
+<ol>
+<li>We give the Network Card a message that we want to be notified <strong>immediately</strong> when new data has arrived for us.</li>
+<li>The network card is hyper optimized in the way it checks for data, it's firmware makes sure of that.</li>
+<li>As soon as some data has arrived for us the Network Card let's us know</li>
+<li>We either finish what we're doing or handle that data immediately</li>
+</ol>
+<p>Now we'll look at some ways we normally handle this:</p>
+<h2><a class="header" href="#using-os-threads" id="using-os-threads">Using OS threads</a></h2>
+<p>Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.</p>
+<p>Pros:</p>
+<ul>
+<li>Simple</li>
+<li>Easy to code</li>
+<li>Reasonably performant</li>
+<li>You get paralellism for free</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>OS level threads come with a rather large stack. If you have many tasks happening simultaniously (like in a webserver under heavy load) you'll run out of memory pretty soon.</li>
+<li>There are a lot of syscalls involved this can be pretty costly</li>
+<li>The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish</li>
+<li>The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.</li>
+</ul>
+<h2><a class="header" href="#green-threads" id="green-threads">Green threads</a></h2>
+<p>Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
+<p>Pros:</p>
+<ul>
+<li>Simple to use, your code will look like it does when using OS threas</li>
+<li>Reasonably performant</li>
+<li>Abundant memory usage is less of a problem</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>You need a runtime, and by having that you are duplicating part of the work the OS already does. The rundime will have a cost.</li>
+<li></li>
+<li>Can be difficult to implement in a flexible way</li>
+<li></li>
+</ul>
 <h1><a class="header" href="#implementing-the-node-eventloop" id="implementing-the-node-eventloop">Implementing the Node Eventloop</a></h1>
 <h1><a class="header" href="#what-is-node" id="what-is-node">What is Node?</a></h1>
 <h1><a class="header" href="#whats-our-plan" id="whats-our-plan">What's our plan</a></h1>
