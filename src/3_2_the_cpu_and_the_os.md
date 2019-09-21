@@ -94,6 +94,7 @@ concepts the CPU is aware of are (there are more but we can't cover everything h
 - Page table
 - Page fault
 - Exceptions
+- [Privelege level](https://en.wikipedia.org/wiki/Protection_ring)
 
 Exactly how this works will differ depending on the exact CPU so we'll treat them 
 in general terms here.
@@ -127,3 +128,19 @@ jumps to that function and thereby hands over control to the Operating System.
 The OS then prints a nice message for us letting us know that we encountered 
 what it calls a `segmentation fault`. This message will therefore wary depending on the OS you 
 run the code on.
+
+## But can't we just change the page table in the CPU?
+
+Now this is where `Privelege Level` comes in. Most modern operating systems operate with two `Ring Levels`. Ring 0, the kernel space, and Ring 3, user space.
+
+![Privelege rings](./images/priv_rings.png)
+
+Most CPUs has a concept of more rings that what most modern operating systems use. This has historical reasons, which is also why `Ring 0` and `Ring 3` are used (and not 1, 2).
+
+Now every entry in the page table has additional information about it, amongst that information is the information about what ring it belongs to. This is set up when your OS boots up,
+
+Code executed in `Ring 0` has almost unrestricted access to external devices, memory and is free to change registers that provide security at the hardware level.
+
+Now, the code you write in `Ring 3` will typically have extremely restricted access to I/O and certain CPU registers (and instructions). Trying to issue an instruction or setting a register from `Ring 3` to change the `page table` will be prevented already at the CPU level, which then treats this as an exception and jumps to the handler provided by the OS.
+
+This is also the reason why you have no other choice than to cooperate with the OS and handle I/O tasks through syscalls. The system wouldn't be very secure if this wasn't the case.

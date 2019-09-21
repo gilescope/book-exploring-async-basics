@@ -9,7 +9,7 @@ Let's start off by picturing a perfect world, and how the most efficient way of 
 
 If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?
 
-![overview](../book/images/AsyncBasicsSimplified.png)
+![overview](./images/AsyncBasicsSimplified.png)
 
 The best way would be the following:
 
@@ -20,7 +20,7 @@ The best way would be the following:
 
 Now we'll look at some ways we normally handle this:
 
-## Using OS threads
+## 1. Using OS threads
 
 Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.
 
@@ -37,7 +37,7 @@ Cons:
 - The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.
 
 
-## Green threads
+## 2. Green threads
 
 Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.
 
@@ -48,6 +48,29 @@ Pros:
 
 Cons:
 - You need a runtime, and by having that you are duplicating part of the work the OS already does. The rundime will have a cost.
-- 
-- Can be difficult to implement in a flexible way
-- 
+- Can be difficult to implement in a flexible way to handle a wide set of tasks
+
+## 3. Poll based event loops supported by the OS
+
+The third way we're covering today is the one that most closely matches our _ideal_ solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. 
+
+The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. The OS let's us know that data is ready for us to read.
+
+**Pros:**
+
+- Very little work is duplicated which makes it very performant
+- It's very efficient
+- Gives us the maximum amount of flexibility to decide how to handle the events that occurs
+
+**Cons:**
+
+- Different operating systems have different ways of handle these kind of queues. Some of them are difficult to reconcile with each other. Some operating systems has limitations on what I/O operations support this method.
+- Great flexibility comes with a good deal of complexity
+- Difficult to write an abstraction layer that accounts for the differences between the operating systems without introducing unwanted costs, and at the same time provide a ergonomic API.
+
+
+## Final note
+
+The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently.
+
+Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the _cons_ of this method. Most notably the last point.
