@@ -1,6 +1,6 @@
 # Strategies for handling I/O
 
-Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency.
+Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency. Now, just note that I'm covering I/O in general here, but I use network communication as the main example. Different strategies can have different strengths depending on what type of I/O we're talking about.
 
 
 ## The perfect solution
@@ -18,19 +18,21 @@ The best way would be the following:
 3. As soon as some data has arrived for us the Network Card let's us know
 4. We either finish what we're doing or handle that data immediately
 
-Now we'll look at some ways we normally handle this:
+This is super simplified, and probably not realistic. The idea here is that the logic that is closest to the "problem" and has the best hardware support to handle it does the work. Also, we only get notified when we are expecting something, not on every event that might occur. These assumptions are not very realistic.
 
 ## 1. Using OS threads
 
 Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.
 
-Pros:
+**Pros:**
+
 - Simple
 - Easy to code
 - Reasonably performant
 - You get paralellism for free
 
-Cons:
+**Cons:**
+
 - OS level threads come with a rather large stack. If you have many tasks happening simultaniously (like in a webserver under heavy load) you'll run out of memory pretty soon.
 - There are a lot of syscalls involved this can be pretty costly
 - The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish
@@ -41,13 +43,16 @@ Cons:
 
 Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.
 
-Pros:
+**Pros:**
+
 - Simple to use, your code will look like it does when using OS threas
 - Reasonably performant
 - Abundant memory usage is less of a problem
+- You are in full control over how threads are scheduled and if you want you can prioritize them differently.
 
-Cons:
-- You need a runtime, and by having that you are duplicating part of the work the OS already does. The rundime will have a cost.
+**Cons:**
+
+- You need a runtime, and by having that you are duplicating part of the work the OS already does. The runtime will have a cost which in some cases can be substantial.
 - Can be difficult to implement in a flexible way to handle a wide set of tasks
 
 ## 3. Poll based event loops supported by the OS

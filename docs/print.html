@@ -1184,7 +1184,7 @@ to be read. </p>
 <p>Why is this important? Well, you remember that concurrency is all about efficiency right? We'll since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.</p>
 <p>If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, get's notified when data has arrived for us.</p>
 <h1><a class="header" href="#strategies-for-handling-io" id="strategies-for-handling-io">Strategies for handling I/O</a></h1>
-<p>Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency.</p>
+<p>Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency. Now, just note that I'm covering I/O in general here, but I use network communication as the main example. Different strategies can have different strengths depending on what type of I/O we're talking about.</p>
 <h2><a class="header" href="#the-perfect-solution" id="the-perfect-solution">The perfect solution</a></h2>
 <p>Let's start off by picturing a perfect world, and how the most efficient way of handelig I/O in a concurrent manner could look like.</p>
 <p>If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?</p>
@@ -1196,17 +1196,17 @@ to be read. </p>
 <li>As soon as some data has arrived for us the Network Card let's us know</li>
 <li>We either finish what we're doing or handle that data immediately</li>
 </ol>
-<p>Now we'll look at some ways we normally handle this:</p>
+<p>This is super simplified, and probably not realistic. The idea here is that the logic that is closest to the &quot;problem&quot; and has the best hardware support to handle it does the work. Also, we only get notified when we are expecting something, not on every event that might occur. These assumptions are not very realistic.</p>
 <h2><a class="header" href="#1-using-os-threads" id="1-using-os-threads">1. Using OS threads</a></h2>
 <p>Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.</p>
-<p>Pros:</p>
+<p><strong>Pros:</strong></p>
 <ul>
 <li>Simple</li>
 <li>Easy to code</li>
 <li>Reasonably performant</li>
 <li>You get paralellism for free</li>
 </ul>
-<p>Cons:</p>
+<p><strong>Cons:</strong></p>
 <ul>
 <li>OS level threads come with a rather large stack. If you have many tasks happening simultaniously (like in a webserver under heavy load) you'll run out of memory pretty soon.</li>
 <li>There are a lot of syscalls involved this can be pretty costly</li>
@@ -1215,15 +1215,16 @@ to be read. </p>
 </ul>
 <h2><a class="header" href="#2-green-threads" id="2-green-threads">2. Green threads</a></h2>
 <p>Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
-<p>Pros:</p>
+<p><strong>Pros:</strong></p>
 <ul>
 <li>Simple to use, your code will look like it does when using OS threas</li>
 <li>Reasonably performant</li>
 <li>Abundant memory usage is less of a problem</li>
+<li>You are in full control over how threads are scheduled and if you want you can prioritize them differently.</li>
 </ul>
-<p>Cons:</p>
+<p><strong>Cons:</strong></p>
 <ul>
-<li>You need a runtime, and by having that you are duplicating part of the work the OS already does. The rundime will have a cost.</li>
+<li>You need a runtime, and by having that you are duplicating part of the work the OS already does. The runtime will have a cost which in some cases can be substantial.</li>
 <li>Can be difficult to implement in a flexible way to handle a wide set of tasks</li>
 </ul>
 <h2><a class="header" href="#3-poll-based-event-loops-supported-by-the-os" id="3-poll-based-event-loops-supported-by-the-os">3. Poll based event loops supported by the OS</a></h2>
