@@ -146,6 +146,166 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#implementing-the-node-eventloop" id="implementing-the-node-eventloop">Implementing the Node Eventloop</a></h1>
+<p>Now we've finally come to the part of this book where we will write som more code.</p>
+<p>As an example we'll implement a toy version of the Node eventloop.</p>
+<p>We want to write something like this:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+print(&quot;First call to read test.txt&quot;);
+Fs::read(&quot;test.txt&quot;, |result| {
+    let text = result.into_string().unwrap();
+    let len = text.len();
+    print(format!(&quot;First count: {} characters.&quot;, len));
+
+print(r#&quot;I want to create a &quot;magic&quot; number based on the text.&quot;#);
+Crypto::encrypt(text.len(), |result| {
+    let n = result.into_int().unwrap();
+    print(format!(r#&quot;&quot;Encrypted&quot; number is: {}&quot;#, n));
+    })
+});
+
+
+print(&quot;Registering immediate timeout 1&quot;);
+set_timeout(0, |_res| {
+    print(&quot;Immediate1 timed out&quot;);
+});
+print(&quot;Registering immediate timeout 2&quot;);
+set_timeout(0, |_res| {
+    print(&quot;Immediate2 timed out&quot;);
+});
+print(&quot;Registering immediate timeout 3&quot;);
+set_timeout(0, |_res| {
+    print(&quot;Immediate3 timed out&quot;);
+});
+
+// let's read the file again and display the text
+print(&quot;Second call to read test.txt&quot;);
+Fs::read(&quot;test.txt&quot;, |result| {
+    let text = result.into_string().unwrap();
+    let len = text.len();
+    print(format!(&quot;Second count: {} characters.&quot;, len));
+
+    // aaand one more time but not concurrently
+    print(&quot;Third call to read test.txt&quot;);
+    Fs::read(&quot;test.txt&quot;, |result| {
+        let text = result.into_string().unwrap();
+        print_content(&amp;text, &quot;file read&quot;);
+    });
+});
+
+print(&quot;Registering a 3000 and a 500 ms timeout&quot;);
+set_timeout(3000, |_res| {
+    print(&quot;3000ms timer timed out&quot;);
+    set_timeout(500, |_res| {
+        print(&quot;500ms timer(nested) timed out&quot;);
+    });
+});
+
+print(&quot;Registering a 1000 ms timeout&quot;);
+set_timeout(1000, |_res| {
+    print(&quot;SETTIMEOUT&quot;);
+});
+
+// `http_get_slow` let's us define a latency we want to simulate
+print(&quot;Registering http get request to google.com&quot;);
+Io::http_get_slow(&quot;http//www.google.com&quot;, 2000, |result| {
+    let result = result.into_string().unwrap();
+    print_content(result.trim(), &quot;web call&quot;);
+});
+#}</code></pre></pre>
+<p>And since this is just a runtime we write to learn we get this output showing us what happens when we run that code:</p>
+<pre><code>Thread: main     First call to read test.txt
+Thread: main     Registering immediate timeout 1
+Thread: pool3    recived a task of type: File read
+Thread: main     Registered timer event id: 2
+Thread: main     Registering immediate timeout 2
+Thread: main     Registered timer event id: 3
+Thread: main     Registering immediate timeout 3
+Thread: main     Registered timer event id: 4
+Thread: main     Second call to read test.txt
+Thread: main     Registering a 3000 ms timeout
+Thread: pool2    recived a task of type: File read
+Thread: main     Registered timer event id: 6
+Thread: main     Registering a 1000 ms timeout
+Thread: main     Registered timer event id: 7
+Thread: main     Registering http get request to google.com
+Thread: main     Event with id: 8 registered.
+Thread: main     ===== TICK 1 =====
+Thread: main     Immediate1 timed out
+Thread: main     Immediate2 timed out
+Thread: main     Immediate3 timed out
+Thread: main     ===== TICK 489 =====
+Thread: main     SETTIMEOUT
+Thread: pool2    finished running a task of type: File read.
+Thread: pool3    finished running a task of type: File read.
+Thread: main     ===== TICK 1057 =====
+Thread: main     First count: 39 characters.
+Thread: main     I want to create a &quot;magic&quot; number based on the text.
+Thread: main     Second count: 39 characters.
+Thread: main     Third call to read test.txt
+Thread: pool3    recived a task of type: Encrypt
+Thread: pool2    recived a task of type: File read
+Thread: epoll    epoll event 8 is ready
+Thread: main     ===== TICK 1124 =====
+
+===== THREAD main START CONTENT - WEB CALL =====
+HTTP/1.1 302 Found
+Server: CowbHTTP/1.1 302 Found
+Server: CowbHTTP/1.1 302 Found
+Server: Cowboy
+Date: Sun, 22 Sep 2019 15:17HTTP/1.1 302 Found
+Server: Cowboy
+Date: Sun, 22 Sep 2019 15:17:52 GMT
+Connection: close
+Content-Type: text/html;charset=utf-HTTP/1.1 302 Found
+Server: Cowboy
+Date: Sun, 22 Sep 2019 15:17:52 GMT
+Connection: close
+Content-Type: text/html;charset=utf-8
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: OPTIONS
+Access-Control-Allow-Methods: GET
+Access-Control-AlloHTTP/1.1 302 Found
+Server: Cowboy
+Date: Sun, 22 Sep 2019 15:17:52 GMT
+Connection: close
+Content-Type: text/html;charset=utf-8
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: OPTIONS
+Access-Control-Allow-Methods: GET
+Access-Control-Allow-Methods: POST
+Location: http://http/www.google.com
+X-Xss-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Content-Length: 0
+Via: 1.1 vegur
+
+
+===== END CONTENT =====
+
+Thread: pool3    finished running a task of type: Encrypt.
+Thread: main     ===== TICK 1330 =====
+Thread: main     &quot;Encrypted&quot; number is: 63245986
+Thread: main     ===== TICK 1597 =====
+Thread: main     3000ms timer timed out
+Thread: main     Registered timer event id: 11
+Thread: main     ===== TICK 1882 =====
+Thread: main     500ms timer(nested) timed out
+Thread: pool2    finished running a task of type: File read.
+Thread: main     ===== TICK 2171 =====
+
+===== THREAD main START CONTENT - FILE READ =====
+Hello world! This is a text to encrypt!
+===== END CONTENT =====
+
+Thread: main     FINISHED
+</code></pre>
+<p>In the following chapters I'll walk you through what's going on here but right from the start we can notice some important things going on here:</p>
+<p>The code we write has a lot of simiarities with Javascript and looks very little like idiomatic Rust code.</p>
+<p>When you look through the events you'll see they happen in a different order that we wrote them. That tells us that there is some concurrency going on here.</p>
+<p>The next chapters will explain everything going on here, so relax, get a cup of tea and stay focused as we explain everything.</p>
 
                     </main>
 

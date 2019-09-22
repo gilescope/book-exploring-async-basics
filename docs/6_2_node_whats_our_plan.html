@@ -146,6 +146,154 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#whats-our-plan" id="whats-our-plan">What's our plan</a></h1>
+<p>For our plan to work we need a runtime to run our &quot;javascript&quot;.</p>
+<p>Let's first start with our &quot;javascript&quot;:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+/// Think of this function as the javascript program you have written
+fn javascript() {
+    print(&quot;First call to read test.txt&quot;);
+    Fs::read(&quot;test.txt&quot;, |result| {
+        let text = result.into_string().unwrap();
+        let len = text.len();
+        print(format!(&quot;First count: {} characters.&quot;, len));
+
+        print(r#&quot;I want to create a &quot;magic&quot; number based on the text.&quot;#);
+        Crypto::encrypt(text.len(), |result| {
+            let n = result.into_int().unwrap();
+            print(format!(r#&quot;&quot;Encrypted&quot; number is: {}&quot;#, n));
+        })
+    });
+
+
+    print(&quot;Registering immediate timeout 1&quot;);
+    set_timeout(0, |_res| {
+        print(&quot;Immediate1 timed out&quot;);
+    });
+    print(&quot;Registering immediate timeout 2&quot;);
+    set_timeout(0, |_res| {
+        print(&quot;Immediate2 timed out&quot;);
+    });
+    print(&quot;Registering immediate timeout 3&quot;);
+    set_timeout(0, |_res| {
+        print(&quot;Immediate3 timed out&quot;);
+    });
+    // let's read the file again and display the text
+    print(&quot;Second call to read test.txt&quot;);
+    Fs::read(&quot;test.txt&quot;, |result| {
+        let text = result.into_string().unwrap();
+        let len = text.len();
+        print(format!(&quot;Second count: {} characters.&quot;, len));
+
+        // aaand one more time but not in parallell.
+        print(&quot;Third call to read test.txt&quot;);
+        Fs::read(&quot;test.txt&quot;, |result| {
+            let text = result.into_string().unwrap();
+            print_content(&amp;text, &quot;file read&quot;);
+        });
+    });
+
+    print(&quot;Registering a 3000 and a 500 ms timeout&quot;);
+    set_timeout(3000, |_res| {
+        print(&quot;3000ms timer timed out&quot;);
+        set_timeout(500, |_res| {
+            print(&quot;500ms timer(nested) timed out&quot;);
+        });
+    });
+
+    print(&quot;Registering a 1000 ms timeout&quot;);
+    set_timeout(1000, |_res| {
+        print(&quot;SETTIMEOUT&quot;);
+    });
+
+    // `http_get_slow` let's us define a latency we want to simulate
+    print(&quot;Registering http get request to google.com&quot;);
+    Io::http_get_slow(&quot;http//www.google.com&quot;, 2000, |result| {
+        let result = result.into_string().unwrap();
+        print_content(result.trim(), &quot;web call&quot;);
+    });
+}
+
+fn print(t: impl std::fmt::Display) {
+    println!(&quot;Thread: {}\t {}&quot;, current(), t);
+}
+
+fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
+    println!(
+        &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
+        current(),
+        descr.to_uppercase()
+    );
+    println!(&quot;{}&quot;, t);
+    println!(&quot;===== END CONTENT =====\n&quot;);
+}
+#}</code></pre></pre>
+<p>Next, let's feed this code into our runtime:</p>
+<pre><pre class="playpen"><code class="language-rust">fn main() {
+    let mut rt = Runtime::new();
+    rt.run(javascript);
+}
+</code></pre></pre>
+<p>Now before we go on to implement our runtime we'll need some helper functions:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn print(t: impl std::fmt::Display) {
+    println!(&quot;Thread: {}\t {}&quot;, current(), t);
+}
+
+fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
+    println!(
+        &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
+        current(),
+        descr.to_uppercase()
+    );
+    println!(&quot;{}&quot;, t);
+    println!(&quot;===== END CONTENT =====\n&quot;);
+}
+
+fn current() -&gt; String {
+    thread::current().name().unwrap().to_string()
+}
+
+#}</code></pre></pre>
+<p>Here we define three functions:</p>
+<p><code>print</code> which prints out a message that first tells us what thread the message is beeing outputted from, and then a message we provide:</p>
+<p><code>print_content</code> does the same as <code>print</code> but is a way for us to print out more than a message in a nice way.</p>
+<p><code>current</code> is just a shortcut for us to get the name of the current thread. Since we want to track what's happening where we're going to need to print out what thread is issuing what output so this will avoid cluttering up our code too much along the way.</p>
+<p>Next we pull in some modules from the standard library and we refer to an external library called <code>minimio</code></p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+use std::collections::{BTreeMap, HashMap};
+use std::fmt;
+use std::fs;
+use std::io::{Read, Write};
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::thread::{self, JoinHandle};
+use std::time::{Duration, Instant};
+
+use minimio;
+#}</code></pre></pre>
+<h2><a class="header" href="#minimio" id="minimio">Minimio</a></h2>
+<p>Minimio is a cross platform epoll/kqueue/IOCP based event loop that we will cover in the next book. I originally included it here but implementing that for three arcitectures is pretty interesting and needed more space than would fit in this book.</p>
+<p>Most modern I/O eventloops uses a cross platform library like this. In Rust we have <a href="https://github.com/tokio-rs/mio"><code>mio</code></a>, Node uses <a href="https://github.com/libuv/libuv"><code>libuv</code></a> and there are several more. However, creating a cross platform general eventloop is pretty challenging since Windows and Unix has different ways of handeling events. We'll talk much more about this in the next book but let's just make a note of it here.</p>
+<p>Let's briefly cover the how this works and why we need this in Node:</p>
+<h3><a class="header" href="#epoll" id="epoll">Epoll</a></h3>
+<p><code>Epoll</code> is the Linux way of implementing an event queue. In terms of functionality it has a lot of common with <code>Kqueue</code>. On a high level these abstractions provide us with this functionality:</p>
+<ol>
+<li>A handle to an event queue</li>
+<li>A way for us to register interest for events on a file descriptor and place it in this queue</li>
+<li>A way for us to wait for this event to occur by letting the OS suspend our thread and wake us up when event is ready</li>
+</ol>
+<h3><a class="header" href="#kqueue" id="kqueue">Kqueue</a></h3>
+<p><code>Kqueue</code> is the Macos way of implementing an event queue, well, actually it's the BSD way of doint this that Macos uses. In terms of high level functionality it's similar to <code>Epoll</code>.</p>
+<p>The differences are in how you interact with the queues and there are some differences in functionality but for the normal use case they are similar enough.</p>
+<h3><a class="header" href="#iocp" id="iocp">IOCP</a></h3>
+<p><code>IOCP</code> or Input Output Completion Ports is the way Windows handles this type of event queue. This type of queue works differently from <code>epoll</code> and <code>kqueue</code>. The biggest difference in terms of functionality is that <code>epoll</code> and <code>kqueue</code> lets you know when an event is ready (i.e. some data is ready to be read). We call this form of model a <code>readiness based</code> model.</p>
+<p>Windows on the other hand uses a <code>completion based</code> model. This means it will let you know when an event has <code>Completed</code>. Now this might sound like a minor difference but it's not, especially when you want to write a library.</p>
+<p>The major difficulty is that you either need to get <code>epoll</code> or <code>kqueue</code> to behave like they're <code>completion based</code> or you'll have to try to get Windows to behave in a <code>readiness based</code> manner. The latter is the way <code>wepoll</code> and <code>mio</code> does it but this change is very recent and uses a few undocumented parts of the Windows API.</p>
 
                     </main>
 
