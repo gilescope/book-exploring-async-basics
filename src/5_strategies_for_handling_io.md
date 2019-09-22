@@ -45,7 +45,7 @@ Another common way of handling this is green threads. Languages like GO uses thi
 
 **Pros:**
 
-- Simple to use, your code will look like it does when using OS threas
+- Simple to use for the user. The code will look like it does when using OS threads
 - Reasonably performant
 - Abundant memory usage is less of a problem
 - You are in full control over how threads are scheduled and if you want you can prioritize them differently.
@@ -54,6 +54,7 @@ Another common way of handling this is green threads. Languages like GO uses thi
 
 - You need a runtime, and by having that you are duplicating part of the work the OS already does. The runtime will have a cost which in some cases can be substantial.
 - Can be difficult to implement in a flexible way to handle a wide set of tasks
+
 
 ## 3. Poll based event loops supported by the OS
 
