@@ -1581,15 +1581,331 @@ use minimio;
 <p><code>IOCP</code> or Input Output Completion Ports is the way Windows handles this type of event queue. This type of queue works differently from <code>epoll</code> and <code>kqueue</code>. The biggest difference in terms of functionality is that <code>epoll</code> and <code>kqueue</code> lets you know when an event is ready (i.e. some data is ready to be read). We call this form of model a <code>readiness based</code> model.</p>
 <p>Windows on the other hand uses a <code>completion based</code> model. This means it will let you know when an event has <code>Completed</code>. Now this might sound like a minor difference but it's not, especially when you want to write a library.</p>
 <p>The major difficulty is that you either need to get <code>epoll</code> or <code>kqueue</code> to behave like they're <code>completion based</code> or you'll have to try to get Windows to behave in a <code>readiness based</code> manner. The latter is the way <code>wepoll</code> and <code>mio</code> does it but this change is very recent and uses a few undocumented parts of the Windows API.</p>
+<h2><a class="header" href="#important-things-to-note-before-reading-further" id="important-things-to-note-before-reading-further">Important things to note before reading further</a></h2>
+<p>We have to explain some things right here to prepare you for the rest.</p>
+<p>We are using a callback based model, as is Node. </p>
+<p>Our code here is mostly calling functions that register an event, and stores a
+callback to be run when the event is ready.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+set_timeout(0, |_res| {
+    print(&quot;Immediate1 timed out&quot;);
+});
+#}</code></pre></pre>
+<p>What happens here is that we register interest in a <code>timeout</code> event. And we register
+the callback <code>|_res| { print(&quot;Immediate1 timed out&quot;); }</code>. Now the parameter <code>_res</code> is
+an argument that is passed in to our callback. In javascript it would be left out, but
+since we use a typed language we have created a type called <code>Js</code>.</p>
+<p><code>Js</code> is an enum that represents Javascript types. In the case of <code>set_timeout</code> it's
+<code>Js::undefined</code>. In the case of <code>Fs::read</code> it's an <code>Js::String</code> and so on.</p>
+<p>Now this callback is given an <strong>unique Id</strong> and is stored until the event occurs and
+we invoke the callback and pass in any arguments we might have. In the case of <code>Fs::read</code>
+that would be the text representation of the file we read.</p>
+<h3><a class="header" href="#nodes-eventloops" id="nodes-eventloops">Nodes eventloop(s)</a></h3>
+<p>Node internally divides it's real work into two categories:</p>
+<h4><a class="header" href="#io-bound-tasks" id="io-bound-tasks">I/O bound tasks</a></h4>
+<p>Are handleded by the cross platform epoll/kqueue/IOCP event queue implemented in <code>libuv</code> and in our case <code>minimio</code>.</p>
+<h4><a class="header" href="#cpu-bound-tasks" id="cpu-bound-tasks">CPU bound tasks</a></h4>
+<p>Are handeled by an threadpool. The default size of this threadpool is 4 threads, but that can be configured by the Node runtime.</p>
+<p>I/O tasks which can't be handled by the cross platform eventqueue is also handled here which is the case with file reads which we use in our example.</p>
+<p>Most C++ extensions for Node uses this threadpool to perform their work and that is one of many reasons they are used for CPU heavy tasks.</p>
 <h1><a class="header" href="#the-main-loop" id="the-main-loop">The main loop</a></h1>
 <p>Before we implement the eventlopp we need to set up our Runtime so we can save all our state there:</p>
 <p>As of now, our Runtime struct will look like this: </p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
-
 #fn main() {
+pub struct Runtime {
+}
+
 #}</code></pre></pre>
-<p>So this is the meat of the matter and the heart of our runtime. Let's go through how the event loop works:</p>
+<p>Don't worry, we'll fill in the fields as we go along but I didn't want you to stop now an try to figure out what everything is.</p>
+<p>Let's get back on track. And talk a bit about the eventloop, which probably is the most interesting part of code in this book since there has been som much written about it:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl Runtime {
+
+    pub fn run(&amp;mut self, f: impl Fn()) {
+        let rt_ptr: *mut Runtime = self;
+        unsafe { RUNTIME = rt_ptr as usize };
+        let mut timers_to_remove = vec![]; 
+        let mut ticks = 0; // just for us priting out
+
+        // First we run our &quot;main&quot; function
+        f();
+
+        // ===== EVENT LOOP =====
+        while self.pending_events &gt; 0 {
+            ticks += 1;
+
+            // ===== TIMERS =====
+
+            self.timers
+                .range(..=Instant::now())
+                .for_each(|(k, _)| timers_to_remove.push(*k));
+
+            while let Some(key) = timers_to_remove.pop() {
+                let callback_id = self.timers.remove(&amp;key).unwrap();
+                self.next_tick_callbacks.push((callback_id, Js::Undefined));
+            }
+
+            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+            if !self.next_tick_callbacks.is_empty() {
+                print(format!(&quot;===== TICK {} =====&quot;, ticks));
+            }
+
+            // ===== CALLBACKS =====
+            while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
+                let cb = self.callback_queue.remove(&amp;callback_id).unwrap();
+                cb(data);
+                self.pending_events -= 1;
+            }
+
+            // ===== IDLE/PREPARE =====
+            // we won't use this
+
+            // ===== POLL =====
+
+            // First poll any epoll/kqueue/IOCP
+            while let Ok(event_id) = self.epoll_reciever.try_recv() {
+                let id = self
+                    .epoll_event_cb_map
+                    .get(&amp;(event_id as i64))
+                    .expect(&quot;Event not in event map.&quot;);
+                let callback_id = *id;
+                self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+
+                self.next_tick_callbacks.push((callback_id, Js::Undefined));
+                self.epoll_pending -= 1;
+            }
+
+            // then check if there is any results from the threadpool
+            while let Ok((thread_id, callback_id, data)) = self.threadp_reciever.try_recv() {
+                self.next_tick_callbacks.push((callback_id, data));
+                self.available.push(thread_id);
+            }
+
+            // ===== CHECK =====
+            // an set immidiate function could be added pretty easily but we won't do that here
+
+            // ===== CLOSE CALLBACKS ======
+            // Release resources, we won't do that here, it's just another &quot;hook&quot; for our &quot;extensions&quot;
+            // to use. We release in every callback instead
+
+            // Let the OS have a time slice of our thread so we don't busy loop
+            // this could be dynamically set depending on requirements or load.
+            thread::park_timeout(std::time::Duration::from_millis(1));
+        }
+        print(&quot;FINISHED&quot;);
+    }
+}
+#}</code></pre></pre>
+<p>This is a lot to parse and will be a lot to take in right now. But this is also
+the heart of our program. Let's go through and explain everything.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let rt_ptr: *mut Runtime = self;
+unsafe { RUNTIME = rt_ptr as usize };
+let mut timers_to_remove = vec![]; 
+let mut ticks = 0; // just for us priting out
+
+// First we run our &quot;main&quot; function
+f();
+#}</code></pre></pre>
+<p>The first two lines is just a <code>hack</code> we use in our code to make it &quot;look&quot; more
+like javascript. Here we take the pointer to <code>self</code> and set it in the global
+variable <code>RUNTIME</code>. We could instead pass our <code>runtime</code> around but that wouldn't
+be very ergonomic. Another option would be to use <code>lazy_static</code> crate to initlialize
+this field in a safer way, but we'd have to explain what <code>lazy_static</code> do to keep
+our promise of minimal &quot;magic&quot;. To be honest, we only set this once, and it's set at
+the start of of our eventloop and not touched until it's finished so in this case we
+could argue it's safe to do it like this.</p>
+<p>The variable <code>timers_to_remove</code> is for us to keep track of the timers we've set.
+<code>ticks</code> is only a counter for us to keep track of how many times we've looped
+to display.</p>
+<p>The first thing we do to kick of the code is invoking <code>f()</code>. <code>f</code> will be the code we wrote in the <code>javascript</code> function in the last chapter. It's the code the user wrote.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== EVENT LOOP =====
+while self.pending_events &gt; 0 {
+    ticks += 1;
+#}</code></pre></pre>
+<p>The next thing we do is to start our eventloop. There are two things to note here:</p>
+<p><code>self.pending_events</code> isn't in our runtime struct yet so we need to add that. This variable keeps track of how many pending events we have, so that when no events are left we exit the loop since our eventloop is finished.</p>
+<p>So where does these events come from? In our <code>javascript</code> function in the previous chapters you probably noticed that we called functions like <code>set_timeout</code> and <code>Fs::read</code>. These functions are defined in the Node runtime (as they are in ours), and they don't do much except from regestering events. So when one of these events are registered this counter is increased.</p>
+<p><code>ticks</code> is just increasing a <code>tick</code> in the counter.</p>
+<p>So our Runtime struct looks like this now:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct Runtime {
+    pending_events: usize,
+}
+
+#}</code></pre></pre>
+<h2><a class="header" href="#1-check-timers" id="1-check-timers">1. Check timers</a></h2>
+<p>The first step in the event loop is checking the timers:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== TIMERS =====
+self.timers
+    .range(..=Instant::now())
+    .for_each(|(k, _)| timers_to_remove.push(*k));
+
+while let Some(key) = timers_to_remove.pop() {
+    let callback_id = self.timers.remove(&amp;key).unwrap();
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+}
+
+// NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+if !self.next_tick_callbacks.is_empty() {
+    print(format!(&quot;===== TICK {} =====&quot;, ticks));
+}
+#}</code></pre></pre>
+<p>The first thing to note here is that we check <code>self.timers</code> and to understand the
+rest of the syntax we'll have to look what kind of collection this is.</p>
+<p>Now I chose a <code>BTreeMap&lt;Instant, usize&gt;</code> for this collection. The reason is that
+i want to have many <code>Instant</code>'s chronologically. When I add a timer, I calculate
+at what instance it's supposed to be run and I add that to this collection.</p>
+<blockquote>
+<p>BTrees are a very good data structure when you know that your keys will be ordered.</p>
+</blockquote>
+<p>Choosing a <code>BTreeMap</code> here allows me to get a range <code>range(..=Instant::noew())</code>
+which is from the start of the map, up until or equal to the instant NOW.</p>
+<p>Now I take every key in this range and add it to <code>timers_to_remove</code>, and the reason
+for this is that I found no good way to both get a range and remove the key's in one
+operation without allocating a small buffer every time. You can iterate over the range
+but due to the ownership rules you can't remove them at the same time, and we want to
+remove the timers, we've run.</p>
+<p>The eventloop will run repeatedly so avoiding any allocations inside the loop is smart. There is no need to have this overhead.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+while let Some(key) = timers_to_remove.pop() {
+    let callback_id = self.timers.remove(&amp;key).unwrap();
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+}
+#}</code></pre></pre>
+<p>The next step is to take every timer that has expired, remove the timer from our <code>self.timers</code> collection and get their <code>callback_id</code>.</p>
+<p>As I explained in the previous chapter, this is an unique Id for this callback. What's
+important here is that **we don't run the callback <strong>immediately</strong>. Node actually registers callbacks to be run on the next <code>tick</code>. An exception is the timers since they either have timed out or is a timer with a timeout of <code>0</code>. In this case a timer will not wait for the next tick if it has timed out, or in the case if it has a timeout of <code>0</code> they will be invoked immediately as you'll see next.</p>
+<p>Anyway, for now we add the callback id's to <code>self.next_tick_callbacks</code>.</p>
+<p>Before we go on. Let's update our <code>Runtime</code> struct to reflect what we've seen:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct Runtime {
+    pending_events: usize,
+    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
+    timers: BTreeMap&lt;Instant, usize&gt;,
+}
+#}</code></pre></pre>
+<h2><a class="header" href="#2-process-callbacks" id="2-process-callbacks">2. Process callbacks</a></h2>
+<p>The next step is to handle any callbacks we've scheduled to run.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== CALLBACKS =====
+while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
+    let cb = self.callback_queue.remove(&amp;callback_id).unwrap();
+    cb(data);
+    self.pending_events -= 1;
+}
+#}</code></pre></pre>
+<p>Here we <code>pop</code> off all callbacks that are scheduled to run. As you see from our last update on the <code>Runtime</code> struct. <code>next_tick_callbacks</code> is an array of callback_id and an argument type of <code>Js</code>.</p>
+<p>So when we've got a <code>callback_id</code> we find the corresponding callback we have stored in <code>self.callback_queue</code> and remove the entry. What we get in return is a callback of type
+<code>Box&lt;dyn FnOnce(Js)&gt;</code>. We're going to explain this type more later but it's basically a closure stored on the heap that takes one argument of type <code>Js</code>.</p>
+<p><code>cb(data)</code> runs the code in this closure. After it's done it's time to decrease our counter of pending events: <code>self.pending_events -= 1;</code>.</p>
+<blockquote>
+<p>Now, this step is important. As you might understand, any long running code in this callback is going to block our <code>eventloop</code>, preventing it from progressing. So no new callbacks are handleded and no new events are registered. This is why it's bad to write code that blocks the eventloop.</p>
+</blockquote>
+<p>Let's update our Runtime struct again:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct Runtime {
+    callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
+    pending_events: usize,
+    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
+    timers: BTreeMap&lt;Instant, usize&gt;,
+}
+#}</code></pre></pre>
+<h2><a class="header" href="#3-idleprepare" id="3-idleprepare">3. Idle/prepare</a></h2>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== IDLE/PREPARE =====
+// we won't use this
+#}</code></pre></pre>
+<p>The Idle/Prepare step is reportedly used internally by Node. They're not so interesting for us in understanding Nodes eventloop so we skip this step.</p>
+<h2><a class="header" href="#4-poll" id="4-poll">4. Poll</a></h2>
+<p>The next phase is to check if any events are ready from either our threadpool or our eventqueue.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+ // ===== POLL =====
+// First poll any epoll/kqueue/IOCP
+while let Ok(event_id) = self.epoll_reciever.try_recv() {
+    let id = self
+        .epoll_event_cb_map
+        .get(&amp;(event_id as i64))
+        .expect(&quot;Event not in event map.&quot;);
+    let callback_id = *id;
+    self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+    self.epoll_pending -= 1;
+}
+
+// then check if there is any results from the threadpool
+while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
+    self.next_tick_callbacks.push((callback_id, data));
+    self.available.push(thread_id);
+}
+#}</code></pre></pre>
+<p>There is a lot going on here so let's step through it:</p>
+<p>First we check our <code>epoll/kqueue/IOCP</code> event queue and see if anything events are ready.</p>
+<p>The first thing we do is to check if there are any incoming messages on our channel
+<code>self.epoll_reciever.try_recv()</code>, as you'll see when we define this in our <code>Runtime</code> I chose to implement this using Rusts channels which is a good fit for this. No need to make it more complicated than it is.</p>
+<p>If any events has occured we get an <code>event_id</code>. Since <code>event_id</code>'s can potentially overlap with Id's we have given previous callbacks we use a map where we give this <code>event</code> an unique <code>callback_id</code> that ties the event to the callback we have registered.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+self.epoll_event_cb_map
+        .get(&amp;(event_id as i64))
+        .expect(&quot;Event not in event map.&quot;);
+#}</code></pre></pre>
+<p>Retrieves the <code>callback_id</code> we stored with this event which we then remove from the map
+<code>self.epoll_event_cb_map.remove(&amp;(event_id as i64))</code> so we don't store it indefinately.</p>
+<p>The next two steps is the same as you saw used in the timer segment. We schedule the callback to get run on the next tick.</p>
+<blockquote>
+<p>One thing to note is that we pass in Js::Undefined here too even though the callback we registered is expecting data. The reason for this is that we wrap the callback to accomodate for the difference between <code>epoll/kqueue</code> and <code>IOCP</code>. In the case of <code>epoll/kqueue</code> we read the data into a buffer we pass in before we call the callback, and in the case of <code>IOCP</code> the data is already filled for us.</p>
+</blockquote>
+<p>The next thing to check is our threadpool. As you see here we also use <code>Channel</code> here to communicate.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
+    self.next_tick_callbacks.push((callback_id, data));
+    self.available.push(thread_id);
+}
+#}</code></pre></pre>
+<p>We get some more data here. Namely a <code>thread_id</code>, <code>callback_id</code> and <code>data</code>. Now we need the <code>thread_id</code> to mark this thread as <code>available</code> so it can be used on subsequent calls to the threadpool. The <code>callback_id</code> we need in all cases to know what callback to invoke. One difference here is that the thread also holds the data we want to pass in to our callback so we also get that an pass that in to our <code>next_tick_callbacks</code> so it's available to our callback on the next tick.</p>
+<h2><a class="header" href="#5-check" id="5-check">5. Check</a></h2>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== CHECK =====
+// an set immidiate function could be added pretty easily but we won't that here
+#}</code></pre></pre>
+<p>Node implements a check &quot;hook&quot; to the eventloop next. This is where </p>
+<h2><a class="header" href="#shortcuts" id="shortcuts">Shortcuts</a></h2>
+<p>This is the event loop. There are several things we could do here to make it a better implementation. One is to set a max backlog of callbacks to execute in a single tick, so we don't starve the threadpool or file handlers. Another is to dynamically decide if/and how long the thread could be allowed to be parked for example by looking at the backlog of events, and if there is any backlog disable it. Some of our Vec's will only grow, and not resize, so if we have a period of very high load,the memory will stay higher than we need until a restart. This could be dealt with or a differentdata structure could be used.</p>
 <h1><a class="header" href="#the-threadpool" id="the-threadpool">The threadpool</a></h1>
 <h1><a class="header" href="#the-io-eventqueue" id="the-io-eventqueue">The I/O eventqueue</a></h1>
 <h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>

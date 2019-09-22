@@ -169,3 +169,47 @@ Windows on the other hand uses a `completion based` model. This means it will le
 
 The major difficulty is that you either need to get `epoll` or `kqueue` to behave like they're `completion based` or you'll have to try to get Windows to behave in a `readiness based` manner. The latter is the way `wepoll` and `mio` does it but this change is very recent and uses a few undocumented parts of the Windows API.
 
+
+
+## Important things to note before reading further
+
+We have to explain some things right here to prepare you for the rest.
+
+We are using a callback based model, as is Node. 
+
+Our code here is mostly calling functions that register an event, and stores a
+callback to be run when the event is ready.
+
+```rust
+set_timeout(0, |_res| {
+    print("Immediate1 timed out");
+});
+```
+
+What happens here is that we register interest in a `timeout` event. And we register
+the callback `|_res| { print("Immediate1 timed out"); }`. Now the parameter `_res` is
+an argument that is passed in to our callback. In javascript it would be left out, but
+since we use a typed language we have created a type called `Js`.
+
+`Js` is an enum that represents Javascript types. In the case of `set_timeout` it's
+`Js::undefined`. In the case of `Fs::read` it's an `Js::String` and so on.
+
+Now this callback is given an **unique Id** and is stored until the event occurs and
+we invoke the callback and pass in any arguments we might have. In the case of `Fs::read`
+that would be the text representation of the file we read.
+
+### Nodes eventloop(s)
+
+Node internally divides it's real work into two categories:
+
+#### I/O bound tasks
+
+Are handleded by the cross platform epoll/kqueue/IOCP event queue implemented in `libuv` and in our case `minimio`.
+
+#### CPU bound tasks
+
+Are handeled by an threadpool. The default size of this threadpool is 4 threads, but that can be configured by the Node runtime.
+
+I/O tasks which can't be handled by the cross platform eventqueue is also handled here which is the case with file reads which we use in our example.
+
+Most C++ extensions for Node uses this threadpool to perform their work and that is one of many reasons they are used for CPU heavy tasks.

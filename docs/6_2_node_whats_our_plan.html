@@ -294,6 +294,35 @@ use minimio;
 <p><code>IOCP</code> or Input Output Completion Ports is the way Windows handles this type of event queue. This type of queue works differently from <code>epoll</code> and <code>kqueue</code>. The biggest difference in terms of functionality is that <code>epoll</code> and <code>kqueue</code> lets you know when an event is ready (i.e. some data is ready to be read). We call this form of model a <code>readiness based</code> model.</p>
 <p>Windows on the other hand uses a <code>completion based</code> model. This means it will let you know when an event has <code>Completed</code>. Now this might sound like a minor difference but it's not, especially when you want to write a library.</p>
 <p>The major difficulty is that you either need to get <code>epoll</code> or <code>kqueue</code> to behave like they're <code>completion based</code> or you'll have to try to get Windows to behave in a <code>readiness based</code> manner. The latter is the way <code>wepoll</code> and <code>mio</code> does it but this change is very recent and uses a few undocumented parts of the Windows API.</p>
+<h2><a class="header" href="#important-things-to-note-before-reading-further" id="important-things-to-note-before-reading-further">Important things to note before reading further</a></h2>
+<p>We have to explain some things right here to prepare you for the rest.</p>
+<p>We are using a callback based model, as is Node. </p>
+<p>Our code here is mostly calling functions that register an event, and stores a
+callback to be run when the event is ready.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+set_timeout(0, |_res| {
+    print(&quot;Immediate1 timed out&quot;);
+});
+#}</code></pre></pre>
+<p>What happens here is that we register interest in a <code>timeout</code> event. And we register
+the callback <code>|_res| { print(&quot;Immediate1 timed out&quot;); }</code>. Now the parameter <code>_res</code> is
+an argument that is passed in to our callback. In javascript it would be left out, but
+since we use a typed language we have created a type called <code>Js</code>.</p>
+<p><code>Js</code> is an enum that represents Javascript types. In the case of <code>set_timeout</code> it's
+<code>Js::undefined</code>. In the case of <code>Fs::read</code> it's an <code>Js::String</code> and so on.</p>
+<p>Now this callback is given an <strong>unique Id</strong> and is stored until the event occurs and
+we invoke the callback and pass in any arguments we might have. In the case of <code>Fs::read</code>
+that would be the text representation of the file we read.</p>
+<h3><a class="header" href="#nodes-eventloops" id="nodes-eventloops">Nodes eventloop(s)</a></h3>
+<p>Node internally divides it's real work into two categories:</p>
+<h4><a class="header" href="#io-bound-tasks" id="io-bound-tasks">I/O bound tasks</a></h4>
+<p>Are handleded by the cross platform epoll/kqueue/IOCP event queue implemented in <code>libuv</code> and in our case <code>minimio</code>.</p>
+<h4><a class="header" href="#cpu-bound-tasks" id="cpu-bound-tasks">CPU bound tasks</a></h4>
+<p>Are handeled by an threadpool. The default size of this threadpool is 4 threads, but that can be configured by the Node runtime.</p>
+<p>I/O tasks which can't be handled by the cross platform eventqueue is also handled here which is the case with file reads which we use in our example.</p>
+<p>Most C++ extensions for Node uses this threadpool to perform their work and that is one of many reasons they are used for CPU heavy tasks.</p>
 
                     </main>
 
