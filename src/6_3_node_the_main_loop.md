@@ -216,6 +216,12 @@ while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
 }
 ```
 
+> Shortcut. Not all of Nodes callbacks are processed here. Some callbacks is called
+> directly in the `poll` phase we'll introduce below. It's not difficult to implement
+> but it adds unneccecary complexity to our example so we schedula all callbacks to be
+> run in this step of the process. As long as you know this is an oversimplification
+> you're going to be alright :)
+
 Here we `pop` off all callbacks that are scheduled to run. As you see from our last update on the `Runtime` struct. `next_tick_callbacks` is an array of callback_id and an argument type of `Js`.
 
 So when we've got a `callback_id` we find the corresponding callback we have stored in `self.callback_queue` and remove the entry. What we get in return is a callback of type
@@ -278,6 +284,10 @@ First we check our `epoll/kqueue/IOCP` event queue and see if anything events ar
 The first thing we do is to check if there are any incoming messages on our channel
 `self.epoll_reciever.try_recv()`, as you'll see when we define this in our `Runtime` I chose to implement this using Rusts channels which is a good fit for this. No need to make it more complicated than it is.
 
+We're choosing to keep track on how many epoll events we're waiting for in
+`self.epoll_pending`, so once an event is ready we'll decrement this to reflect
+that we have one less event in the I/O eventloop.
+
 If any events has occured we get an `event_id`. Since `event_id`'s can potentially overlap with Id's we have given previous callbacks we use a map where we give this `event` an unique `callback_id` that ties the event to the callback we have registered.
 
 ```rust
@@ -288,6 +298,8 @@ self.epoll_event_cb_map
 
 Retrieves the `callback_id` we stored with this event which we then remove from the map
 `self.epoll_event_cb_map.remove(&(event_id as i64))` so we don't store it indefinately.
+
+
 
 The next two steps is the same as you saw used in the timer segment. We schedule the callback to get run on the next tick.
 
@@ -303,6 +315,23 @@ while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
 ```
 We get some more data here. Namely a `thread_id`, `callback_id` and `data`. Now we need the `thread_id` to mark this thread as `available` so it can be used on subsequent calls to the threadpool. The `callback_id` we need in all cases to know what callback to invoke. One difference here is that the thread also holds the data we want to pass in to our callback so we also get that an pass that in to our `next_tick_callbacks` so it's available to our callback on the next tick.
 
+Now we introduced a lot of new members of our `Runtime` struct here and it's almost
+finished:
+
+```rust
+pub struct Runtime {
+    callback_queue: HashMap<usize, Box<dyn FnOnce(Js)>>,
+    next_tick_callbacks: Vec<(usize, Js)>,
+    identity_token: usize,
+    pending_events: usize,
+    threadp_reciever: Receiver<(usize, usize, Js)>,
+    epoll_reciever: Receiver<usize>,
+    epoll_pending: usize,
+    epoll_event_cb_map: HashMap<i64, usize>,
+    timers: BTreeMap<Instant, usize>,
+    epoll_registrator: minimio::Registrator,
+}
+```
 
  ## 5. Check
 
@@ -311,7 +340,26 @@ We get some more data here. Namely a `thread_id`, `callback_id` and `data`. Now 
 // an set immidiate function could be added pretty easily but we won't that here
 ```
 
-Node implements a check "hook" to the eventloop next. This is where 
+Node implements a check "hook" to the eventloop next. At this point calls to 
+`setImmidiate` execute here. I just include it for for completeness but we won't
+do anything in this phase.
+
+## 6. Close Callbacks
+
+```rust
+// ===== CLOSE CALLBACKS ======
+// Release resources, we won't do that here, it's just another "hook" for our "extensions"
+// to use. We release in every callback instead
+```
+
+I pretty much explain this step in the comments. Typically releaseing resources
+if neccesary is done here.
+
+## Moving on
+
+Now we've alredy gotten really far by explaining how our eventloop works already
+in the first chapter. Now we just need to set up the infrastructure for this
+loop to work.
 
 ## Shortcuts
 This is the event loop. There are several things we could do here to make it a better implementation. One is to set a max backlog of callbacks to execute in a single tick, so we don't starve the threadpool or file handlers. Another is to dynamically decide if/and how long the thread could be allowed to be parked for example by looking at the backlog of events, and if there is any backlog disable it. Some of our Vec's will only grow, and not resize, so if we have a period of very high load,the memory will stay higher than we need until a restart. This could be dealt with or a differentdata structure could be used.
