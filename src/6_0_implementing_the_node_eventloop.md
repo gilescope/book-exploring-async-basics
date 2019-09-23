@@ -2,7 +2,15 @@
 
 Now we've finally come to the part of this book where we will write som more code.
 
-As an example we'll implement a toy version of the Node eventloop.
+The Node event loop is a complex piece of software developed over many years. We
+will have to simplify things a lot. There are many edge cases that we won't cover,
+and there are many intricacies that we'll not mention or implement. 
+
+However, I will try to implement the parts that are important for us to understand Node better and most importantly use it as an example where we can use our knowledge from the previous chapters to make something that actually works.
+
+What we will do is to look at how it conceptually works. Our main goal here is
+to explore async concepts, using Node as an example is part curiosity and part
+for fun.
 
 We want to write something like this:
 

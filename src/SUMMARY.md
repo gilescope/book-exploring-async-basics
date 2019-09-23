@@ -13,8 +13,10 @@
   - [What is Node?](./6_1_what_is_node.md)
   - [What's our plan](./6_2_node_whats_our_plan.md)
   - [The main loop](./6_3_node_the_main_loop.md)
-  - [The threadpool](./6_4_node_the_threadpool.md)
-  - [The I/O eventqueue](./6_5_node_the_io_eventqueue.md)
-  - [Final code](./6_6_node_final_code.md)
+  - [Implementing the Runtime](6_4_implementing_the_runtime.md)
+  - [The threadpool](./6_5_node_the_threadpool.md)
+  - [The I/O eventqueue](./6_6_node_the_io_eventqueue.md)
+  - [Shortcuts and improvements](./6_7_shortcuts_and_improvements.md)
+  - [Final code](./6_8_node_final_code.md)
 
 [Conclusion](./conclusion.md)

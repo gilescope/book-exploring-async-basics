@@ -2,25 +2,29 @@
 
 Before we implement the eventlopp we need to set up our Runtime so we can save all our state there:
 
-As of now, our Runtime struct will look like this: 
+When we're finished, our Runtime struct will look like this: 
 
 ```rust
 pub struct Runtime {
+    
 }
 
 ```
 
-Don't worry, we'll fill in the fields as we go along but I didn't want you to stop now an try to figure out what everything is.
+Don't worry, we'll fill in the fields as we go along but I didn't want you to 
+stop now an try to figure out what everything is.
 
-Let's get back on track. And talk a bit about the eventloop, which probably is the most interesting part of code in this book since there has been som much written about it:
+Let's get back on track. And talk a bit about the eventloop, which probably is 
+the most interesting part of code in this book since there has been som much
+written about it:
 
 ```rust
 impl Runtime {
-
     pub fn run(&mut self, f: impl Fn()) {
         let rt_ptr: *mut Runtime = self;
         unsafe { RUNTIME = rt_ptr as usize };
-        let mut timers_to_remove = vec![]; 
+
+        let mut timers_to_remove = vec![]; // avoid allocating on every loop
         let mut ticks = 0; // just for us priting out
 
         // First we run our "main" function
@@ -30,59 +34,38 @@ impl Runtime {
         while self.pending_events > 0 {
             ticks += 1;
 
-            // ===== TIMERS =====
-
-            self.timers
-                .range(..=Instant::now())
-                .for_each(|(k, _)| timers_to_remove.push(*k));
-
-            while let Some(key) = timers_to_remove.pop() {
-                let callback_id = self.timers.remove(&key).unwrap();
-                self.next_tick_callbacks.push((callback_id, Js::Undefined));
-            }
+            // ===== 2. TIMERS =====
+            self.effectuate_timers(&mut timers_to_remove);
 
             // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
-            if !self.next_tick_callbacks.is_empty() {
+            if !self.callbacks_to_run.is_empty() {
                 print(format!("===== TICK {} =====", ticks));
             }
 
-            // ===== CALLBACKS =====
-            while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
-                let cb = self.callback_queue.remove(&callback_id).unwrap();
-                cb(data);
-                self.pending_events -= 1;
-            }
+            // ===== 2. CALLBACKS =====
+            // Timer callbacks and if for some reason we have postponed callbacks
+            // to run on the next tick. Not possible in our implementation though.
+            self.run_callbacks();
 
-            // ===== IDLE/PREPARE =====
+            // ===== 3. IDLE/PREPARE =====
             // we won't use this
 
-            // ===== POLL =====
+            // ===== 4. POLL =====
+            // NB! Timeout! Normally we set these "blocking" polls to time out
+            // when we calculate the next timer to expire, we set that as the
+            // timeout to our epoll queue. Then we block the loop while waiting
+            // for an event to happen or a timeout to expire.
+            self.process_epoll_events();
+            self.process_threadpool_events();
+            self.run_callbacks();
 
-            // First poll any epoll/kqueue/IOCP
-            while let Ok(event_id) = self.epoll_reciever.try_recv() {
-                let id = self
-                    .epoll_event_cb_map
-                    .get(&(event_id as i64))
-                    .expect("Event not in event map.");
-                let callback_id = *id;
-                self.epoll_event_cb_map.remove(&(event_id as i64));
+            // ===== 5. CHECK =====
+            // an set immidiate function could be added pretty easily but we 
+            // won't do that here
 
-                self.next_tick_callbacks.push((callback_id, Js::Undefined));
-                self.epoll_pending -= 1;
-            }
-
-            // then check if there is any results from the threadpool
-            while let Ok((thread_id, callback_id, data)) = self.threadp_reciever.try_recv() {
-                self.next_tick_callbacks.push((callback_id, data));
-                self.available.push(thread_id);
-            }
-
-            // ===== CHECK =====
-            // an set immidiate function could be added pretty easily but we won't do that here
-
-            // ===== CLOSE CALLBACKS ======
-            // Release resources, we won't do that here, it's just another "hook" for our "extensions"
-            // to use. We release in every callback instead
+            // ===== 6. CLOSE CALLBACKS ======
+            // Release resources, we won't do that here, but this is typically
+            // where sockets etc are closed.
 
             // Let the OS have a time slice of our thread so we don't busy loop
             // this could be dynamically set depending on requirements or load.
@@ -92,9 +75,15 @@ impl Runtime {
     }
 }
 ```
+I present the full function here to get a overview since this will be what is
+running our runtime. As you see I've made several comments where there are steps
+that are performed by Node but which we will skip.
 
-This is a lot to parse and will be a lot to take in right now. But this is also
-the heart of our program. Let's go through and explain everything.
+I'll step through each step here, and while I do that I will try to point out
+where the real Node runtime differs substantially from ours.
+
+## Initialization
+
 
 ```rust
 let rt_ptr: *mut Runtime = self;
@@ -119,18 +108,28 @@ The variable `timers_to_remove` is for us to keep track of the timers we've set.
 `ticks` is only a counter for us to keep track of how many times we've looped
 to display.
 
-The first thing we do to kick of the code is invoking `f()`. `f` will be the code we wrote in the `javascript` function in the last chapter. It's the code the user wrote.
+The first thing we do to kick of the code is invoking `f()`. `f` will be the
+code we wrote in the `javascript` function in the last chapter. If this is empty
+nothing will happen.
+
+## Starting the event loop
 
 ```rust
 // ===== EVENT LOOP =====
 while self.pending_events > 0 {
     ticks += 1;
 ```
-The next thing we do is to start our eventloop. There are two things to note here:
+There are two things to note here:
 
-`self.pending_events` isn't in our runtime struct yet so we need to add that. This variable keeps track of how many pending events we have, so that when no events are left we exit the loop since our eventloop is finished.
+`self.pending_events` isn't in our runtime struct yet so we need to add that. 
+This variable keeps track of how many pending events we have, so that when no 
+events are left we exit the loop since our eventloop is finished.
 
-So where does these events come from? In our `javascript` function in the previous chapters you probably noticed that we called functions like `set_timeout` and `Fs::read`. These functions are defined in the Node runtime (as they are in ours), and they don't do much except from regestering events. So when one of these events are registered this counter is increased.
+So where does these events come from? In our `javascript` function in the 
+previous chapters you probably noticed that we called functions like 
+`set_timeout` and `Fs::read`. These functions are defined in the Node runtime 
+(as they are in ours), and they don't do much except from regestering events. 
+So when one of these events are registered this counter is increased.
 
 `ticks` is just increasing a `tick` in the counter.
 
@@ -139,210 +138,87 @@ So our Runtime struct looks like this now:
 pub struct Runtime {
     pending_events: usize,
 }
-
-```
-## 1. Check timers
-The first step in the event loop is checking the timers:
-
-```rust
-// ===== TIMERS =====
-self.timers
-    .range(..=Instant::now())
-    .for_each(|(k, _)| timers_to_remove.push(*k));
-
-while let Some(key) = timers_to_remove.pop() {
-    let callback_id = self.timers.remove(&key).unwrap();
-    self.next_tick_callbacks.push((callback_id, Js::Undefined));
-}
-
-// NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
-if !self.next_tick_callbacks.is_empty() {
-    print(format!("===== TICK {} =====", ticks));
-}
 ```
 
-The first thing to note here is that we check `self.timers` and to understand the
-rest of the syntax we'll have to look what kind of collection this is.
+## 1. Effectuate timers
 
-Now I chose a `BTreeMap<Instant, usize>` for this collection. The reason is that
-i want to have many `Instant`'s chronologically. When I add a timer, I calculate
-at what instance it's supposed to be run and I add that to this collection.
+`self.effectuate_timers(&mut timers_to_remove);`
 
-> BTrees are a very good data structure when you know that your keys will be ordered.
+We check here if any timers has expired. I couldn't find a better word for it
+than `effectuate` but it basically mean that if we have timers that are expired
+we schedule the callbacks for the expired timers to run at the first call to `self.run_callbacks()`.
 
-Choosing a `BTreeMap` here allows me to get a range `range(..=Instant::noew())`
-which is from the start of the map, up until or equal to the instant NOW.
+Worth noting here is that timers with a timeout of `0` will already have timed
+out by the time we reach this function.
 
-Now I take every key in this range and add it to `timers_to_remove`, and the reason
-for this is that I found no good way to both get a range and remove the key's in one
-operation without allocating a small buffer every time. You can iterate over the range
-but due to the ownership rules you can't remove them at the same time, and we want to
-remove the timers, we've run.
+## 2. Callbacks
 
-The eventloop will run repeatedly so avoiding any allocations inside the loop is smart. There is no need to have this overhead.
+`self.run_callbacks();`
 
-```rust
-while let Some(key) = timers_to_remove.pop() {
-    let callback_id = self.timers.remove(&key).unwrap();
-    self.next_tick_callbacks.push((callback_id, Js::Undefined));
-}
-```
+Now we could have ran the callbacks in the timer `step` but since this is the next
+step of our loop we do it here instead.
 
-The next step is to take every timer that has expired, remove the timer from our `self.timers` collection and get their `callback_id`.
+> This step might seem unnecessary here but in Node it has a function. Some
+> types of callbacks will be deferred to the `next tick`, which means that they're
+> not run immediately, but deferred to this step on the next loop. We won't implement
+> this functionality here but it's worth noting.
 
-As I explained in the previous chapter, this is an unique Id for this callback. What's
-important here is that **we don't run the callback **immediately**. Node actually registers callbacks to be run on the next `tick`. An exception is the timers since they either have timed out or is a timer with a timeout of `0`. In this case a timer will not wait for the next tick if it has timed out, or in the case if it has a timeout of `0` they will be invoked immediately as you'll see next.
+## 3. Idle/Prepare
 
-Anyway, for now we add the callback id's to `self.next_tick_callbacks`.
-
-Before we go on. Let's update our `Runtime` struct to reflect what we've seen:
-
-```rust
-pub struct Runtime {
-    pending_events: usize,
-    next_tick_callbacks: Vec<(usize, Js)>,
-    timers: BTreeMap<Instant, usize>,
-}
-```
-## 2. Process callbacks
-The next step is to handle any callbacks we've scheduled to run.
-
-```rust
-// ===== CALLBACKS =====
-while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
-    let cb = self.callback_queue.remove(&callback_id).unwrap();
-    cb(data);
-    self.pending_events -= 1;
-}
-```
-
-> Shortcut. Not all of Nodes callbacks are processed here. Some callbacks is called
-> directly in the `poll` phase we'll introduce below. It's not difficult to implement
-> but it adds unneccecary complexity to our example so we schedula all callbacks to be
-> run in this step of the process. As long as you know this is an oversimplification
-> you're going to be alright :)
-
-Here we `pop` off all callbacks that are scheduled to run. As you see from our last update on the `Runtime` struct. `next_tick_callbacks` is an array of callback_id and an argument type of `Js`.
-
-So when we've got a `callback_id` we find the corresponding callback we have stored in `self.callback_queue` and remove the entry. What we get in return is a callback of type
-`Box<dyn FnOnce(Js)>`. We're going to explain this type more later but it's basically a closure stored on the heap that takes one argument of type `Js`.
-
-`cb(data)` runs the code in this closure. After it's done it's time to decrease our counter of pending events: `self.pending_events -= 1;`.
-
-> Now, this step is important. As you might understand, any long running code in this callback is going to block our `eventloop`, preventing it from progressing. So no new callbacks are handleded and no new events are registered. This is why it's bad to write code that blocks the eventloop.
-
-
-
-Let's update our Runtime struct again:
-
-```rust
-pub struct Runtime {
-    callback_queue: HashMap<usize, Box<dyn FnOnce(Js)>>,
-    pending_events: usize,
-    next_tick_callbacks: Vec<(usize, Js)>,
-    timers: BTreeMap<Instant, usize>,
-}
-```
-## 3. Idle/prepare
-```rust
-// ===== IDLE/PREPARE =====
-// we won't use this
-```
-
-The Idle/Prepare step is reportedly used internally by Node. They're not so interesting for us in understanding Nodes eventloop so we skip this step.
+This is a step mostly used by Nodes internals. It's not important for understanding
+the big picture here but I included it since it's something you see in Nodes
+documentation so you know where we're at in the loop at this point.
 
 ## 4. Poll
 
-The next phase is to check if any events are ready from either our threadpool or our eventqueue.
+This is really where everything happens. I refer to the `epoll/kqueue/IOCP` 
+eventqueue as `epoll` here just so you know that it's not only `epoll` we're
+waiting for. From now on I will refer to the cross platform event queue as `epoll`
+in the code.
 
+First we check if the OS has reported any events, and if so we schedule the
+corresponding callbacks to run.
 ```rust
- // ===== POLL =====
-// First poll any epoll/kqueue/IOCP
-while let Ok(event_id) = self.epoll_reciever.try_recv() {
-    let id = self
-        .epoll_event_cb_map
-        .get(&(event_id as i64))
-        .expect("Event not in event map.");
-    let callback_id = *id;
-    self.epoll_event_cb_map.remove(&(event_id as i64));
-
-    self.next_tick_callbacks.push((callback_id, Js::Undefined));
-    self.epoll_pending -= 1;
-}
-
-// then check if there is any results from the threadpool
-while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
-    self.next_tick_callbacks.push((callback_id, data));
-    self.available.push(thread_id);
-}
+self.process_epoll_events();
 ```
 
-There is a lot going on here so let's step through it:
-
-First we check our `epoll/kqueue/IOCP` event queue and see if anything events are ready.
-
-The first thing we do is to check if there are any incoming messages on our channel
-`self.epoll_reciever.try_recv()`, as you'll see when we define this in our `Runtime` I chose to implement this using Rusts channels which is a good fit for this. No need to make it more complicated than it is.
-
-We're choosing to keep track on how many epoll events we're waiting for in
-`self.epoll_pending`, so once an event is ready we'll decrement this to reflect
-that we have one less event in the I/O eventloop.
-
-If any events has occured we get an `event_id`. Since `event_id`'s can potentially overlap with Id's we have given previous callbacks we use a map where we give this `event` an unique `callback_id` that ties the event to the callback we have registered.
+Next we check if our threadpool has finished any work and if so we schedule their
+corresponding callbacks to be run too:
 
 ```rust
-self.epoll_event_cb_map
-        .get(&(event_id as i64))
-        .expect("Event not in event map.");
+self.process_threadpool_events();
 ```
 
-Retrieves the `callback_id` we stored with this event which we then remove from the map
-`self.epoll_event_cb_map.remove(&(event_id as i64))` so we don't store it indefinately.
-
-
-
-The next two steps is the same as you saw used in the timer segment. We schedule the callback to get run on the next tick.
-
-> One thing to note is that we pass in Js::Undefined here too even though the callback we registered is expecting data. The reason for this is that we wrap the callback to accomodate for the difference between `epoll/kqueue` and `IOCP`. In the case of `epoll/kqueue` we read the data into a buffer we pass in before we call the callback, and in the case of `IOCP` the data is already filled for us.
-
-The next thing to check is our threadpool. As you see here we also use `Channel` here to communicate.
+If our `epoll` queue or our `threadpool` registered any callbacks we run them now.
 
 ```rust
-while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
-    self.next_tick_callbacks.push((callback_id, data));
-    self.available.push(thread_id);
-}
+self.run_callbacks();
 ```
-We get some more data here. Namely a `thread_id`, `callback_id` and `data`. Now we need the `thread_id` to mark this thread as `available` so it can be used on subsequent calls to the threadpool. The `callback_id` we need in all cases to know what callback to invoke. One difference here is that the thread also holds the data we want to pass in to our callback so we also get that an pass that in to our `next_tick_callbacks` so it's available to our callback on the next tick.
 
-Now we introduced a lot of new members of our `Runtime` struct here and it's almost
-finished:
-
-```rust
-pub struct Runtime {
-    callback_queue: HashMap<usize, Box<dyn FnOnce(Js)>>,
-    next_tick_callbacks: Vec<(usize, Js)>,
-    identity_token: usize,
-    pending_events: usize,
-    threadp_reciever: Receiver<(usize, usize, Js)>,
-    epoll_reciever: Receiver<usize>,
-    epoll_pending: usize,
-    epoll_event_cb_map: HashMap<i64, usize>,
-    timers: BTreeMap<Instant, usize>,
-    epoll_registrator: minimio::Registrator,
-}
-```
+> There are some important differences between our implementation and Nodes here.
+>
+> We only check if any events are registered here and then continue on. This is
+> suboptimal since if we're wasting cycles by looping when there might be nothing
+> to do on the next iteration. 
+> 
+> Node solves this by calculating the time until the next timeout (in step 1) 
+> times out. Let's say that the next timer times out in 10 seconds. In node 10 
+> seconds is then passed as a timeout for the `polls` in our poll phase so even 
+> though no event has happened it will wake up again and iterate so it executes 
+> the next timer when it starts the loop again. As you understand, that means
+> that the timer will not run at the exact same time as it times out, but it's
+> potentially much more efficient than what we do here.
 
  ## 5. Check
 
  ```rust
 // ===== CHECK =====
-// an set immidiate function could be added pretty easily but we won't that here
+// an set immediate function could be added pretty easily but we won't that here
 ```
 
-Node implements a check "hook" to the eventloop next. At this point calls to 
-`setImmidiate` execute here. I just include it for for completeness but we won't
-do anything in this phase.
+Node implements a check "hook" to the eventloop next. Calls to `setImmidiate`
+execute here. I just include it for for completeness but we won't do anything in this phase.
+
 
 ## 6. Close Callbacks
 
@@ -352,14 +228,25 @@ do anything in this phase.
 // to use. We release in every callback instead
 ```
 
-I pretty much explain this step in the comments. Typically releaseing resources
-if neccesary is done here.
-
-## Moving on
-
-Now we've alredy gotten really far by explaining how our eventloop works already
-in the first chapter. Now we just need to set up the infrastructure for this
-loop to work.
+I pretty much explain this step in the comments. Typically releasing resources,
+like closing sockets, is done here.
 
 ## Shortcuts
-This is the event loop. There are several things we could do here to make it a better implementation. One is to set a max backlog of callbacks to execute in a single tick, so we don't starve the threadpool or file handlers. Another is to dynamically decide if/and how long the thread could be allowed to be parked for example by looking at the backlog of events, and if there is any backlog disable it. Some of our Vec's will only grow, and not resize, so if we have a period of very high load,the memory will stay higher than we need until a restart. This could be dealt with or a differentdata structure could be used.
+
+I'll mention some obvious shortcuts right here so you are aware of them. There are many "exceptions" that we don't cover in our example. We are focusing on the big picture just so we're on the same page. The `process.nextTick` function and the `setImmediate` function are two examples of this. I explained how we did skip the fact that the next timeout will define how long the `poll` phase will potentially block instead of continue the loop like we do here.
+
+We don't cover the case where a server under heavy load might have too many callbacks to reasonably run in one `poll` which means that we could starve our I/O resources in the meantime waiting for them to finish, and probably several similar cases that a production
+runtime should care about.
+
+As you'll probably notice, implementing a simple version is more than enough work
+for us to cover in this book, but hopefully you'll find yourself in pretty good
+shape to dig further once we're finished.
+
+If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:
+
+This first one is made held by [@piscisaureus](https://github.com/piscisaureus) and is an excellent 15 minute overview:
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+The second one is slightly longer but is also an excellent talk held by [Bryan Hughes](https://github.com/nebrius)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

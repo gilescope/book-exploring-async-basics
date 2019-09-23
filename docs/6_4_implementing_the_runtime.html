@@ -1,0 +1,392 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Implementing the Runtime - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_implementing_the_runtime.html" class="active"><strong aria-hidden="true">6.4.</strong> Implementing the Runtime</a></li><li><a href="6_5_node_the_threadpool.html"><strong aria-hidden="true">6.5.</strong> The threadpool</a></li><li><a href="6_6_node_the_io_eventqueue.html"><strong aria-hidden="true">6.6.</strong> The I/O eventqueue</a></li><li><a href="6_7_shortcuts_and_improvements.html"><strong aria-hidden="true">6.7.</strong> Shortcuts and improvements</a></li><li><a href="6_8_node_final_code.html"><strong aria-hidden="true">6.8.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#implementing-the-runtime" id="implementing-the-runtime">Implementing the Runtime</a></h1>
+<p>This is a lot to parse and will be a lot to take in right now. But this is also
+the heart of our program. Let's go through and explain everything.</p>
+<h2><a class="header" href="#1-check-timers" id="1-check-timers">1. Check timers</a></h2>
+<p>The first step in the event loop is checking the timers:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== TIMERS =====
+self.timers
+    .range(..=Instant::now())
+    .for_each(|(k, _)| timers_to_remove.push(*k));
+
+while let Some(key) = timers_to_remove.pop() {
+    let callback_id = self.timers.remove(&amp;key).unwrap();
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+}
+
+// NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+if !self.next_tick_callbacks.is_empty() {
+    print(format!(&quot;===== TICK {} =====&quot;, ticks));
+}
+#}</code></pre></pre>
+<p>The first thing to note here is that we check <code>self.timers</code> and to understand the
+rest of the syntax we'll have to look what kind of collection this is.</p>
+<p>Now I chose a <code>BTreeMap&lt;Instant, usize&gt;</code> for this collection. The reason is that
+i want to have many <code>Instant</code>'s chronologically. When I add a timer, I calculate
+at what instance it's supposed to be run and I add that to this collection.</p>
+<blockquote>
+<p>BTrees are a very good data structure when you know that your keys will be ordered.</p>
+</blockquote>
+<p>Choosing a <code>BTreeMap</code> here allows me to get a range <code>range(..=Instant::noew())</code>
+which is from the start of the map, up until or equal to the instant NOW.</p>
+<p>Now I take every key in this range and add it to <code>timers_to_remove</code>, and the reason
+for this is that I found no good way to both get a range and remove the key's in one
+operation without allocating a small buffer every time. You can iterate over the range
+but due to the ownership rules you can't remove them at the same time, and we want to
+remove the timers, we've run.</p>
+<p>The eventloop will run repeatedly so avoiding any allocations inside the loop is smart. There is no need to have this overhead.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+while let Some(key) = timers_to_remove.pop() {
+    let callback_id = self.timers.remove(&amp;key).unwrap();
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+}
+#}</code></pre></pre>
+<p>The next step is to take every timer that has expired, remove the timer from our <code>self.timers</code> collection and get their <code>callback_id</code>.</p>
+<p>As I explained in the previous chapter, this is an unique Id for this callback. What's
+important here is that we don't run the callback <strong>immediately</strong>. Node actually registers callbacks to be run on the next <code>tick</code>. An exception is the timers since they either have timed out or is a timer with a timeout of <code>0</code>. In this case a timer will not wait for the next tick if it has timed out, or in the case if it has a timeout of <code>0</code> they will be invoked immediately as you'll see next.</p>
+<p>Anyway, for now we add the callback id's to <code>self.next_tick_callbacks</code>.</p>
+<p>Before we go on. Let's update our <code>Runtime</code> struct to reflect what we've seen:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct Runtime {
+    pending_events: usize,
+    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
+    timers: BTreeMap&lt;Instant, usize&gt;,
+}
+#}</code></pre></pre>
+<h2><a class="header" href="#2-process-callbacks" id="2-process-callbacks">2. Process callbacks</a></h2>
+<p>The next step is to handle any callbacks we've scheduled to run.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== CALLBACKS =====
+while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
+    let cb = self.callback_queue.remove(&amp;callback_id).unwrap();
+    cb(data);
+    self.pending_events -= 1;
+}
+#}</code></pre></pre>
+<blockquote>
+<p>Shortcut. Not all of Nodes callbacks are processed here. Some callbacks is called
+directly in the <code>poll</code> phase we'll introduce below. It's not difficult to implement
+but it adds unneccecary complexity to our example so we schedula all callbacks to be
+run in this step of the process. As long as you know this is an oversimplification
+you're going to be alright :)</p>
+</blockquote>
+<p>Here we <code>pop</code> off all callbacks that are scheduled to run. As you see from our last update on the <code>Runtime</code> struct. <code>next_tick_callbacks</code> is an array of callback_id and an argument type of <code>Js</code>.</p>
+<p>So when we've got a <code>callback_id</code> we find the corresponding callback we have stored in <code>self.callback_queue</code> and remove the entry. What we get in return is a callback of type
+<code>Box&lt;dyn FnOnce(Js)&gt;</code>. We're going to explain this type more later but it's basically a closure stored on the heap that takes one argument of type <code>Js</code>.</p>
+<p><code>cb(data)</code> runs the code in this closure. After it's done it's time to decrease our counter of pending events: <code>self.pending_events -= 1;</code>.</p>
+<blockquote>
+<p>Now, this step is important. As you might understand, any long running code in this callback is going to block our <code>eventloop</code>, preventing it from progressing. So no new callbacks are handleded and no new events are registered. This is why it's bad to write code that blocks the eventloop.</p>
+</blockquote>
+<p>Let's update our Runtime struct again:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct Runtime {
+    callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
+    pending_events: usize,
+    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
+    timers: BTreeMap&lt;Instant, usize&gt;,
+}
+#}</code></pre></pre>
+<h2><a class="header" href="#3-idleprepare" id="3-idleprepare">3. Idle/prepare</a></h2>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// ===== IDLE/PREPARE =====
+// we won't use this
+#}</code></pre></pre>
+<p>The Idle/Prepare step is reportedly used internally by Node. They're not so interesting for us in understanding Nodes eventloop so we skip this step.</p>
+<h2><a class="header" href="#4-poll" id="4-poll">4. Poll</a></h2>
+<p>The next phase is to check if any events are ready from either our threadpool or our eventqueue.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+ // ===== POLL =====
+// First poll any epoll/kqueue/IOCP
+while let Ok(event_id) = self.epoll_reciever.try_recv() {
+    let id = self
+        .epoll_event_cb_map
+        .get(&amp;(event_id as i64))
+        .expect(&quot;Event not in event map.&quot;);
+    let callback_id = *id;
+    self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+    self.epoll_pending -= 1;
+}
+
+// then check if there is any results from the threadpool
+while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
+    self.next_tick_callbacks.push((callback_id, data));
+    self.available.push(thread_id);
+}
+#}</code></pre></pre>
+<p>There is a lot going on here so let's step through it:</p>
+<p>First we check our <code>epoll/kqueue/IOCP</code> event queue and see if anything events are ready.</p>
+<p>The first thing we do is to check if there are any incoming messages on our channel
+<code>self.epoll_reciever.try_recv()</code>, as you'll see when we define this in our <code>Runtime</code> I chose to implement this using Rusts channels which is a good fit for this. No need to make it more complicated than it is.</p>
+<p>We're choosing to keep track on how many epoll events we're waiting for in
+<code>self.epoll_pending</code>, so once an event is ready we'll decrement this to reflect
+that we have one less event in the I/O eventloop.</p>
+<p>If any events has occured we get an <code>event_id</code>. Since <code>event_id</code>'s can potentially overlap with Id's we have given previous callbacks we use a map where we give this <code>event</code> an unique <code>callback_id</code> that ties the event to the callback we have registered.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+self.epoll_event_cb_map
+        .get(&amp;(event_id as i64))
+        .expect(&quot;Event not in event map.&quot;);
+#}</code></pre></pre>
+<p>Retrieves the <code>callback_id</code> we stored with this event which we then remove from the map
+<code>self.epoll_event_cb_map.remove(&amp;(event_id as i64))</code> so we don't store it indefinitely.</p>
+<p>The next two steps is the same as you saw used in the timer segment. We schedule the callback to get run on the next tick.</p>
+<blockquote>
+<p>One thing to note is that we pass in Js::Undefined here too even though the callback we registered is expecting data. The reason for this is that we wrap the callback to accommodate for the difference between <code>epoll/kqueue</code> and <code>IOCP</code>. In the case of <code>epoll/kqueue</code> we read the data into a buffer we pass in before we call the callback, and in the case of <code>IOCP</code> the data is already filled for us.</p>
+</blockquote>
+<p>The next thing to check is our threadpool. As you see here we also use <code>Channel</code> here to communicate.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
+    self.next_tick_callbacks.push((callback_id, data));
+    self.available.push(thread_id);
+}
+#}</code></pre></pre>
+<p>We get some more data here. Namely a <code>thread_id</code>, <code>callback_id</code> and <code>data</code>. Now we need the <code>thread_id</code> to mark this thread as <code>available</code> so it can be used on subsequent calls to the threadpool. The <code>callback_id</code> we need in all cases to know what callback to invoke. One difference here is that the thread also holds the data we want to pass in to our callback so we also get that an pass that in to our <code>next_tick_callbacks</code> so it's available to our callback on the next tick.</p>
+<p>Now we introduced a lot of new members of our <code>Runtime</code> struct here and it's almost
+finished:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct Runtime {
+    callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
+    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
+    identity_token: usize,
+    pending_events: usize,
+    threadp_reciever: Receiver&lt;(usize, usize, Js)&gt;,
+    epoll_reciever: Receiver&lt;usize&gt;,
+    epoll_pending: usize,
+    epoll_event_cb_map: HashMap&lt;i64, usize&gt;,
+    timers: BTreeMap&lt;Instant, usize&gt;,
+    epoll_registrator: minimio::Registrator,
+}
+#}</code></pre></pre>
+<h2><a class="header" href="#moving-on" id="moving-on">Moving on</a></h2>
+<p>Now we've already gotten really far by explaining how our eventloop works already
+in the first chapter. Now we just need to set up the infrastructure for this
+loop to work.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="6_3_node_the_main_loop.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="6_5_node_the_threadpool.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="6_3_node_the_main_loop.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="6_5_node_the_threadpool.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

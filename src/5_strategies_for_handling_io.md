@@ -5,7 +5,7 @@ Before we dive into Writing some code we'll finish off this part of the book tal
 
 ## The perfect solution
 
-Let's start off by picturing a perfect world, and how the most efficient way of handelig I/O in a concurrent manner could look like.
+Let's start off by picturing a perfect world, and how the most efficient way of handling I/O in a concurrent manner could look like.
 
 If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?
 
@@ -29,11 +29,11 @@ Now one way of accomplishing this is letting the OS take care of everything for 
 - Simple
 - Easy to code
 - Reasonably performant
-- You get paralellism for free
+- You get parallelism for free
 
 **Cons:**
 
-- OS level threads come with a rather large stack. If you have many tasks happening simultaniously (like in a webserver under heavy load) you'll run out of memory pretty soon.
+- OS level threads come with a rather large stack. If you have many tasks happening simultaneously (like in a webserver under heavy load) you'll run out of memory pretty soon.
 - There are a lot of syscalls involved this can be pretty costly
 - The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish
 - The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.

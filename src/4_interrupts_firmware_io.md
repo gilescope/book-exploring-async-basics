@@ -61,7 +61,7 @@ busy loop checking if any data is incoming.
 > (and most likely are). The important part is that there is a simple CPU running
 > on the network card doing work to check if there is incoming events.
 
-Once the firmware registers incoming data it issues a Harware Interrupt.
+Once the firmware registers incoming data it issues a Hardware Interrupt.
 
 ## 4. Hardware Interrupt
 
@@ -88,21 +88,20 @@ The [Interrupt Descriptor Table](https://en.wikipedia.org/wiki/Interrupt_descrip
 ## 6. Writing the data
 
 This is a step that might vary a lot depending on the CPU and the firmware on the
-network card. If the Network Card and the CPU supports [Direct Memory Access](https://en.wikipedia.org/wiki/Direct_memory_access) (which 
-I believe is the standard on a normal modern system) the Network Card might write
-data directly to a set of buffers the OS already has set up in main memory. In such a
-system the `firmware` on the Network Card might issue an `Interrupt` when the data
-is written to memory.
+network card. If the Network Card and the CPU supports [Direct Memory Access](https://en.wikipedia.org/wiki/Direct_memory_access) (which should be the standard on all modern systems today) the Network Card will write data directly to a set of buffers the OS already has set up in main memory. In such a system the `firmware` on the Network Card might issue an `Interrupt` when the data is written to memory. `DMA` is very efficient
+since the CPU is only notified when the data is already in memory. On older systems the
+CPU needed to devote often substantial time to handle the data transfer from the
+network card.
 
 The DMAC (Direct Memory Access Controller) is just added since in such a system,
 it would control the access to memory. It's not part of the CPU per se as in the
-diagram above. It's not too important for us right now so let's move on.
+diagram above. It's we're deep enough in the rabbit hole now and this is not really important for us right now so let's move on.
 
 ## 7. The driver
 
 The `driver` would normally handle the communication between the OS and the Network Card.
-At _some point_ the buffers are filled and the OS gets notified that the data is ready
-to be read. 
+At _some point_ the buffers are filled, and the network card issues an `Interrupt`. The CPU then jumps to the handler of that interrupt. The interrupt handler for this exact type
+of interrupt is registered by the driver, so it's actually the driver that handles this event and in turn informs the kernel that the data is ready to be read. 
 
 ## 8. Reading the data
 
@@ -124,7 +123,7 @@ They are very different in nature.
 
 ### Hardware Interrupts
 
-Hardware interrupts are created by sending an electrical signal through an [Interrupt Request Line (IRQ)](https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)#x86_IRQs). These are hardware lines signalling the CPU directly. 
+Hardware interrupts are created by sending an electrical signal through an [Interrupt Request Line (IRQ)](https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)#x86_IRQs). These are hardware lines signaling the CPU directly. 
 
 ### Software Interrupts
 
@@ -141,5 +140,5 @@ Now, firmware needs a microcontroller or similar to be able to work. Even the CP
 
 Why is this important? Well, you remember that concurrency is all about efficiency right? We'll since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.
 
-If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, get's notified when data has arrived for us.
+If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, gets notified when data has arrived for us.
 
