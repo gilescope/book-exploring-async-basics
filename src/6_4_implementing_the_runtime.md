@@ -2,13 +2,19 @@
 
 
 This is a lot to parse and will be a lot to take in right now. But this is also
-the heart of our program. Let's go through and explain everything.
+the heart of our program. Let's go through and explain everything. While we fill
+out our `Runtime` struct along the way.
 
+Remember, our `Runtime` struct is empty:
 
+```rust
+struct Runtime { }
+```
 
+## 1. Check expired timers
+The first step in the event loop is checking for expired timers, and we do this 
+in the `self.check_expired_timers()` function
 
-## 1. Check timers
-The first step in the event loop is checking the timers:
 
 ```rust
 // ===== TIMERS =====

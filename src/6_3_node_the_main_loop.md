@@ -1,86 +1,30 @@
-# The main loop
 
-Before we implement the eventlopp we need to set up our Runtime so we can save all our state there:
+# The Runtime
 
-When we're finished, our Runtime struct will look like this: 
+Let's start off by creating a `Runtime` struct where we store state we need
+to implement our runtime. Right now the `Runtime` is empty but stay with me and
+we'll fill it out in the next chapter
 
 ```rust
-pub struct Runtime {
-    
-}
-
+struct Runtime { }
 ```
 
-Don't worry, we'll fill in the fields as we go along but I didn't want you to 
-stop now an try to figure out what everything is.
 
-Let's get back on track. And talk a bit about the eventloop, which probably is 
-the most interesting part of code in this book since there has been som much
-written about it:
+## The main loop
+
+Let's start by looking into the main event loop right away since this will be
+the "heart" of our `Runtime`.
+
+Let's put our event loop logic in the `run` function of our `Runtime`. The code
+which we present on this chapter is the body of this `run` function.
 
 ```rust
 impl Runtime {
-    pub fn run(&mut self, f: impl Fn()) {
-        let rt_ptr: *mut Runtime = self;
-        unsafe { RUNTIME = rt_ptr as usize };
-
-        let mut timers_to_remove = vec![]; // avoid allocating on every loop
-        let mut ticks = 0; // just for us priting out
-
-        // First we run our "main" function
-        f();
-
-        // ===== EVENT LOOP =====
-        while self.pending_events > 0 {
-            ticks += 1;
-
-            // ===== 2. TIMERS =====
-            self.effectuate_timers(&mut timers_to_remove);
-
-            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
-            if !self.callbacks_to_run.is_empty() {
-                print(format!("===== TICK {} =====", ticks));
-            }
-
-            // ===== 2. CALLBACKS =====
-            // Timer callbacks and if for some reason we have postponed callbacks
-            // to run on the next tick. Not possible in our implementation though.
-            self.run_callbacks();
-
-            // ===== 3. IDLE/PREPARE =====
-            // we won't use this
-
-            // ===== 4. POLL =====
-            // NB! Timeout! Normally we set these "blocking" polls to time out
-            // when we calculate the next timer to expire, we set that as the
-            // timeout to our epoll queue. Then we block the loop while waiting
-            // for an event to happen or a timeout to expire.
-            self.process_epoll_events();
-            self.process_threadpool_events();
-            self.run_callbacks();
-
-            // ===== 5. CHECK =====
-            // an set immidiate function could be added pretty easily but we 
-            // won't do that here
-
-            // ===== 6. CLOSE CALLBACKS ======
-            // Release resources, we won't do that here, but this is typically
-            // where sockets etc are closed.
-
-            // Let the OS have a time slice of our thread so we don't busy loop
-            // this could be dynamically set depending on requirements or load.
-            thread::park_timeout(std::time::Duration::from_millis(1));
-        }
-        print("FINISHED");
+    fn run() {
+        ...
     }
 }
 ```
-I present the full function here to get a overview since this will be what is
-running our runtime. As you see I've made several comments where there are steps
-that are performed by Node but which we will skip.
-
-I'll step through each step here, and while I do that I will try to point out
-where the real Node runtime differs substantially from ours.
 
 ## Initialization
 
@@ -228,8 +172,65 @@ execute here. I just include it for for completeness but we won't do anything in
 // to use. We release in every callback instead
 ```
 
+## 7. Give 
+
 I pretty much explain this step in the comments. Typically releasing resources,
 like closing sockets, is done here.
+
+## The `run` function
+
+```rust
+impl Runtime {
+    pub fn run(&mut self, f: impl Fn()) {
+        let rt_ptr: *mut Runtime = self;
+        unsafe { RUNTIME = rt_ptr as usize };
+        let mut ticks = 0; // just for us priting out
+
+        // First we run our "main" function
+        f();
+
+        // ===== EVENT LOOP =====
+        while self.pending_events > 0 {
+            ticks += 1;
+
+            // ===== 2. TIMERS =====
+            self.process_expired_timers();
+
+            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+            if !self.callbacks_to_run.is_empty() {
+                print(format!("===== TICK {} =====", ticks));
+            }
+
+            // ===== 2. CALLBACKS =====
+            // Timer callbacks and if for some reason we have postponed callbacks
+            // to run on the next tick. Not possible in our implementation though.
+            self.run_callbacks();
+
+            // ===== 3. IDLE/PREPARE =====
+            // we won't use this
+
+            // ===== 4. POLL =====
+            self.process_epoll_events();
+            self.process_threadpool_events();
+            self.run_callbacks();
+
+            // ===== 5. CHECK =====
+            // an set immidiate function could be added pretty easily but we 
+            // won't do that here
+
+            // ===== 6. CLOSE CALLBACKS ======
+            // Release resources, we won't do that here, but this is typically
+            // where sockets etc are closed.
+
+            // Let the OS have a time slice of our thread so we don't busy loop
+            // this could be dynamically set depending on requirements or load.
+            thread::park_timeout(std::time::Duration::from_millis(1));
+        }
+        print("FINISHED");
+    }
+}
+```
+
 
 ## Shortcuts
 
