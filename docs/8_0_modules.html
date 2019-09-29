@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Shortcuts and improvements - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        <title>Modules - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_implementing_the_runtime.html"><strong aria-hidden="true">6.4.</strong> Implementing the Runtime</a></li><li><a href="6_5_node_the_threadpool.html"><strong aria-hidden="true">6.5.</strong> The threadpool</a></li><li><a href="6_6_node_the_io_eventqueue.html"><strong aria-hidden="true">6.6.</strong> The I/O eventqueue</a></li><li><a href="6_7_shortcuts_and_improvements.html" class="active"><strong aria-hidden="true">6.7.</strong> Shortcuts and improvements</a></li><li><a href="6_8_node_final_code.html"><strong aria-hidden="true">6.8.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing our &quot;Node&quot; Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.3.</strong> Epoll, Kqueue and IOCP</a></li></ol></li><li><a href="7_0_the_runtime.html"><strong aria-hidden="true">7.</strong> The runtime</a></li><li><ol class="section"><li><a href="7_1_the_main_loop.html"><strong aria-hidden="true">7.1.</strong> Running our runtime - the main loop</a></li><li><a href="7_2_setting_up_runtime.html"><strong aria-hidden="true">7.2.</strong> Setting up our runtime</a></li><li><a href="7_3_timers.html"><strong aria-hidden="true">7.3.</strong> Timers</a></li><li><a href="7_4_callbacks.html"><strong aria-hidden="true">7.4.</strong> Callbacks</a></li><li><a href="7_5_threadpool.html"><strong aria-hidden="true">7.5.</strong> Threadpool</a></li><li><a href="7_6_io_eventqueue.html"><strong aria-hidden="true">7.6.</strong> I/O eventqueue</a></li><li><a href="7_8_cleaning_up.html"><strong aria-hidden="true">7.7.</strong> Cleaning up</a></li><li><a href="7_9_infrastructure.html"><strong aria-hidden="true">7.8.</strong> Infrastructure</a></li></ol></li><li><a href="8_0_modules.html" class="active"><strong aria-hidden="true">8.</strong> Modules</a></li><li><ol class="section"><li><a href="8_1_file_module.html"><strong aria-hidden="true">8.1.</strong> File module</a></li><li><a href="8_2_crypto_module.html"><strong aria-hidden="true">8.2.</strong> Crypto module</a></li><li><a href="8_3_http_module.html"><strong aria-hidden="true">8.3.</strong> Http module</a></li></ol></li><li><a href="9_putting_pieces_together.html"><strong aria-hidden="true">9.</strong> Putting the pieces together</a></li><li><a href="10_final_code.html"><strong aria-hidden="true">10.</strong> Final code</a></li><li><a href="11_shortcuts_and_improvements.html"><strong aria-hidden="true">11.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,22 +145,28 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#shortcuts-and-improvements" id="shortcuts-and-improvements">Shortcuts and improvements</a></h1>
-<h2><a class="header" href="#shortcuts" id="shortcuts">Shortcuts</a></h2>
-<p>This is the event loop. There are several things we could do here to make it a better implementation. One is to set a max backlog of callbacks to execute in a single tick, so we don't starve the threadpool or file handlers. Another is to dynamically decide if/and how long the thread could be allowed to be parked for example by looking at the backlog of events, and if there is any backlog disable it. Some of our Vec's will only grow, and not resize, so if we have a period of very high load,the memory will stay higher than we need until a restart. This could be dealt with or a differentdata structure could be used.</p>
+                        <h1><a class="header" href="#modules" id="modules">Modules</a></h1>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub fn set_timeout(ms: u64, cb: impl Fn(Js) + 'static) {
+    let rt = unsafe { &amp;mut *(RUNTIME as *mut Runtime) };
+    rt.set_timeout(ms, cb);
+}
+#}</code></pre></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="6_6_node_the_io_eventqueue.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="7_9_infrastructure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="6_8_node_final_code.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="8_1_file_module.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -172,13 +178,13 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="6_6_node_the_io_eventqueue.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="7_9_infrastructure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a href="6_8_node_final_code.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="8_1_file_module.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

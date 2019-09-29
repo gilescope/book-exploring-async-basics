@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Final code - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        <title>Http module - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_implementing_the_runtime.html"><strong aria-hidden="true">6.4.</strong> Implementing the Runtime</a></li><li><a href="6_5_node_the_threadpool.html"><strong aria-hidden="true">6.5.</strong> The threadpool</a></li><li><a href="6_6_node_the_io_eventqueue.html"><strong aria-hidden="true">6.6.</strong> The I/O eventqueue</a></li><li><a href="6_7_shortcuts_and_improvements.html"><strong aria-hidden="true">6.7.</strong> Shortcuts and improvements</a></li><li><a href="6_8_node_final_code.html" class="active"><strong aria-hidden="true">6.8.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing our &quot;Node&quot; Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.3.</strong> Epoll, Kqueue and IOCP</a></li></ol></li><li><a href="7_0_the_runtime.html"><strong aria-hidden="true">7.</strong> The runtime</a></li><li><ol class="section"><li><a href="7_1_the_main_loop.html"><strong aria-hidden="true">7.1.</strong> Running our runtime - the main loop</a></li><li><a href="7_2_setting_up_runtime.html"><strong aria-hidden="true">7.2.</strong> Setting up our runtime</a></li><li><a href="7_3_timers.html"><strong aria-hidden="true">7.3.</strong> Timers</a></li><li><a href="7_4_callbacks.html"><strong aria-hidden="true">7.4.</strong> Callbacks</a></li><li><a href="7_5_threadpool.html"><strong aria-hidden="true">7.5.</strong> Threadpool</a></li><li><a href="7_6_io_eventqueue.html"><strong aria-hidden="true">7.6.</strong> I/O eventqueue</a></li><li><a href="7_8_cleaning_up.html"><strong aria-hidden="true">7.7.</strong> Cleaning up</a></li><li><a href="7_9_infrastructure.html"><strong aria-hidden="true">7.8.</strong> Infrastructure</a></li></ol></li><li><a href="8_0_modules.html"><strong aria-hidden="true">8.</strong> Modules</a></li><li><ol class="section"><li><a href="8_1_file_module.html"><strong aria-hidden="true">8.1.</strong> File module</a></li><li><a href="8_2_crypto_module.html"><strong aria-hidden="true">8.2.</strong> Crypto module</a></li><li><a href="8_3_http_module.html" class="active"><strong aria-hidden="true">8.3.</strong> Http module</a></li></ol></li><li><a href="9_putting_pieces_together.html"><strong aria-hidden="true">9.</strong> Putting the pieces together</a></li><li><a href="10_final_code.html"><strong aria-hidden="true">10.</strong> Final code</a></li><li><a href="11_shortcuts_and_improvements.html"><strong aria-hidden="true">11.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,20 +145,62 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>
+                        <h1><a class="header" href="#http-module" id="http-module">Http module</a></h1>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+struct Http;
+impl Http {
+    pub fn http_get_slow(url: &amp;str, delay_ms: u32, cb: impl Fn(Js) + 'static + Clone) {
+        let rt: &amp;mut Runtime = unsafe { &amp;mut *RUNTIME };
+        // Don't worry, http://slowwly.robertomurray.co.uk is a site for simulating a delayed
+        // response from a server. Perfect for our use case.
+        let mut stream: minimio::TcpStream =
+            minimio::TcpStream::connect(&quot;slowwly.robertomurray.co.uk:80&quot;).unwrap();
+            
+        let request = format!(
+            &quot;GET /delay/{}/url/http://{} HTTP/1.1\r\n\
+             Host: slowwly.robertomurray.co.uk\r\n\
+             Connection: close\r\n\
+             \r\n&quot;,
+            delay_ms, url
+        );
+
+        stream
+            .write_all(request.as_bytes())
+            .expect(&quot;Error writing to stream&quot;);
+
+        let token = rt.generate_cb_identity();
+        rt.epoll_registrator
+            .register(&amp;mut stream, token, minimio::Interests::readable())
+            .unwrap();
+
+        let wrapped = move |_n| {
+            let mut stream = stream;
+            let mut buffer = String::new();
+            stream
+                .read_to_string(&amp;mut buffer)
+                .expect(&quot;Stream read error&quot;);
+            cb(Js::String(buffer));
+        };
+
+        rt.register_io(token, wrapped);
+    }
+}
+#}</code></pre></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="6_7_shortcuts_and_improvements.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="8_2_crypto_module.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="conclusion.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="9_putting_pieces_together.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -170,13 +212,13 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="6_7_shortcuts_and_improvements.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="8_2_crypto_module.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a href="conclusion.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="9_putting_pieces_together.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

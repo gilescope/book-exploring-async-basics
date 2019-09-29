@@ -1,22 +1,9 @@
-
-# The Runtime
-
-Let's start off by creating a `Runtime` struct where we store state we need
-to implement our runtime. Right now the `Runtime` is empty but stay with me and
-we'll fill it out in the next chapter
-
-```rust
-struct Runtime { }
-```
-
-
-## The main loop
-
-Let's start by looking into the main event loop right away since this will be
-the "heart" of our `Runtime`.
+# The main loop
 
 Let's put our event loop logic in the `run` function of our `Runtime`. The code
 which we present on this chapter is the body of this `run` function.
+
+I'll include the whole method last so you can see it all together.
 
 ```rust
 impl Runtime {
@@ -243,11 +230,3 @@ As you'll probably notice, implementing a simple version is more than enough wor
 for us to cover in this book, but hopefully you'll find yourself in pretty good
 shape to dig further once we're finished.
 
-If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:
-
-This first one is made held by [@piscisaureus](https://github.com/piscisaureus) and is an excellent 15 minute overview:
-<iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-
-The second one is slightly longer but is also an excellent talk held by [Bryan Hughes](https://github.com/nebrius)
-<iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

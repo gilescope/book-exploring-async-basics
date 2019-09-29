@@ -37,4 +37,37 @@ Now, this is where we need to focus a bit. The V8 engine is a javascript JIT com
 The V8 engine itself can't do much useful for us, it just interprets our Javascript. It can't do I/O, set up a runtime or anything like that. Writing Javascript only with V8 will be a very limited experience.
 
 > Since we write Rust as you saw on the top, we'll not cover the part of translating javascript. We'll just focus on how Node works and handles concurrency since that's our main focus right now.
-> 
+
+## Nodes eventloop(s)
+
+Picturing Node as a single eventloop is a standard simple event loop is an oversimplification, but
+it's what we'll do in our example.
+
+Node internally divides it's real work into two categories:
+
+### I/O bound tasks
+
+Are handleded by the cross platform epoll/kqueue/IOCP event queue implemented in `libuv` and in our case `minimio`.
+
+### CPU bound tasks
+
+Are handeled by an threadpool. The default size of this threadpool is 4 threads, but that can be configured by the Node runtime.
+
+I/O tasks which can't be handled by the cross platform eventqueue is also handled here which is the case with file reads which we use in our example.
+
+Most C++ extensions for Node uses this threadpool to perform their work and that is one of many reasons they are used for CPU heavy tasks.
+
+## Further information
+
+If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:
+
+This first one is made held by [@piscisaureus](https://github.com/piscisaureus) and is an excellent 15 minute overview - i especially recommend this one as its short and to the point:
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+The second one is slightly longer but is also an excellent talk held by [Bryan Hughes](https://github.com/nebrius)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+Now, relax, get a cup of tea and sit back while we go through everything together.
+

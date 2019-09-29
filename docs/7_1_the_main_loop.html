@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>The main loop - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        <title>Running our runtime - the main loop - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html" class="active"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_implementing_the_runtime.html"><strong aria-hidden="true">6.4.</strong> Implementing the Runtime</a></li><li><a href="6_5_node_the_threadpool.html"><strong aria-hidden="true">6.5.</strong> The threadpool</a></li><li><a href="6_6_node_the_io_eventqueue.html"><strong aria-hidden="true">6.6.</strong> The I/O eventqueue</a></li><li><a href="6_7_shortcuts_and_improvements.html"><strong aria-hidden="true">6.7.</strong> Shortcuts and improvements</a></li><li><a href="6_8_node_final_code.html"><strong aria-hidden="true">6.8.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing our &quot;Node&quot; Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.3.</strong> Epoll, Kqueue and IOCP</a></li></ol></li><li><a href="7_0_the_runtime.html"><strong aria-hidden="true">7.</strong> The runtime</a></li><li><ol class="section"><li><a href="7_1_the_main_loop.html" class="active"><strong aria-hidden="true">7.1.</strong> Running our runtime - the main loop</a></li><li><a href="7_2_setting_up_runtime.html"><strong aria-hidden="true">7.2.</strong> Setting up our runtime</a></li><li><a href="7_3_timers.html"><strong aria-hidden="true">7.3.</strong> Timers</a></li><li><a href="7_4_callbacks.html"><strong aria-hidden="true">7.4.</strong> Callbacks</a></li><li><a href="7_5_threadpool.html"><strong aria-hidden="true">7.5.</strong> Threadpool</a></li><li><a href="7_6_io_eventqueue.html"><strong aria-hidden="true">7.6.</strong> I/O eventqueue</a></li><li><a href="7_8_cleaning_up.html"><strong aria-hidden="true">7.7.</strong> Cleaning up</a></li><li><a href="7_9_infrastructure.html"><strong aria-hidden="true">7.8.</strong> Infrastructure</a></li></ol></li><li><a href="8_0_modules.html"><strong aria-hidden="true">8.</strong> Modules</a></li><li><ol class="section"><li><a href="8_1_file_module.html"><strong aria-hidden="true">8.1.</strong> File module</a></li><li><a href="8_2_crypto_module.html"><strong aria-hidden="true">8.2.</strong> Crypto module</a></li><li><a href="8_3_http_module.html"><strong aria-hidden="true">8.3.</strong> Http module</a></li></ol></li><li><a href="9_putting_pieces_together.html"><strong aria-hidden="true">9.</strong> Putting the pieces together</a></li><li><a href="10_final_code.html"><strong aria-hidden="true">10.</strong> Final code</a></li><li><a href="11_shortcuts_and_improvements.html"><strong aria-hidden="true">11.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -146,85 +146,18 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#the-main-loop" id="the-main-loop">The main loop</a></h1>
-<p>Before we implement the eventlopp we need to set up our Runtime so we can save all our state there:</p>
-<p>When we're finished, our Runtime struct will look like this: </p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-pub struct Runtime {
-    
-}
-
-#}</code></pre></pre>
-<p>Don't worry, we'll fill in the fields as we go along but I didn't want you to 
-stop now an try to figure out what everything is.</p>
-<p>Let's get back on track. And talk a bit about the eventloop, which probably is 
-the most interesting part of code in this book since there has been som much
-written about it:</p>
+<p>Let's put our event loop logic in the <code>run</code> function of our <code>Runtime</code>. The code
+which we present on this chapter is the body of this <code>run</code> function.</p>
+<p>I'll include the whole method last so you can see it all together.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 impl Runtime {
-    pub fn run(&amp;mut self, f: impl Fn()) {
-        let rt_ptr: *mut Runtime = self;
-        unsafe { RUNTIME = rt_ptr as usize };
-
-        let mut timers_to_remove = vec![]; // avoid allocating on every loop
-        let mut ticks = 0; // just for us priting out
-
-        // First we run our &quot;main&quot; function
-        f();
-
-        // ===== EVENT LOOP =====
-        while self.pending_events &gt; 0 {
-            ticks += 1;
-
-            // ===== 2. TIMERS =====
-            self.effectuate_timers(&amp;mut timers_to_remove);
-
-            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
-            if !self.callbacks_to_run.is_empty() {
-                print(format!(&quot;===== TICK {} =====&quot;, ticks));
-            }
-
-            // ===== 2. CALLBACKS =====
-            // Timer callbacks and if for some reason we have postponed callbacks
-            // to run on the next tick. Not possible in our implementation though.
-            self.run_callbacks();
-
-            // ===== 3. IDLE/PREPARE =====
-            // we won't use this
-
-            // ===== 4. POLL =====
-            // NB! Timeout! Normally we set these &quot;blocking&quot; polls to time out
-            // when we calculate the next timer to expire, we set that as the
-            // timeout to our epoll queue. Then we block the loop while waiting
-            // for an event to happen or a timeout to expire.
-            self.process_epoll_events();
-            self.process_threadpool_events();
-            self.run_callbacks();
-
-            // ===== 5. CHECK =====
-            // an set immidiate function could be added pretty easily but we 
-            // won't do that here
-
-            // ===== 6. CLOSE CALLBACKS ======
-            // Release resources, we won't do that here, but this is typically
-            // where sockets etc are closed.
-
-            // Let the OS have a time slice of our thread so we don't busy loop
-            // this could be dynamically set depending on requirements or load.
-            thread::park_timeout(std::time::Duration::from_millis(1));
-        }
-        print(&quot;FINISHED&quot;);
+    fn run() {
+        ...
     }
 }
 #}</code></pre></pre>
-<p>I present the full function here to get a overview since this will be what is
-running our runtime. As you see I've made several comments where there are steps
-that are performed by Node but which we will skip.</p>
-<p>I'll step through each step here, and while I do that I will try to point out
-where the real Node runtime differs substantially from ours.</p>
 <h2><a class="header" href="#initialization" id="initialization">Initialization</a></h2>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
@@ -353,8 +286,63 @@ execute here. I just include it for for completeness but we won't do anything in
 // Release resources, we won't do that here, it's just another &quot;hook&quot; for our &quot;extensions&quot;
 // to use. We release in every callback instead
 #}</code></pre></pre>
+<h2><a class="header" href="#7-give" id="7-give">7. Give</a></h2>
 <p>I pretty much explain this step in the comments. Typically releasing resources,
 like closing sockets, is done here.</p>
+<h2><a class="header" href="#the-run-function" id="the-run-function">The <code>run</code> function</a></h2>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl Runtime {
+    pub fn run(&amp;mut self, f: impl Fn()) {
+        let rt_ptr: *mut Runtime = self;
+        unsafe { RUNTIME = rt_ptr as usize };
+        let mut ticks = 0; // just for us priting out
+
+        // First we run our &quot;main&quot; function
+        f();
+
+        // ===== EVENT LOOP =====
+        while self.pending_events &gt; 0 {
+            ticks += 1;
+
+            // ===== 2. TIMERS =====
+            self.process_expired_timers();
+
+            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+            if !self.callbacks_to_run.is_empty() {
+                print(format!(&quot;===== TICK {} =====&quot;, ticks));
+            }
+
+            // ===== 2. CALLBACKS =====
+            // Timer callbacks and if for some reason we have postponed callbacks
+            // to run on the next tick. Not possible in our implementation though.
+            self.run_callbacks();
+
+            // ===== 3. IDLE/PREPARE =====
+            // we won't use this
+
+            // ===== 4. POLL =====
+            self.process_epoll_events();
+            self.process_threadpool_events();
+            self.run_callbacks();
+
+            // ===== 5. CHECK =====
+            // an set immidiate function could be added pretty easily but we 
+            // won't do that here
+
+            // ===== 6. CLOSE CALLBACKS ======
+            // Release resources, we won't do that here, but this is typically
+            // where sockets etc are closed.
+
+            // Let the OS have a time slice of our thread so we don't busy loop
+            // this could be dynamically set depending on requirements or load.
+            thread::park_timeout(std::time::Duration::from_millis(1));
+        }
+        print(&quot;FINISHED&quot;);
+    }
+}
+#}</code></pre></pre>
 <h2><a class="header" href="#shortcuts" id="shortcuts">Shortcuts</a></h2>
 <p>I'll mention some obvious shortcuts right here so you are aware of them. There are many &quot;exceptions&quot; that we don't cover in our example. We are focusing on the big picture just so we're on the same page. The <code>process.nextTick</code> function and the <code>setImmediate</code> function are two examples of this. I explained how we did skip the fact that the next timeout will define how long the <code>poll</code> phase will potentially block instead of continue the loop like we do here.</p>
 <p>We don't cover the case where a server under heavy load might have too many callbacks to reasonably run in one <code>poll</code> which means that we could starve our I/O resources in the meantime waiting for them to finish, and probably several similar cases that a production
@@ -362,23 +350,19 @@ runtime should care about.</p>
 <p>As you'll probably notice, implementing a simple version is more than enough work
 for us to cover in this book, but hopefully you'll find yourself in pretty good
 shape to dig further once we're finished.</p>
-<p>If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:</p>
-<p>This first one is made held by <a href="https://github.com/piscisaureus">@piscisaureus</a> and is an excellent 15 minute overview:</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-<p>The second one is slightly longer but is also an excellent talk held by <a href="https://github.com/nebrius">Bryan Hughes</a></p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="6_2_node_whats_our_plan.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="7_0_the_runtime.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="6_4_implementing_the_runtime.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="7_2_setting_up_runtime.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -390,13 +374,13 @@ shape to dig further once we're finished.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="6_2_node_whats_our_plan.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="7_0_the_runtime.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a href="6_4_implementing_the_runtime.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="7_2_setting_up_runtime.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

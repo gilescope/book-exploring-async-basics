@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_implementing_the_runtime.html"><strong aria-hidden="true">6.4.</strong> Implementing the Runtime</a></li><li><a href="6_5_node_the_threadpool.html"><strong aria-hidden="true">6.5.</strong> The threadpool</a></li><li><a href="6_6_node_the_io_eventqueue.html"><strong aria-hidden="true">6.6.</strong> The I/O eventqueue</a></li><li><a href="6_7_shortcuts_and_improvements.html"><strong aria-hidden="true">6.7.</strong> Shortcuts and improvements</a></li><li><a href="6_8_node_final_code.html"><strong aria-hidden="true">6.8.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing our &quot;Node&quot; Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.3.</strong> Epoll, Kqueue and IOCP</a></li></ol></li><li><a href="7_0_the_runtime.html"><strong aria-hidden="true">7.</strong> The runtime</a></li><li><ol class="section"><li><a href="7_1_the_main_loop.html"><strong aria-hidden="true">7.1.</strong> Running our runtime - the main loop</a></li><li><a href="7_2_setting_up_runtime.html"><strong aria-hidden="true">7.2.</strong> Setting up our runtime</a></li><li><a href="7_3_timers.html"><strong aria-hidden="true">7.3.</strong> Timers</a></li><li><a href="7_4_callbacks.html"><strong aria-hidden="true">7.4.</strong> Callbacks</a></li><li><a href="7_5_threadpool.html"><strong aria-hidden="true">7.5.</strong> Threadpool</a></li><li><a href="7_6_io_eventqueue.html"><strong aria-hidden="true">7.6.</strong> I/O eventqueue</a></li><li><a href="7_8_cleaning_up.html"><strong aria-hidden="true">7.7.</strong> Cleaning up</a></li><li><a href="7_9_infrastructure.html"><strong aria-hidden="true">7.8.</strong> Infrastructure</a></li></ol></li><li><a href="8_0_modules.html"><strong aria-hidden="true">8.</strong> Modules</a></li><li><ol class="section"><li><a href="8_1_file_module.html"><strong aria-hidden="true">8.1.</strong> File module</a></li><li><a href="8_2_crypto_module.html"><strong aria-hidden="true">8.2.</strong> Crypto module</a></li><li><a href="8_3_http_module.html"><strong aria-hidden="true">8.3.</strong> Http module</a></li></ol></li><li><a href="9_putting_pieces_together.html"><strong aria-hidden="true">9.</strong> Putting the pieces together</a></li><li><a href="10_final_code.html"><strong aria-hidden="true">10.</strong> Final code</a></li><li><a href="11_shortcuts_and_improvements.html"><strong aria-hidden="true">11.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -1247,203 +1247,14 @@ of interrupt is registered by the driver, so it's actually the driver that handl
 <h1><a class="header" href="#implementing-the-node-eventloop" id="implementing-the-node-eventloop">Implementing the Node Eventloop</a></h1>
 <p>Now we've finally come to the part of this book where we will write som more code.</p>
 <p>The Node event loop is a complex piece of software developed over many years. We
-will have to simplify things a lot. There are many edge cases that we won't cover,
-and there are many intricacies that we'll not mention or implement. </p>
-<p>However, I will try to implement the parts that are important for us to understand Node better and most importantly use it as an example where we can use our knowledge from the previous chapters to make something that actually works.</p>
-<p>What we will do is to look at how it conceptually works. Our main goal here is
-to explore async concepts, using Node as an example is part curiosity and part
-for fun.</p>
+will have to simplify things a lot. </p>
+<p>We'll try to implement the parts that are important for us to understand Node a
+little better and most importantly use it as an example where we can use our
+knowledge from the previous chapters to make something that actually works.</p>
+<p>Our main goal here is to explore async concepts, using Node as an example is
+mostly for fun.</p>
 <p>We want to write something like this:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-print(&quot;First call to read test.txt&quot;);
-Fs::read(&quot;test.txt&quot;, |result| {
-    let text = result.into_string().unwrap();
-    let len = text.len();
-    print(format!(&quot;First count: {} characters.&quot;, len));
-
-print(r#&quot;I want to create a &quot;magic&quot; number based on the text.&quot;#);
-Crypto::encrypt(text.len(), |result| {
-    let n = result.into_int().unwrap();
-    print(format!(r#&quot;&quot;Encrypted&quot; number is: {}&quot;#, n));
-    })
-});
-
-
-print(&quot;Registering immediate timeout 1&quot;);
-set_timeout(0, |_res| {
-    print(&quot;Immediate1 timed out&quot;);
-});
-print(&quot;Registering immediate timeout 2&quot;);
-set_timeout(0, |_res| {
-    print(&quot;Immediate2 timed out&quot;);
-});
-print(&quot;Registering immediate timeout 3&quot;);
-set_timeout(0, |_res| {
-    print(&quot;Immediate3 timed out&quot;);
-});
-
-// let's read the file again and display the text
-print(&quot;Second call to read test.txt&quot;);
-Fs::read(&quot;test.txt&quot;, |result| {
-    let text = result.into_string().unwrap();
-    let len = text.len();
-    print(format!(&quot;Second count: {} characters.&quot;, len));
-
-    // aaand one more time but not concurrently
-    print(&quot;Third call to read test.txt&quot;);
-    Fs::read(&quot;test.txt&quot;, |result| {
-        let text = result.into_string().unwrap();
-        print_content(&amp;text, &quot;file read&quot;);
-    });
-});
-
-print(&quot;Registering a 3000 and a 500 ms timeout&quot;);
-set_timeout(3000, |_res| {
-    print(&quot;3000ms timer timed out&quot;);
-    set_timeout(500, |_res| {
-        print(&quot;500ms timer(nested) timed out&quot;);
-    });
-});
-
-print(&quot;Registering a 1000 ms timeout&quot;);
-set_timeout(1000, |_res| {
-    print(&quot;SETTIMEOUT&quot;);
-});
-
-// `http_get_slow` let's us define a latency we want to simulate
-print(&quot;Registering http get request to google.com&quot;);
-Io::http_get_slow(&quot;http//www.google.com&quot;, 2000, |result| {
-    let result = result.into_string().unwrap();
-    print_content(result.trim(), &quot;web call&quot;);
-});
-#}</code></pre></pre>
-<p>And since this is just a runtime we write to learn we get this output showing us what happens when we run that code:</p>
-<pre><code>Thread: main     First call to read test.txt
-Thread: main     Registering immediate timeout 1
-Thread: pool3    recived a task of type: File read
-Thread: main     Registered timer event id: 2
-Thread: main     Registering immediate timeout 2
-Thread: main     Registered timer event id: 3
-Thread: main     Registering immediate timeout 3
-Thread: main     Registered timer event id: 4
-Thread: main     Second call to read test.txt
-Thread: main     Registering a 3000 ms timeout
-Thread: pool2    recived a task of type: File read
-Thread: main     Registered timer event id: 6
-Thread: main     Registering a 1000 ms timeout
-Thread: main     Registered timer event id: 7
-Thread: main     Registering http get request to google.com
-Thread: main     Event with id: 8 registered.
-Thread: main     ===== TICK 1 =====
-Thread: main     Immediate1 timed out
-Thread: main     Immediate2 timed out
-Thread: main     Immediate3 timed out
-Thread: main     ===== TICK 489 =====
-Thread: main     SETTIMEOUT
-Thread: pool2    finished running a task of type: File read.
-Thread: pool3    finished running a task of type: File read.
-Thread: main     ===== TICK 1057 =====
-Thread: main     First count: 39 characters.
-Thread: main     I want to create a &quot;magic&quot; number based on the text.
-Thread: main     Second count: 39 characters.
-Thread: main     Third call to read test.txt
-Thread: pool3    recived a task of type: Encrypt
-Thread: pool2    recived a task of type: File read
-Thread: epoll    epoll event 8 is ready
-Thread: main     ===== TICK 1124 =====
-
-===== THREAD main START CONTENT - WEB CALL =====
-HTTP/1.1 302 Found
-Server: CowbHTTP/1.1 302 Found
-Server: CowbHTTP/1.1 302 Found
-Server: Cowboy
-Date: Sun, 22 Sep 2019 15:17HTTP/1.1 302 Found
-Server: Cowboy
-Date: Sun, 22 Sep 2019 15:17:52 GMT
-Connection: close
-Content-Type: text/html;charset=utf-HTTP/1.1 302 Found
-Server: Cowboy
-Date: Sun, 22 Sep 2019 15:17:52 GMT
-Connection: close
-Content-Type: text/html;charset=utf-8
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: OPTIONS
-Access-Control-Allow-Methods: GET
-Access-Control-AlloHTTP/1.1 302 Found
-Server: Cowboy
-Date: Sun, 22 Sep 2019 15:17:52 GMT
-Connection: close
-Content-Type: text/html;charset=utf-8
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: OPTIONS
-Access-Control-Allow-Methods: GET
-Access-Control-Allow-Methods: POST
-Location: http://http/www.google.com
-X-Xss-Protection: 1; mode=block
-X-Content-Type-Options: nosniff
-X-Frame-Options: SAMEORIGIN
-Content-Length: 0
-Via: 1.1 vegur
-
-
-===== END CONTENT =====
-
-Thread: pool3    finished running a task of type: Encrypt.
-Thread: main     ===== TICK 1330 =====
-Thread: main     &quot;Encrypted&quot; number is: 63245986
-Thread: main     ===== TICK 1597 =====
-Thread: main     3000ms timer timed out
-Thread: main     Registered timer event id: 11
-Thread: main     ===== TICK 1882 =====
-Thread: main     500ms timer(nested) timed out
-Thread: pool2    finished running a task of type: File read.
-Thread: main     ===== TICK 2171 =====
-
-===== THREAD main START CONTENT - FILE READ =====
-Hello world! This is a text to encrypt!
-===== END CONTENT =====
-
-Thread: main     FINISHED
-</code></pre>
-<p>In the following chapters I'll walk you through what's going on here but right from the start we can notice some important things going on here:</p>
-<p>The code we write has a lot of simiarities with Javascript and looks very little like idiomatic Rust code.</p>
-<p>When you look through the events you'll see they happen in a different order that we wrote them. That tells us that there is some concurrency going on here.</p>
-<p>The next chapters will explain everything going on here, so relax, get a cup of tea and stay focused as we explain everything.</p>
-<h1><a class="header" href="#what-is-node" id="what-is-node">What is Node?</a></h1>
-<p>We have to start with a short explanation of what Node is, just so we're on the same page.</p>
-<p>Node is a Javascript runtime allowing Javascript to run on you'r desktop (or server). Javascript was originally designed as a scripting language for the browser which also means that Javascript in itself needs some runtime to interpret it.</p>
-<p>Javascript has one advantage from a language design perspective: Everything is designed to be handled asynchronously. An as you know by now, this pretty crucial if we want to make the most out of our hardware especially if you have a lot of I/O operations to take care of.</p>
-<p>One such scenario is a Webserver. Webservers handle a lot of I/O tasks whether it's reading from the file system or communicating via the network card.</p>
-<h2><a class="header" href="#why-node" id="why-node">Why Node</a></h2>
-<ul>
-<li>Javascript is unavoidable when doing web development. Using Javascript on the server allowed programmers to use the same language both places.</li>
-<li>There is a potential for code reuse between the server and the front end</li>
-<li>The design of Node allows it to make very perfromant web servers</li>
-<li>Working with Json and APIs is very easy when you only deal with Javascript</li>
-</ul>
-<h2><a class="header" href="#myths-and-helpfull-facts" id="myths-and-helpfull-facts">Myths and helpfull facts</a></h2>
-<p>Let's start off by debunking some myths that might make it easier to follow along when we start to code.</p>
-<h3><a class="header" href="#the-javascript-eventloop" id="the-javascript-eventloop">The Javascript Eventloop</a></h3>
-<p>Javascript is a scripting languange and can't do much on it's own. It doesn't hava an event loop. Now in a web browser, the browser provides a runtime, which includes an event loop. And on the server, Node provides this functinality. You might say that Javascript as a language would be difficult to run (due to it's callback based model) without some sort of event loop, that's beside the point.</p>
-<h3><a class="header" href="#node-isnt-multithreaded" id="node-isnt-multithreaded">Node isn't multithreaded</a></h3>
-<p>This isn't true. But the part of Node that &quot;progresses&quot; your code, does indeed run on a single thread. When we say &quot;don't block the event loop&quot; we're referring to this thread since that will prevent Node to progress other tasks.</p>
-<p>We'll see exactly why blocking this thread is a problem and how that's
-handled.</p>
-<h3><a class="header" href="#the-v8-javascript-engine" id="the-v8-javascript-engine">The V8 javascript engine</a></h3>
-<p>Now, this is where we need to focus a bit. The V8 engine is a javascript JIT compiler. That means that when you write a <code>for</code> loop, the V8 engine translates this to instructions that run on you'r CPU. There are many javascript engines, but Node was originally implemented on top of the V8 engine.</p>
-<p>The V8 engine itself can't do much useful for us, it just interprets our Javascript. It can't do I/O, set up a runtime or anything like that. Writing Javascript only with V8 will be a very limited experience.</p>
-<blockquote>
-<p>Since we write Rust as you saw on the top, we'll not cover the part of translating javascript. We'll just focus on how Node works and handles concurrency since that's our main focus right now.</p>
-</blockquote>
-<h1><a class="header" href="#whats-our-plan" id="whats-our-plan">What's our plan</a></h1>
-<p>For our plan to work we need a runtime to run our &quot;javascript&quot;.</p>
-<p>Let's first start with our &quot;javascript&quot;:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-/// Think of this function as the javascript program you have written
+<pre><pre class="playpen"><code class="language-rust">/// Think of this function as the javascript program you have written
 fn javascript() {
     print(&quot;First call to read test.txt&quot;);
     Fs::read(&quot;test.txt&quot;, |result| {
@@ -1458,7 +1269,6 @@ fn javascript() {
         })
     });
 
-
     print(&quot;Registering immediate timeout 1&quot;);
     set_timeout(0, |_res| {
         print(&quot;Immediate1 timed out&quot;);
@@ -1467,10 +1277,7 @@ fn javascript() {
     set_timeout(0, |_res| {
         print(&quot;Immediate2 timed out&quot;);
     });
-    print(&quot;Registering immediate timeout 3&quot;);
-    set_timeout(0, |_res| {
-        print(&quot;Immediate3 timed out&quot;);
-    });
+
     // let's read the file again and display the text
     print(&quot;Second call to read test.txt&quot;);
     Fs::read(&quot;test.txt&quot;, |result| {
@@ -1478,7 +1285,7 @@ fn javascript() {
         let len = text.len();
         print(format!(&quot;Second count: {} characters.&quot;, len));
 
-        // aaand one more time but not in parallell.
+        // aaand one more time but not in parallel.
         print(&quot;Third call to read test.txt&quot;);
         Fs::read(&quot;test.txt&quot;, |result| {
             let text = result.into_string().unwrap();
@@ -1507,88 +1314,18 @@ fn javascript() {
     });
 }
 
-fn print(t: impl std::fmt::Display) {
-    println!(&quot;Thread: {}\t {}&quot;, current(), t);
-}
-
-fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
-    println!(
-        &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
-        current(),
-        descr.to_uppercase()
-    );
-    println!(&quot;{}&quot;, t);
-    println!(&quot;===== END CONTENT =====\n&quot;);
-}
-#}</code></pre></pre>
-<p>Next, let's feed this code into our runtime:</p>
-<pre><pre class="playpen"><code class="language-rust">fn main() {
-    let mut rt = Runtime::new();
+fn main() {
+    let rt = Runtime::new();
     rt.run(javascript);
 }
 </code></pre></pre>
-<p>Now before we go on to implement our runtime we'll need some helper functions:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-fn print(t: impl std::fmt::Display) {
-    println!(&quot;Thread: {}\t {}&quot;, current(), t);
-}
-
-fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
-    println!(
-        &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
-        current(),
-        descr.to_uppercase()
-    );
-    println!(&quot;{}&quot;, t);
-    println!(&quot;===== END CONTENT =====\n&quot;);
-}
-
-fn current() -&gt; String {
-    thread::current().name().unwrap().to_string()
-}
-
-#}</code></pre></pre>
-<p>Here we define three functions:</p>
-<p><code>print</code> which prints out a message that first tells us what thread the message is beeing outputted from, and then a message we provide:</p>
-<p><code>print_content</code> does the same as <code>print</code> but is a way for us to print out more than a message in a nice way.</p>
-<p><code>current</code> is just a shortcut for us to get the name of the current thread. Since we want to track what's happening where we're going to need to print out what thread is issuing what output so this will avoid cluttering up our code too much along the way.</p>
-<p>Next we pull in some modules from the standard library and we refer to an external library called <code>minimio</code></p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-use std::collections::{BTreeMap, HashMap};
-use std::fmt;
-use std::fs;
-use std::io::{Read, Write};
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
-
-use minimio;
-#}</code></pre></pre>
-<h2><a class="header" href="#minimio" id="minimio">Minimio</a></h2>
-<p>Minimio is a cross platform epoll/kqueue/IOCP based event loop that we will cover in the next book. I originally included it here but implementing that for three arcitectures is pretty interesting and needed more space than would fit in this book.</p>
-<p>Most modern I/O eventloops uses a cross platform library like this. In Rust we have <a href="https://github.com/tokio-rs/mio"><code>mio</code></a>, Node uses <a href="https://github.com/libuv/libuv"><code>libuv</code></a> and there are several more. However, creating a cross platform general eventloop is pretty challenging since Windows and Unix has different ways of handeling events. We'll talk much more about this in the next book but let's just make a note of it here.</p>
-<p>Let's briefly cover the how this works and why we need this in Node:</p>
-<h3><a class="header" href="#epoll" id="epoll">Epoll</a></h3>
-<p><code>Epoll</code> is the Linux way of implementing an event queue. In terms of functionality it has a lot of common with <code>Kqueue</code>. On a high level these abstractions provide us with this functionality:</p>
-<ol>
-<li>A handle to an event queue</li>
-<li>A way for us to register interest for events on a file descriptor and place it in this queue</li>
-<li>A way for us to wait for this event to occur by letting the OS suspend our thread and wake us up when event is ready</li>
-</ol>
-<h3><a class="header" href="#kqueue" id="kqueue">Kqueue</a></h3>
-<p><code>Kqueue</code> is the Macos way of implementing an event queue, well, actually it's the BSD way of doint this that Macos uses. In terms of high level functionality it's similar to <code>Epoll</code>.</p>
-<p>The differences are in how you interact with the queues and there are some differences in functionality but for the normal use case they are similar enough.</p>
-<h3><a class="header" href="#iocp" id="iocp">IOCP</a></h3>
-<p><code>IOCP</code> or Input Output Completion Ports is the way Windows handles this type of event queue. This type of queue works differently from <code>epoll</code> and <code>kqueue</code>. The biggest difference in terms of functionality is that <code>epoll</code> and <code>kqueue</code> lets you know when an event is ready (i.e. some data is ready to be read). We call this form of model a <code>readiness based</code> model.</p>
-<p>Windows on the other hand uses a <code>completion based</code> model. This means it will let you know when an event has <code>Completed</code>. Now this might sound like a minor difference but it's not, especially when you want to write a library.</p>
-<p>The major difficulty is that you either need to get <code>epoll</code> or <code>kqueue</code> to behave like they're <code>completion based</code> or you'll have to try to get Windows to behave in a <code>readiness based</code> manner. The latter is the way <code>wepoll</code> and <code>mio</code> does it but this change is very recent and uses a few undocumented parts of the Windows API.</p>
-<h2><a class="header" href="#important-things-to-note-before-reading-further" id="important-things-to-note-before-reading-further">Important things to note before reading further</a></h2>
-<p>We have to explain some things right here to prepare you for the rest.</p>
-<p>We are using a callback based model, as is Node. </p>
+<p>When running this we'll have print statements at strategic places in our code
+so we can get a view on what's actually happening.</p>
+<p>Right off the bat you'll see that something is strange with the Rust code we
+have written in our example.</p>
+<p>The code uses callbacks when we have an async operation we want to execute just
+like Javascript does, and we have &quot;magic&quot; modules like <code>Fs</code> or <code>Crypto</code> that
+we can call, just like when you import modules from Node.</p>
 <p>Our code here is mostly calling functions that register an event, and stores a
 callback to be run when the event is ready.</p>
 <pre><pre class="playpen"><code class="language-rust">
@@ -1604,97 +1341,405 @@ an argument that is passed in to our callback. In javascript it would be left ou
 since we use a typed language we have created a type called <code>Js</code>.</p>
 <p><code>Js</code> is an enum that represents Javascript types. In the case of <code>set_timeout</code> it's
 <code>Js::undefined</code>. In the case of <code>Fs::read</code> it's an <code>Js::String</code> and so on.</p>
-<p>Now this callback is given an <strong>unique Id</strong> and is stored until the event occurs and
+<p>T callback is given an <strong>unique Id</strong> and is stored until the event occurs and
 we invoke the callback and pass in any arguments we might have. In the case of <code>Fs::read</code>
 that would be the text representation of the file we read.</p>
-<h3><a class="header" href="#nodes-eventloops" id="nodes-eventloops">Nodes eventloop(s)</a></h3>
+<p>When we run this code we'll get something looking like this:</p>
+<pre><code>Thread: main     First call to read test.txt
+Thread: main     Registering immediate timeout 1
+Thread: pool3    recived a task of type: File read
+Thread: main     Registered timer event id: 2
+Thread: main     Registering immediate timeout 2
+Thread: main     Registered timer event id: 3
+Thread: main     Second call to read test.txt
+Thread: main     Registering a 3000 and a 500 ms timeout
+Thread: pool2    recived a task of type: File read
+Thread: main     Registered timer event id: 5
+Thread: main     Registering a 1000 ms timeout
+Thread: main     Registered timer event id: 6
+Thread: main     Registering http get request to google.com
+Thread: main     Event with id: 7 registered.
+Thread: main     ===== TICK 1 =====
+Thread: main     Immediate1 timed out
+Thread: main     Immediate2 timed out
+Thread: pool2    finished running a task of type: File read.
+Thread: pool3    finished running a task of type: File read.
+Thread: main     Second count: 39 characters.
+Thread: main     Third call to read test.txt
+Thread: main     ===== TICK 2 =====
+Thread: pool2    recived a task of type: File read
+Thread: main     SETTIMEOUT
+Thread: main     First count: 39 characters.
+Thread: main     I want to create a &quot;magic&quot; number based on the text.
+Thread: main     ===== TICK 3 =====
+Thread: pool3    recived a task of type: Encrypt
+Thread: pool3    finished running a task of type: Encrypt.
+Thread: main     &quot;Encrypted&quot; number is: 63245986
+Thread: main     ===== TICK 4 =====
+Thread: pool2    finished running a task of type: File read.
+
+===== THREAD main START CONTENT - FILE READ =====
+Hello world! This is a text to encrypt!
+===== END CONTENT =====
+
+Thread: main     ===== TICK 5 =====
+Thread: epoll    epoll event 7 is ready
+
+===== THREAD main START CONTENT - WEB CALL =====
+HTTP/1.1 302 Found
+Server: CowbHTTP/1.1 302 Found
+Server: CowbHTTP/1.1 302 Found
+Server: Cowboy
+... [Note: Abbreviated for display] ...
+
+
+===== END CONTENT =====
+
+Thread: main     ===== TICK 6 =====
+Thread: epoll    epoll event timeout is ready
+Thread: main     ===== TICK 7 =====
+Thread: main     3000ms timer timed out
+Thread: main     Registered timer event id: 10
+Thread: epoll    epoll event timeout is ready
+Thread: main     ===== TICK 8 =====
+Thread: main     500ms timer(nested) timed out
+Thread: pool0    recived a task of type: Close
+Thread: pool1    recived a task of type: Close
+Thread: pool2    recived a task of type: Close
+Thread: pool3    recived a task of type: Close
+Thread: epoll    recieved event of type: Close
+Thread: main     FINISHED
+</code></pre>
+<p>Don't worry, we'll explain everything, but I just wanted to start off by
+explaining where we want to end up.</p>
+<h1><a class="header" href="#what-is-node" id="what-is-node">What is Node?</a></h1>
+<p>We have to start with a short explanation of what Node is, just so we're on the same page.</p>
+<p>Node is a Javascript runtime allowing Javascript to run on you'r desktop (or server). Javascript was originally designed as a scripting language for the browser which also means that Javascript in itself needs some runtime to interpret it.</p>
+<p>Javascript has one advantage from a language design perspective: Everything is designed to be handled asynchronously. An as you know by now, this pretty crucial if we want to make the most out of our hardware especially if you have a lot of I/O operations to take care of.</p>
+<p>One such scenario is a Webserver. Webservers handle a lot of I/O tasks whether it's reading from the file system or communicating via the network card.</p>
+<h2><a class="header" href="#why-node" id="why-node">Why Node</a></h2>
+<ul>
+<li>Javascript is unavoidable when doing web development. Using Javascript on the server allowed programmers to use the same language both places.</li>
+<li>There is a potential for code reuse between the server and the front end</li>
+<li>The design of Node allows it to make very perfromant web servers</li>
+<li>Working with Json and APIs is very easy when you only deal with Javascript</li>
+</ul>
+<h2><a class="header" href="#myths-and-helpfull-facts" id="myths-and-helpfull-facts">Myths and helpfull facts</a></h2>
+<p>Let's start off by debunking some myths that might make it easier to follow along when we start to code.</p>
+<h3><a class="header" href="#the-javascript-eventloop" id="the-javascript-eventloop">The Javascript Eventloop</a></h3>
+<p>Javascript is a scripting languange and can't do much on it's own. It doesn't hava an event loop. Now in a web browser, the browser provides a runtime, which includes an event loop. And on the server, Node provides this functinality. You might say that Javascript as a language would be difficult to run (due to it's callback based model) without some sort of event loop, that's beside the point.</p>
+<h3><a class="header" href="#node-isnt-multithreaded" id="node-isnt-multithreaded">Node isn't multithreaded</a></h3>
+<p>This isn't true. But the part of Node that &quot;progresses&quot; your code, does indeed run on a single thread. When we say &quot;don't block the event loop&quot; we're referring to this thread since that will prevent Node to progress other tasks.</p>
+<p>We'll see exactly why blocking this thread is a problem and how that's
+handled.</p>
+<h3><a class="header" href="#the-v8-javascript-engine" id="the-v8-javascript-engine">The V8 javascript engine</a></h3>
+<p>Now, this is where we need to focus a bit. The V8 engine is a javascript JIT compiler. That means that when you write a <code>for</code> loop, the V8 engine translates this to instructions that run on you'r CPU. There are many javascript engines, but Node was originally implemented on top of the V8 engine.</p>
+<p>The V8 engine itself can't do much useful for us, it just interprets our Javascript. It can't do I/O, set up a runtime or anything like that. Writing Javascript only with V8 will be a very limited experience.</p>
+<blockquote>
+<p>Since we write Rust as you saw on the top, we'll not cover the part of translating javascript. We'll just focus on how Node works and handles concurrency since that's our main focus right now.</p>
+</blockquote>
+<h2><a class="header" href="#nodes-eventloops" id="nodes-eventloops">Nodes eventloop(s)</a></h2>
+<p>Picturing Node as a single eventloop is a standard simple event loop is an oversimplification, but
+it's what we'll do in our example.</p>
 <p>Node internally divides it's real work into two categories:</p>
-<h4><a class="header" href="#io-bound-tasks" id="io-bound-tasks">I/O bound tasks</a></h4>
+<h3><a class="header" href="#io-bound-tasks" id="io-bound-tasks">I/O bound tasks</a></h3>
 <p>Are handleded by the cross platform epoll/kqueue/IOCP event queue implemented in <code>libuv</code> and in our case <code>minimio</code>.</p>
-<h4><a class="header" href="#cpu-bound-tasks" id="cpu-bound-tasks">CPU bound tasks</a></h4>
+<h3><a class="header" href="#cpu-bound-tasks" id="cpu-bound-tasks">CPU bound tasks</a></h3>
 <p>Are handeled by an threadpool. The default size of this threadpool is 4 threads, but that can be configured by the Node runtime.</p>
 <p>I/O tasks which can't be handled by the cross platform eventqueue is also handled here which is the case with file reads which we use in our example.</p>
 <p>Most C++ extensions for Node uses this threadpool to perform their work and that is one of many reasons they are used for CPU heavy tasks.</p>
-<h1><a class="header" href="#the-main-loop" id="the-main-loop">The main loop</a></h1>
-<p>Before we implement the eventlopp we need to set up our Runtime so we can save all our state there:</p>
-<p>When we're finished, our Runtime struct will look like this: </p>
+<h2><a class="header" href="#further-information" id="further-information">Further information</a></h2>
+<p>If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:</p>
+<p>This first one is made held by <a href="https://github.com/piscisaureus">@piscisaureus</a> and is an excellent 15 minute overview - i especially recommend this one as its short and to the point:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p>The second one is slightly longer but is also an excellent talk held by <a href="https://github.com/nebrius">Bryan Hughes</a></p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p>Now, relax, get a cup of tea and sit back while we go through everything together.</p>
+<h1><a class="header" href="#whats-our-plan" id="whats-our-plan">What's our plan</a></h1>
+<p>I'll briefly list what we need to do to get this working here:</p>
+<h2><a class="header" href="#we-need-two-event-queues" id="we-need-two-event-queues">We need two event queues:</a></h2>
+<ol>
+<li>We need a threadpool to execute our CPU intensive tasks, or tasks that we want
+too run asynchronously but not in our OS backed event queue</li>
+<li>We need to make a simple cross platform <code>epoll/kqueue/IOCP</code> eventloop. Now
+this turns out to be extremely interesting, but also a lot of code so I split
+that off to a separate &quot;companion book&quot; for those that want to explore this further.
+I split this off to a library called <code>minimio</code></li>
+</ol>
+<h2><a class="header" href="#we-need-a-runtime" id="we-need-a-runtime">We need a runtime</a></h2>
+<p>Our runtime will:</p>
+<ol>
+<li>Store our callbacks to be run in a later point</li>
+<li>Send tasks to our threadpool</li>
+<li>Register interests with the OS (through <code>minimio</code>)</li>
+<li>Poll our two event sources for new events</li>
+<li>Handle timers</li>
+<li>Provide a way for &quot;modules&quot; like <code>Fs</code> and <code>Crypto</code> to register tasks</li>
+<li>Progress all our tasks until we're finished</li>
+</ol>
+<h2><a class="header" href="#we-need-a-few-modules" id="we-need-a-few-modules">We need a few modules</a></h2>
+<ol>
+<li>For handling file system tasks <code>Fs</code></li>
+<li>For handling http calls <code>Http</code></li>
+<li>For handling cryptological tasks <code>Crypto</code></li>
+</ol>
+<h2><a class="header" href="#we-need-to-make-som-helpers" id="we-need-to-make-som-helpers">We need to make som helpers</a></h2>
+<p>We need some helpers to make our code readable and to provide the output we want
+to see. In contrast to any real runtime, we're interested in knowing what happens
+when. To help with that we define three extra methods:</p>
+<p><code>print</code> which prints out a message that first tells us what thread the message is beeing outputted from, and then a message we provide:</p>
+<p><code>print_content</code> does the same as <code>print</code> but is a way for us to print out more than a message in a nice way.</p>
+<p><code>current</code> is just a shortcut for us to get the name of the current thread. Since we want to track what's happening where we're going to need to print out what thread is issuing what output so this will avoid cluttering up our code too much along the way.</p>
+<h2><a class="header" href="#minimio" id="minimio">Minimio</a></h2>
+<p>Minimio is a cross platform epoll/kqueue/IOCP based event loop that we will cover in the next book. I originally included it here but implementing that for three architectures is pretty interesting and needed more space than would fit in this book.</p>
+<p>Most modern I/O eventloops uses a cross platform library like this. In Rust we have <a href="https://github.com/tokio-rs/mio"><code>mio</code></a>, Node uses <a href="https://github.com/libuv/libuv"><code>libuv</code></a> and there are several more. However, creating a cross platform general event loop is pretty challenging since Windows and Unix has different ways of handling events. We'll talk much more about this in the next book but let's just make a note of it here.</p>
+<h1><a class="header" href="#epoll-kqueue-and-iocp" id="epoll-kqueue-and-iocp">Epoll, kqueue and IOCP</a></h1>
+<p>Part of Nodes runtime is <a href="https://github.com/libuv/libuv">libuv</a> which is a cross platform
+asynchronous I/O library. <code>libuv</code> is not only used in Node but also forms the foundation
+of how <a href="https://julialang.org/">Julia</a> and <a href="https://github.com/saghul/pyuv">Pyuv</a>. Most
+languages has bindings for it. </p>
+<p>In Rust we have <a href="https://github.com/tokio-rs/mio">mio - Metal IO</a>. Since we want
+to understand how everything works from the bottom, I had to create an extremely
+simplified version of such a library. I called it <code>minimio</code> for obvious reasons.</p>
+<blockquote>
+<p>I will write a short book (much shorter than this one) about how this works in
+detail, for now you can visit the code in the it's <a href="https://github.com/cfsamson/examples-minimio">Github repository if you're
+curious</a>. This book will also cover
+<code>wepoll</code> which is used as an optimization instead of IOCP in both <code>mio</code> and <code>libuv</code>. </p>
+</blockquote>
+<p>However, we'll give each of them a brief introduction here so you know what we're
+working with.</p>
+<h2><a class="header" href="#why-and-os-backed-event-queue" id="why-and-os-backed-event-queue">Why and OS backed event queue</a></h2>
+<p>If you remember my previous chapters you know that we need to cooperate closely
+with the OS to make I/O operations as efficient as possible. Operating systems like
+Linux, Macos and Windows provides several ways of performing I/O, both blocking and
+non-blocking.</p>
+<p>As you probably have understood, blocking means only to us, but we yield control over
+our thread to the OS. So blocking operations are the least flexible to use for us
+as programmers.</p>
+<p>Non-blocking metods needs a way to communicate their state to you so you can
+tell if they're ready or not, but instead of you asking for a status every now
+and then there are better ways.</p>
+<blockquote>
+<p>We'll not cover methods like <code>poll</code> and <code>select</code> but I have an <a href="https://people.eecs.berkeley.edu/%7Esangjin/2012/12/21/epoll-vs-kqueue.html">article for you
+here</a>
+if you want to learn a bit about these methods and how they differ from <code>epoll</code>.</p>
+</blockquote>
+<h2><a class="header" href="#readiness-based-event-queue" id="readiness-based-event-queue">Readiness based event queue</a></h2>
+<p>Epoll and Kqueue are what we call readiness based event queues. They're called
+that since they let you know when an action is ready to be performed. For example
+when a socket is ready to be read from.</p>
+<p>Basically this happens when we want to read data from a socket:</p>
+<ol>
+<li>We create an event queue by calling the syscall <code>epoll_create</code> or <code>kqueue</code></li>
+<li>We create a file descriptor representing a socket</li>
+<li>We register an interest in <code>Read</code> events on this socket with a second syscall</li>
+<li>Next, we call, <code>epoll_wait</code> or <code>kevent</code> to wait for an event - this will block</li>
+<li>When the event is ready, our thread is unblocked and we return from one of our
+&quot;wait&quot; methods with data about what event occurred.</li>
+<li>We call <code>read</code> on the socket we created in 2.</li>
+</ol>
+<h2><a class="header" href="#completion-based-event-queue" id="completion-based-event-queue">Completion based event queue</a></h2>
+<p>IOCP stands for I/O Completion Ports, and in this type of queue you get a
+notification when events are completed. For example data is read to a buffer.</p>
+<p>This is the basics of what happens in an even queue:</p>
+<ol>
+<li>We create an event queue by calling the syscall <code>CreateIoCompletionPort</code></li>
+<li>We create a buffer and a get a handle to a socket</li>
+<li>We register an interest in <code>Read</code> events on this socket with another syscall,
+but this time we also pass inn the buffer we created to which the data will
+be read.</li>
+<li>Next, we call <code>GetQueuedCompletionStatusEx</code> which will block until an event has
+completed</li>
+<li>Our thread is unblocked and our buffer is filled with the data we're interested in</li>
+</ol>
+<h2><a class="header" href="#epoll" id="epoll">Epoll</a></h2>
+<p><code>Epoll</code> is the Linux way of implementing an event queue. In terms of functionality it has a lot of 
+common with <code>Kqueue</code>. On a high level these abstractions provide us with this functionality:</p>
+<ol>
+<li>A handle to an event queue</li>
+<li>A way for us to register interest for events on a file descriptor and place it in this queue</li>
+<li>A way for us to wait for this event to occur by letting the OS suspend our thread and wake us up when event is ready</li>
+</ol>
+<h3><a class="header" href="#kqueue" id="kqueue">Kqueue</a></h3>
+<p><code>Kqueue</code> is the Macos way of implementing an event queue, well, actually it's 
+the BSD way of doing this that Macos uses. In terms of high level functionality
+it's similar to <code>Epoll</code> in concept but different to use.</p>
+<p>Some argue it's a bit more complex to use and a bit more abstract and &quot;general&quot;.</p>
+<h3><a class="header" href="#iocp" id="iocp">IOCP</a></h3>
+<p><code>IOCP</code> or Input Output Completion Ports is the way Windows handles this type of event queue. </p>
+<p>This means it will let you know when an event has <code>Completed</code>. Now this might
+sound like a minor difference but it's not, especially when you want to write a
+library since abstracting over both means you'll either have to model <code>IOCP</code> as
+<code>readiness based</code> or model <code>epoll/kqueue</code> as completion based.</p>
+<p>Lending out a buffer to the OS also provides some challenges since it's very
+important that this buffer stays untouched while waiting for an operation to
+return.</p>
+<blockquote>
+<p>My experience investigating this suggests that getting the <code>readiness based</code>
+models to behave like the <code>completion based</code> model is easier than the other
+way around. This means get IOCP to work first and then fit <code>epoll</code> and <code>kqueue</code>
+into that design. I'm open to other views as well.</p>
+</blockquote>
+<h1><a class="header" href="#the-runtime" id="the-runtime">The Runtime</a></h1>
+<p>Let's start to get some code written down, we have a lot to do.</p>
+<p>The way we'll go about this is that I'll go through everything the way I find the
+larger concepts mentally easiest to parse and understand. That also means that
+sometimes I have to introduce a bit of code that will be explained later, just
+don't worry. I'll go through everything.</p>
+<p>The first thing we need is a <code>Runtime</code> to hold all the state our <code>Runtime</code>needs.
+I've added comments to the code so it's easier to understand when you go through
+the repository:</p>
+<pre><code class="language-rust no_run noplaypen">pub struct Runtime {
+    /// Available threads for the threadpool
+    available_threads: Vec&lt;usize&gt;,
+    /// Callbacks scheduled to run
+    callbacks_to_run: Vec&lt;(usize, Js)&gt;,
+    /// All registered callbacks
+    callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
+    /// Maps an epoll event to a callback
+    epoll_event_cb_map: HashMap&lt;i64, usize&gt;,
+    /// Number of pending epoll events, only used by us to print for this example
+    epoll_pending_events: usize,
+    /// Our event registrator which registers interest in events with the OS
+    epoll_registrator: minimio::Registrator,
+    // The handle to our epoll thread
+    epoll_thread: thread::JoinHandle&lt;()&gt;,
+    /// None = infinite, Some(n) = timeout in n ms, Some(0) = immidiate
+    epoll_timeout: Arc&lt;Mutex&lt;Option&lt;i32&gt;&gt;&gt;,
+    /// Channel used by both our threadpool and our epoll thread to send events
+    /// to the main loop
+    event_reciever: Receiver&lt;PollEvent&gt;,
+    /// Creates an unique identity for our callbacks
+    identity_token: usize,
+    /// The number of events pending. When this is zero, we're done
+    pending_events: usize,
+    /// Handles to our threads in the threadpool
+    thread_pool: Vec&lt;NodeThread&gt;,
+    /// Holds all our timers, and an Id for the callback to run once they expire
+    timers: BTreeMap&lt;Instant, usize&gt;,
+    /// A struct to temporarely hold timers to remove. We let Runtinme have
+    /// ownership so we can reuse the same memory
+    timers_to_remove: Vec&lt;Instant&gt;,
+}
+</code></pre>
+<p>Now, I've added some comments here to explain what they're for and in the coming
+chapters we'll cover every one of them.</p>
+<p>I'll continue by defining some of the types we use here.</p>
+<p>First is <code>NodeThread</code>, which represents a thread in our threadpool. As you
+see we have a <code>JoinHandle</code> (which we get when we call <code>thread::spawn</code>) and the
+sending part of a channel. This channel, sends messages of the type <code>Event</code>.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-pub struct Runtime {
-    
+#[derive(Debug)]
+struct NodeThread {
+    pub(crate) handle: JoinHandle&lt;()&gt;,
+    sender: Sender&lt;Event&gt;,
+}
+#}</code></pre></pre>
+<p>The <code>Event</code> type is defined below. It holds a <code>task</code> which is a heap-allocated
+<code>Fn()</code>. An <code>Fn() -&gt; Js</code> is a trait which represents a closure that returns a
+<code>Js</code> object. The next is a <code>callback_id</code> which is just an <code>usize</code> in our case but
+could be any object representing an unique Id. Last we have <code>EventKind</code> which
+is an <code>enum</code> indicating what kind of event this is.</p>
+<pre><code class="language-rust no_run noplaypen">struct Event {
+    task: Box&lt;dyn Fn() -&gt; Js + Send + 'static&gt;,
+    callback_id: usize,
+    kind: EventKind,
+}
+</code></pre>
+<p>We introduced two new types here: <code>Js</code> and <code>ThreadPoolEventKind</code>. First we'll cover <code>ThreadPoolEventKind</code>.
+As you see we have three kinds of events: a <code>FileRead</code> which is a file that has
+been read, and an <code>Encrypt</code> that represents an operation from our <code>Crypto</code> module.
+The event <code>Close</code> is used to let the threads in our <code>threadpool</code> that we're closing
+the loop and let them exit out of their loops.</p>
+<p>As you might understand, this object is only used in the <code>threadpool</code></p>
+<pre><code class="language-rust no_run noplaypen">pub enum ThreadPoolEventKind {
+    FileRead,
+    Encrypt,
+    Close,
+}
+</code></pre>
+<p>Next is our <code>Js</code> object. This represents different <code>Js</code> types, and it's only used
+to make our code look more &quot;javascripty&quot;, but it's also convenient for us to
+abstract over the return types of closures.</p>
+<p>We'll also implement two convenience methods on this object to make our &quot;javascripty&quot;
+code look a bit cleaner. We know the return types already based on our modules
+documentation - just like you would know it from the documentation when using a
+Node module.</p>
+<pre><code class="language-rust no_run noplaypen">#[derive(Debug)]
+pub enum Js {
+    Undefined,
+    String(String),
+    Int(usize),
 }
 
+impl Js {
+    /// Convenience method since we know the types
+    fn into_string(self) -&gt; Option&lt;String&gt; {
+        match self {
+            Js::String(s) =&gt; Some(s),
+            _ =&gt; None,
+        }
+    }
+
+    /// Convenience method since we know the types
+    fn into_int(self) -&gt; Option&lt;usize&gt; {
+        match self {
+            Js::Int(n) =&gt; Some(n),
+            _ =&gt; None,
+        }
+    }
+}
+</code></pre>
+<p>Next we have a the <code>PollEvent</code>. While we defined an <code>enum</code> to represent what
+kind of events we could send <strong>to</strong> the <code>eventpool</code> we define some events
+that we can accept back from both our <code>epoll based</code> event queue and our <code>threadpool</code>.</p>
+<pre><code class="language-rust no_run noplaypen">/// Describes the three main events our epoll-eventloop handles
+enum PollEvent {
+    /// An event from the `threadpool` with a tuple containing the `thread id`,
+    /// the `callback_id` and the data which the we expect to process in our
+    /// callback 
+    Threadpool((usize, usize, Js)),
+    /// An event from the epoll-based eventloop holding the `event_id` for the
+    /// event
+    Epoll(usize),
+    Timeout,
+}
+</code></pre>
+<p>Lastly we have another convenience for us, and it's also necessary to make our
+Javascript code look a bit like Javascript.</p>
+<p>First we have a static variable which represents our <code>Runtime</code>. It's actually
+a pointer to our <code>runtime</code> which we initialize to a null-pointer from the start.</p>
+<p>We need to use unsafe to edit this. I'll explain later how this is safe, but I
+also want to mention here that it could be avoided by using <a href="https://github.com/rust-lang-nursery/lazy-static.rs">lazy_static</a>
+but that would both require us to add <code>lazy_static</code> as an dependency (which would
+be fine since it contains no &quot;magic&quot; that we want to explain in this book) but
+it also does make our code less readable, and it's complex enough.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+static mut RUNTIME: *mut Runtime = std::ptr::null_mut();
 #}</code></pre></pre>
-<p>Don't worry, we'll fill in the fields as we go along but I didn't want you to 
-stop now an try to figure out what everything is.</p>
-<p>Let's get back on track. And talk a bit about the eventloop, which probably is 
-the most interesting part of code in this book since there has been som much
-written about it:</p>
+<p>Let's now move on and look at what the heart of the runtime looks like: the main loop</p>
+<h2><a class="header" href="#moving-on" id="moving-on">Moving on</a></h2>
+<p>Now we've already gotten really far by explaining how our eventloop works already
+in the first chapter. Now we just need to set up the infrastructure for this
+loop to work.</p>
+<h1><a class="header" href="#the-main-loop" id="the-main-loop">The main loop</a></h1>
+<p>Let's put our event loop logic in the <code>run</code> function of our <code>Runtime</code>. The code
+which we present on this chapter is the body of this <code>run</code> function.</p>
+<p>I'll include the whole method last so you can see it all together.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 impl Runtime {
-    pub fn run(&amp;mut self, f: impl Fn()) {
-        let rt_ptr: *mut Runtime = self;
-        unsafe { RUNTIME = rt_ptr as usize };
-
-        let mut timers_to_remove = vec![]; // avoid allocating on every loop
-        let mut ticks = 0; // just for us priting out
-
-        // First we run our &quot;main&quot; function
-        f();
-
-        // ===== EVENT LOOP =====
-        while self.pending_events &gt; 0 {
-            ticks += 1;
-
-            // ===== 2. TIMERS =====
-            self.effectuate_timers(&amp;mut timers_to_remove);
-
-            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
-            if !self.callbacks_to_run.is_empty() {
-                print(format!(&quot;===== TICK {} =====&quot;, ticks));
-            }
-
-            // ===== 2. CALLBACKS =====
-            // Timer callbacks and if for some reason we have postponed callbacks
-            // to run on the next tick. Not possible in our implementation though.
-            self.run_callbacks();
-
-            // ===== 3. IDLE/PREPARE =====
-            // we won't use this
-
-            // ===== 4. POLL =====
-            // NB! Timeout! Normally we set these &quot;blocking&quot; polls to time out
-            // when we calculate the next timer to expire, we set that as the
-            // timeout to our epoll queue. Then we block the loop while waiting
-            // for an event to happen or a timeout to expire.
-            self.process_epoll_events();
-            self.process_threadpool_events();
-            self.run_callbacks();
-
-            // ===== 5. CHECK =====
-            // an set immidiate function could be added pretty easily but we 
-            // won't do that here
-
-            // ===== 6. CLOSE CALLBACKS ======
-            // Release resources, we won't do that here, but this is typically
-            // where sockets etc are closed.
-
-            // Let the OS have a time slice of our thread so we don't busy loop
-            // this could be dynamically set depending on requirements or load.
-            thread::park_timeout(std::time::Duration::from_millis(1));
-        }
-        print(&quot;FINISHED&quot;);
+    fn run() {
+        ...
     }
 }
 #}</code></pre></pre>
-<p>I present the full function here to get a overview since this will be what is
-running our runtime. As you see I've made several comments where there are steps
-that are performed by Node but which we will skip.</p>
-<p>I'll step through each step here, and while I do that I will try to point out
-where the real Node runtime differs substantially from ours.</p>
 <h2><a class="header" href="#initialization" id="initialization">Initialization</a></h2>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
@@ -1823,8 +1868,63 @@ execute here. I just include it for for completeness but we won't do anything in
 // Release resources, we won't do that here, it's just another &quot;hook&quot; for our &quot;extensions&quot;
 // to use. We release in every callback instead
 #}</code></pre></pre>
+<h2><a class="header" href="#7-give" id="7-give">7. Give</a></h2>
 <p>I pretty much explain this step in the comments. Typically releasing resources,
 like closing sockets, is done here.</p>
+<h2><a class="header" href="#the-run-function" id="the-run-function">The <code>run</code> function</a></h2>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl Runtime {
+    pub fn run(&amp;mut self, f: impl Fn()) {
+        let rt_ptr: *mut Runtime = self;
+        unsafe { RUNTIME = rt_ptr as usize };
+        let mut ticks = 0; // just for us priting out
+
+        // First we run our &quot;main&quot; function
+        f();
+
+        // ===== EVENT LOOP =====
+        while self.pending_events &gt; 0 {
+            ticks += 1;
+
+            // ===== 2. TIMERS =====
+            self.process_expired_timers();
+
+            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+            if !self.callbacks_to_run.is_empty() {
+                print(format!(&quot;===== TICK {} =====&quot;, ticks));
+            }
+
+            // ===== 2. CALLBACKS =====
+            // Timer callbacks and if for some reason we have postponed callbacks
+            // to run on the next tick. Not possible in our implementation though.
+            self.run_callbacks();
+
+            // ===== 3. IDLE/PREPARE =====
+            // we won't use this
+
+            // ===== 4. POLL =====
+            self.process_epoll_events();
+            self.process_threadpool_events();
+            self.run_callbacks();
+
+            // ===== 5. CHECK =====
+            // an set immidiate function could be added pretty easily but we 
+            // won't do that here
+
+            // ===== 6. CLOSE CALLBACKS ======
+            // Release resources, we won't do that here, but this is typically
+            // where sockets etc are closed.
+
+            // Let the OS have a time slice of our thread so we don't busy loop
+            // this could be dynamically set depending on requirements or load.
+            thread::park_timeout(std::time::Duration::from_millis(1));
+        }
+        print(&quot;FINISHED&quot;);
+    }
+}
+#}</code></pre></pre>
 <h2><a class="header" href="#shortcuts" id="shortcuts">Shortcuts</a></h2>
 <p>I'll mention some obvious shortcuts right here so you are aware of them. There are many &quot;exceptions&quot; that we don't cover in our example. We are focusing on the big picture just so we're on the same page. The <code>process.nextTick</code> function and the <code>setImmediate</code> function are two examples of this. I explained how we did skip the fact that the next timeout will define how long the <code>poll</code> phase will potentially block instead of continue the loop like we do here.</p>
 <p>We don't cover the case where a server under heavy load might have too many callbacks to reasonably run in one <code>poll</code> which means that we could starve our I/O resources in the meantime waiting for them to finish, and probably several similar cases that a production
@@ -1832,32 +1932,99 @@ runtime should care about.</p>
 <p>As you'll probably notice, implementing a simple version is more than enough work
 for us to cover in this book, but hopefully you'll find yourself in pretty good
 shape to dig further once we're finished.</p>
-<p>If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:</p>
-<p>This first one is made held by <a href="https://github.com/piscisaureus">@piscisaureus</a> and is an excellent 15 minute overview:</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-<p>The second one is slightly longer but is also an excellent talk held by <a href="https://github.com/nebrius">Bryan Hughes</a></p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><h1><a class="header" href="#implementing-the-runtime" id="implementing-the-runtime">Implementing the Runtime</a></h1>
-<p>This is a lot to parse and will be a lot to take in right now. But this is also
-the heart of our program. Let's go through and explain everything.</p>
-<h2><a class="header" href="#1-check-timers" id="1-check-timers">1. Check timers</a></h2>
-<p>The first step in the event loop is checking the timers:</p>
+<h1><a class="header" href="#setting-up-our-runtime" id="setting-up-our-runtime">Setting up our runtime</a></h1>
+<h2><a class="header" href="#the-threadpool" id="the-threadpool">The Threadpool</a></h2>
+<p>We still don't have a threadpool or a I/O eventloop running
+so the next step is to set this up so we can start focusing on how to work with
+our &quot;Node&quot; Runtime.</p>
+<h2><a class="header" href="#lets-take-this-step-by-step" id="lets-take-this-step-by-step">Let's take this step by step</a></h2>
+<p>The first thing we do is to add a <code>new</code> method that returns an instance of our
+<code>Runtime</code>:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-// ===== TIMERS =====
-self.timers
-    .range(..=Instant::now())
-    .for_each(|(k, _)| timers_to_remove.push(*k));
+impl Runtime {
+    pub fn new() -&gt; Self {
+#}</code></pre></pre>
+<p>Now the real work starts. Next up is our thread pool. Node defaults to 4 threads
+which we will copy. This is configurable in <code>Node</code> but we will take a shortcut
+and hard code it:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let (threadp_sender, threadp_reciever) = channel::&lt;(usize, usize, Js)&gt;();
+let mut threads = Vec::with_capacity(4);
 
-while let Some(key) = timers_to_remove.pop() {
-    let callback_id = self.timers.remove(&amp;key).unwrap();
-    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+for i in 0..4 {
+    let (evt_sender, evt_reciever) = channel::&lt;Event&gt;();
+    let threadp_sender = threadp_sender.clone();
+
+    let handle = thread::Builder::new()
+        .name(format!(&quot;pool{}&quot;, i))
+        .spawn(move || {
+
+            while let Ok(event) = evt_reciever.recv() {
+
+                print(format!(&quot;recived a task of type: {}&quot;, event.kind));
+                let res = (event.task)();
+
+                print(format!(&quot;finished running a task of type: {}.&quot;, event.kind));
+                threadp_sender.send((i, event.callback_id, res)).unwrap();
+            }
+
+            print(&quot;FINISHED&quot;);
+        })
+        .expect(&quot;Couldn't initialize thread pool.&quot;);
+
+    let node_thread = NodeThread {
+        handle,
+        sender: evt_sender,
+    };
+
+    threads.push(node_thread);
 }
 
-// NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
-if !self.next_tick_callbacks.is_empty() {
-    print(format!(&quot;===== TICK {} =====&quot;, ticks));
-}
+#}</code></pre></pre>
+<p>There is a lot going on here so let's break it down.</p>
+<p>First we set up a channel to communicate with our threadpool. The channel will
+be of type <code>Channel&lt;(usize, usize, JS)&gt;</code> as you notice we use a <code>tuple</code> here instead
+of a struct, but we try to keep this simple now and won't introduce any new
+functionality.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let (threadp_sender, threadp_reciever) = channel::&lt;(usize, usize, Js)&gt;();
+#}</code></pre></pre>
+<h1><a class="header" href="#timers" id="timers">Timers</a></h1>
+<h2><a class="header" href="#1-check-expired-timers" id="1-check-expired-timers">1. Check expired timers</a></h2>
+<p>The first step in the event loop is checking for expired timers, and we do this 
+in the <code>self.check_expired_timers()</code> function</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+    fn process_expired_timers(&amp;mut self) {
+        // Need an intermediate variable to please the borrowchecker
+        let timers_to_remove = &amp;mut self.timers_to_remove;
+
+        self.timers
+            .range(..=Instant::now())
+            .for_each(|(k, _)| timers_to_remove.push(*k));
+
+        while let Some(key) = self.timers_to_remove.pop() {
+            let callback_id = self.timers.remove(&amp;key).unwrap();
+            self.callbacks_to_run.push((callback_id, Js::Undefined));
+        }
+    }
+
+    fn get_next_timer(&amp;self) -&gt; Option&lt;i32&gt; {
+        self.timers.iter().nth(0).map(|(&amp;instant, _)| {
+            let mut time_to_next_timeout = instant - Instant::now();
+            if time_to_next_timeout &lt; Duration::new(0, 0) {
+                time_to_next_timeout = Duration::new(0, 0);
+            }
+            time_to_next_timeout.as_millis() as i32
+        })
+    }
 #}</code></pre></pre>
 <p>The first thing to note here is that we check <code>self.timers</code> and to understand the
 rest of the syntax we'll have to look what kind of collection this is.</p>
@@ -1887,26 +2054,26 @@ while let Some(key) = timers_to_remove.pop() {
 <p>As I explained in the previous chapter, this is an unique Id for this callback. What's
 important here is that we don't run the callback <strong>immediately</strong>. Node actually registers callbacks to be run on the next <code>tick</code>. An exception is the timers since they either have timed out or is a timer with a timeout of <code>0</code>. In this case a timer will not wait for the next tick if it has timed out, or in the case if it has a timeout of <code>0</code> they will be invoked immediately as you'll see next.</p>
 <p>Anyway, for now we add the callback id's to <code>self.next_tick_callbacks</code>.</p>
-<p>Before we go on. Let's update our <code>Runtime</code> struct to reflect what we've seen:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-pub struct Runtime {
+<p>Before we continue, let's recap by looking what members of the <code>Runtime</code> struct
+we used here:</p>
+<pre><code class="language-rust no_run noplaypen">pub struct Runtime {
     pending_events: usize,
     next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
     timers: BTreeMap&lt;Instant, usize&gt;,
 }
-#}</code></pre></pre>
+</code></pre>
+<h1><a class="header" href="#callbacks" id="callbacks">Callbacks</a></h1>
 <h2><a class="header" href="#2-process-callbacks" id="2-process-callbacks">2. Process callbacks</a></h2>
 <p>The next step is to handle any callbacks we've scheduled to run.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-// ===== CALLBACKS =====
-while let Some((callback_id, data)) = self.next_tick_callbacks.pop() {
-    let cb = self.callback_queue.remove(&amp;callback_id).unwrap();
-    cb(data);
-    self.pending_events -= 1;
+fn run_callbacks(&amp;mut self) {
+    while let Some((callback_id, data)) = self.callbacks_to_run.pop() {
+        let cb = self.callback_queue.remove(&amp;callback_id).unwrap();
+        cb(data);
+        self.pending_events -= 1;
+    }
 }
 #}</code></pre></pre>
 <blockquote>
@@ -1923,33 +2090,28 @@ you're going to be alright :)</p>
 <blockquote>
 <p>Now, this step is important. As you might understand, any long running code in this callback is going to block our <code>eventloop</code>, preventing it from progressing. So no new callbacks are handleded and no new events are registered. This is why it's bad to write code that blocks the eventloop.</p>
 </blockquote>
-<p>Let's update our Runtime struct again:</p>
+<p>Let's recap by looking at what members of the <code>Runtime</code> struct we used here:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 pub struct Runtime {
     callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
-    pending_events: usize,
-    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
-    timers: BTreeMap&lt;Instant, usize&gt;,
 }
 #}</code></pre></pre>
-<h2><a class="header" href="#3-idleprepare-1" id="3-idleprepare-1">3. Idle/prepare</a></h2>
+<h1><a class="header" href="#the-threadpool-1" id="the-threadpool-1">The Threadpool</a></h1>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-// ===== IDLE/PREPARE =====
-// we won't use this
+fn process_threadpool_events(&amp;mut self, thread_id: usize, callback_id: usize, data: Js {
+    self.callbacks_to_run.push((callback_id, data));
+    self.available_threads.push(thread_id);
+}
 #}</code></pre></pre>
-<p>The Idle/Prepare step is reportedly used internally by Node. They're not so interesting for us in understanding Nodes eventloop so we skip this step.</p>
-<h2><a class="header" href="#4-poll-1" id="4-poll-1">4. Poll</a></h2>
-<p>The next phase is to check if any events are ready from either our threadpool or our eventqueue.</p>
+<h1><a class="header" href="#io-eventqueue" id="io-eventqueue">I/O eventqueue</a></h1>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
- // ===== POLL =====
-// First poll any epoll/kqueue/IOCP
-while let Ok(event_id) = self.epoll_reciever.try_recv() {
+fn process_epoll_events(&amp;mut self, event_id: usize) {
     let id = self
         .epoll_event_cb_map
         .get(&amp;(event_id as i64))
@@ -1957,75 +2119,906 @@ while let Ok(event_id) = self.epoll_reciever.try_recv() {
     let callback_id = *id;
     self.epoll_event_cb_map.remove(&amp;(event_id as i64));
 
-    self.next_tick_callbacks.push((callback_id, Js::Undefined));
-    self.epoll_pending -= 1;
+    self.callbacks_to_run.push((callback_id, Js::Undefined));
+    self.epoll_pending_events -= 1;
+}
+#}</code></pre></pre>
+<h1><a class="header" href="#cleaning-up" id="cleaning-up">Cleaning up</a></h1>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// We clean up our resources, makes sure all destructors runs.
+for thread in self.thread_pool.into_iter() {
+    thread.sender.send(Event::close()).expect(&quot;threadpool cleanup&quot;);
+    thread.handle.join().unwrap();
 }
 
-// then check if there is any results from the threadpool
-while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
-    self.next_tick_callbacks.push((callback_id, data));
-    self.available.push(thread_id);
+self.epoll_registrator.close_loop().unwrap();
+self.epoll_thread.join().unwrap();
+
+print(&quot;FINISHED&quot;);
+#}</code></pre></pre>
+<h1><a class="header" href="#infrastructure" id="infrastructure">Infrastructure</a></h1>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+   fn get_available_thread(&amp;mut self) -&gt; usize {
+        match self.available_threads.pop() {
+            Some(thread_id) =&gt; thread_id,
+            // We would normally return None and the request and not panic!
+            None =&gt; panic!(&quot;Out of threads.&quot;),
+        }
+    }
+
+    /// If we hit max we just wrap around
+    fn generate_identity(&amp;mut self) -&gt; usize {
+        self.identity_token = self.identity_token.wrapping_add(1);
+        self.identity_token
+    }
+
+    fn generate_cb_identity(&amp;mut self) -&gt; usize {
+        let ident = self.generate_identity();
+        let taken = self.callback_queue.contains_key(&amp;ident);
+
+        // if there is a collision or the identity is already there we loop until we find a new one
+        // we don't cover the case where there are `usize::MAX` number of callbacks waiting since
+        // that if we're fast and queue a new event every nanosecond that will still take 585.5 years
+        // to do on a 64 bit system.
+        if !taken {
+            ident
+        } else {
+            loop {
+                let possible_ident = self.generate_identity();
+                if self.callback_queue.contains_key(&amp;possible_ident) {
+                    break possible_ident;
+                }
+            }
+        }
+    }
+
+    /// Adds a callback to the queue and returns the key
+    fn add_callback(&amp;mut self, ident: usize, cb: impl FnOnce(Js) + 'static) {
+        let boxed_cb = Box::new(cb);
+        self.callback_queue.insert(ident, boxed_cb);
+    }
+
+    pub fn register_io(&amp;mut self, token: usize, cb: impl FnOnce(Js) + 'static) {
+        self.add_callback(token, cb);
+
+        print(format!(&quot;Event with id: {} registered.&quot;, token));
+        self.epoll_event_cb_map.insert(token as i64, token);
+        self.pending_events += 1;
+        self.epoll_pending_events += 1;
+    }
+
+    pub fn register_work(
+        &amp;mut self,
+        task: impl Fn() -&gt; Js + Send + 'static,
+        kind: ThreadPoolEventKind,
+        cb: impl FnOnce(Js) + 'static,
+    ) {
+        let callback_id = self.generate_cb_identity();
+        self.add_callback(callback_id, cb);
+
+        let event = Event {
+            task: Box::new(task),
+            callback_id,
+            kind,
+        };
+
+        // we are not going to implement a real scheduler here, just a LIFO queue
+        let available = self.get_available_thread();
+        self.thread_pool[available].sender.send(event).expect(&quot;register work&quot;);
+        self.pending_events += 1;
+    }
+
+    fn set_timeout(&amp;mut self, ms: u64, cb: impl Fn(Js) + 'static) {
+        // Is it theoretically possible to get two equal instants? If so we'll have a bug...
+        let now = Instant::now();
+        let cb_id = self.generate_cb_identity();
+        self.add_callback(cb_id, cb);
+        let timeout = now + Duration::from_millis(ms);
+        self.timers.insert(timeout, cb_id);
+        self.pending_events += 1;
+        print(format!(&quot;Registered timer event id: {}&quot;, cb_id));
+    }
+#}</code></pre></pre>
+<h1><a class="header" href="#modules" id="modules">Modules</a></h1>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub fn set_timeout(ms: u64, cb: impl Fn(Js) + 'static) {
+    let rt = unsafe { &amp;mut *(RUNTIME as *mut Runtime) };
+    rt.set_timeout(ms, cb);
 }
 #}</code></pre></pre>
-<p>There is a lot going on here so let's step through it:</p>
-<p>First we check our <code>epoll/kqueue/IOCP</code> event queue and see if anything events are ready.</p>
-<p>The first thing we do is to check if there are any incoming messages on our channel
-<code>self.epoll_reciever.try_recv()</code>, as you'll see when we define this in our <code>Runtime</code> I chose to implement this using Rusts channels which is a good fit for this. No need to make it more complicated than it is.</p>
-<p>We're choosing to keep track on how many epoll events we're waiting for in
-<code>self.epoll_pending</code>, so once an event is ready we'll decrement this to reflect
-that we have one less event in the I/O eventloop.</p>
-<p>If any events has occured we get an <code>event_id</code>. Since <code>event_id</code>'s can potentially overlap with Id's we have given previous callbacks we use a map where we give this <code>event</code> an unique <code>callback_id</code> that ties the event to the callback we have registered.</p>
+<h1><a class="header" href="#file-module" id="file-module">File module</a></h1>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-self.epoll_event_cb_map
-        .get(&amp;(event_id as i64))
-        .expect(&quot;Event not in event map.&quot;);
-#}</code></pre></pre>
-<p>Retrieves the <code>callback_id</code> we stored with this event which we then remove from the map
-<code>self.epoll_event_cb_map.remove(&amp;(event_id as i64))</code> so we don't store it indefinitely.</p>
-<p>The next two steps is the same as you saw used in the timer segment. We schedule the callback to get run on the next tick.</p>
-<blockquote>
-<p>One thing to note is that we pass in Js::Undefined here too even though the callback we registered is expecting data. The reason for this is that we wrap the callback to accommodate for the difference between <code>epoll/kqueue</code> and <code>IOCP</code>. In the case of <code>epoll/kqueue</code> we read the data into a buffer we pass in before we call the callback, and in the case of <code>IOCP</code> the data is already filled for us.</p>
-</blockquote>
-<p>The next thing to check is our threadpool. As you see here we also use <code>Channel</code> here to communicate.</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-while let Ok((thread_id, callback_id, data))self.threadp_reciever.try_recv() {
-    self.next_tick_callbacks.push((callback_id, data));
-    self.available.push(thread_id);
+struct Fs;
+impl Fs {
+    fn read(path: &amp;'static str, cb: impl Fn(Js) + 'static) {
+        let work = move || {
+            // Let's simulate that there is a very large file we're reading allowing us to actually
+            // observe how the code is executed
+            thread::sleep(std::time::Duration::from_secs(1));
+            let mut buffer = String::new();
+            fs::File::open(&amp;path)
+                .unwrap()
+                .read_to_string(&amp;mut buffer)
+                .unwrap();
+            Js::String(buffer)
+        };
+        let rt = unsafe { &amp;mut *RUNTIME };
+        rt.register_work(work, ThreadPoolEventKind::FileRead, cb);
+    }
 }
 #}</code></pre></pre>
-<p>We get some more data here. Namely a <code>thread_id</code>, <code>callback_id</code> and <code>data</code>. Now we need the <code>thread_id</code> to mark this thread as <code>available</code> so it can be used on subsequent calls to the threadpool. The <code>callback_id</code> we need in all cases to know what callback to invoke. One difference here is that the thread also holds the data we want to pass in to our callback so we also get that an pass that in to our <code>next_tick_callbacks</code> so it's available to our callback on the next tick.</p>
-<p>Now we introduced a lot of new members of our <code>Runtime</code> struct here and it's almost
-finished:</p>
+<h1><a class="header" href="#crypto-module" id="crypto-module">Crypto module</a></h1>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
+struct Crypto;
+impl Crypto {
+    fn encrypt(n: usize, cb: impl Fn(Js) + 'static + Clone) {
+        let work = move || {
+            fn fibonacchi(n: usize) -&gt; usize {
+                match n {
+                    0 =&gt; 0,
+                    1 =&gt; 1,
+                    _ =&gt; fibonacchi(n - 1) + fibonacchi(n - 2),
+                }
+            }
+
+            let fib = fibonacchi(n);
+            Js::Int(fib)
+        };
+
+        let rt = unsafe { &amp;mut *RUNTIME };
+        rt.register_work(work, ThreadPoolEventKind::Encrypt, cb);
+    }
+}
+#}</code></pre></pre>
+<h1><a class="header" href="#http-module" id="http-module">Http module</a></h1>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+struct Http;
+impl Http {
+    pub fn http_get_slow(url: &amp;str, delay_ms: u32, cb: impl Fn(Js) + 'static + Clone) {
+        let rt: &amp;mut Runtime = unsafe { &amp;mut *RUNTIME };
+        // Don't worry, http://slowwly.robertomurray.co.uk is a site for simulating a delayed
+        // response from a server. Perfect for our use case.
+        let mut stream: minimio::TcpStream =
+            minimio::TcpStream::connect(&quot;slowwly.robertomurray.co.uk:80&quot;).unwrap();
+            
+        let request = format!(
+            &quot;GET /delay/{}/url/http://{} HTTP/1.1\r\n\
+             Host: slowwly.robertomurray.co.uk\r\n\
+             Connection: close\r\n\
+             \r\n&quot;,
+            delay_ms, url
+        );
+
+        stream
+            .write_all(request.as_bytes())
+            .expect(&quot;Error writing to stream&quot;);
+
+        let token = rt.generate_cb_identity();
+        rt.epoll_registrator
+            .register(&amp;mut stream, token, minimio::Interests::readable())
+            .unwrap();
+
+        let wrapped = move |_n| {
+            let mut stream = stream;
+            let mut buffer = String::new();
+            stream
+                .read_to_string(&amp;mut buffer)
+                .expect(&quot;Stream read error&quot;);
+            cb(Js::String(buffer));
+        };
+
+        rt.register_io(token, wrapped);
+    }
+}
+#}</code></pre></pre>
+<h1><a class="header" href="#putting-the-pieces-together" id="putting-the-pieces-together">Putting the pieces together</a></h1>
+<pre><pre class="playpen"><code class="language-rust">fn main() {
+    let rt = Runtime::new();
+    rt.run(javascript);
+}
+</code></pre></pre>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn print(t: impl std::fmt::Display) {
+    println!(&quot;Thread: {}\t {}&quot;, current(), t);
+}
+
+fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
+    println!(
+        &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
+        current(),
+        descr.to_uppercase()
+    );
+
+    let content = format!(&quot;{}&quot;, t); 
+    let lines = content.lines().take(2);
+    let main_cont: String = lines.map(|l| format!(&quot;{}\n&quot;, l)).collect();
+    let opt_location = content.find(&quot;Location&quot;);
+
+    let opt_location = opt_location.map(|loc| {
+        content[loc..]
+        .lines()
+        .nth(0)
+        .map(|l| format!(&quot;{}\n&quot;,l))
+        .unwrap_or(String::new())
+    });    
+
+    println!(
+        &quot;{}{}... [Note: Abbreviated for display] ...&quot;,
+        main_cont,
+        opt_location.unwrap_or(String::new())
+    );
+    
+    println!(&quot;===== END CONTENT =====\n&quot;);
+}
+
+fn current() -&gt; String {
+    thread::current().name().unwrap().to_string()
+}
+#}</code></pre></pre>
+<h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>
+<pre><pre class="playpen"><code class="language-rust">/// Think of this function as the javascript program you have written
+fn javascript() {
+    print(&quot;First call to read test.txt&quot;);
+    Fs::read(&quot;test.txt&quot;, |result| {
+        let text = result.into_string().unwrap();
+        let len = text.len();
+        print(format!(&quot;First count: {} characters.&quot;, len));
+
+        print(r#&quot;I want to create a &quot;magic&quot; number based on the text.&quot;#);
+        Crypto::encrypt(text.len(), |result| {
+            let n = result.into_int().unwrap();
+            print(format!(r#&quot;&quot;Encrypted&quot; number is: {}&quot;#, n));
+        })
+    });
+
+    print(&quot;Registering immediate timeout 1&quot;);
+    set_timeout(0, |_res| {
+        print(&quot;Immediate1 timed out&quot;);
+    });
+    print(&quot;Registering immediate timeout 2&quot;);
+    set_timeout(0, |_res| {
+        print(&quot;Immediate2 timed out&quot;);
+    });
+
+    // let's read the file again and display the text
+    print(&quot;Second call to read test.txt&quot;);
+    Fs::read(&quot;test.txt&quot;, |result| {
+        let text = result.into_string().unwrap();
+        let len = text.len();
+        print(format!(&quot;Second count: {} characters.&quot;, len));
+
+        // aaand one more time but not in parallel.
+        print(&quot;Third call to read test.txt&quot;);
+        Fs::read(&quot;test.txt&quot;, |result| {
+            let text = result.into_string().unwrap();
+            print_content(&amp;text, &quot;file read&quot;);
+        });
+    });
+
+    print(&quot;Registering a 3000 and a 500 ms timeout&quot;);
+    set_timeout(3000, |_res| {
+        print(&quot;3000ms timer timed out&quot;);
+        set_timeout(500, |_res| {
+            print(&quot;500ms timer(nested) timed out&quot;);
+        });
+    });
+
+    print(&quot;Registering a 1000 ms timeout&quot;);
+    set_timeout(1000, |_res| {
+        print(&quot;SETTIMEOUT&quot;);
+    });
+
+    // `http_get_slow` let's us define a latency we want to simulate
+    print(&quot;Registering http get request to google.com&quot;);
+    Http::http_get_slow(&quot;http//www.google.com&quot;, 2000, |result| {
+        let result = result.into_string().unwrap();
+        print_content(result.trim(), &quot;web call&quot;);
+    });   
+}
+
+fn main() {
+    let rt = Runtime::new();
+    rt.run(javascript);
+}
+
+// ===== THIS IS OUR &quot;NODE LIBRARY&quot; =====
+use std::collections::{BTreeMap, HashMap};
+use std::fmt;
+use std::fs;
+use std::io::{self, Read, Write};
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::{Arc, Mutex};
+use std::thread::{self, JoinHandle};
+use std::time::{Duration, Instant};
+
+use minimio;
+
+static mut RUNTIME: *mut Runtime = std::ptr::null_mut();
+
+struct Event {
+    task: Box&lt;dyn Fn() -&gt; Js + Send + 'static&gt;,
+    callback_id: usize,
+    kind: ThreadPoolEventKind,
+}
+
+impl Event {
+    fn close() -&gt; Self {
+        Event {
+            task: Box::new(|| Js::Undefined),
+            callback_id: 0,
+            kind: ThreadPoolEventKind::Close,
+        }
+    }
+}
+
+pub enum ThreadPoolEventKind {
+    FileRead,
+    Encrypt,
+    Close,
+}
+
+impl fmt::Display for ThreadPoolEventKind {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
+        use ThreadPoolEventKind::*;
+        match self {
+            FileRead =&gt; write!(f, &quot;File read&quot;),
+            Encrypt =&gt; write!(f, &quot;Encrypt&quot;),
+            Close =&gt; write!(f, &quot;Close&quot;),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Js {
+    Undefined,
+    String(String),
+    Int(usize),
+}
+
+impl Js {
+    /// Convenience method since we know the types
+    fn into_string(self) -&gt; Option&lt;String&gt; {
+        match self {
+            Js::String(s) =&gt; Some(s),
+            _ =&gt; None,
+        }
+    }
+
+    /// Convenience method since we know the types
+    fn into_int(self) -&gt; Option&lt;usize&gt; {
+        match self {
+            Js::Int(n) =&gt; Some(n),
+            _ =&gt; None,
+        }
+    }
+}
+
+/// NodeTheread represents a thread in our threadpool. Each event has a Joinhandle
+/// and a transmitter part of a channel which is used to inform our main loop
+/// about what events has occurred.
+#[derive(Debug)]
+struct NodeThread {
+    pub(crate) handle: JoinHandle&lt;()&gt;,
+    sender: Sender&lt;Event&gt;,
+}
+
 pub struct Runtime {
+    /// Available threads for the threadpool
+    available_threads: Vec&lt;usize&gt;,
+    /// Callbacks scheduled to run
+    callbacks_to_run: Vec&lt;(usize, Js)&gt;,
+    /// All registered callbacks
     callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
-    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
-    identity_token: usize,
-    pending_events: usize,
-    threadp_reciever: Receiver&lt;(usize, usize, Js)&gt;,
-    epoll_reciever: Receiver&lt;usize&gt;,
-    epoll_pending: usize,
+    /// Maps an epoll event to a callback
     epoll_event_cb_map: HashMap&lt;i64, usize&gt;,
-    timers: BTreeMap&lt;Instant, usize&gt;,
+    /// Number of pending epoll events, only used by us to print for this example
+    epoll_pending_events: usize,
+    /// Our event registrator which registers interest in events with the OS
     epoll_registrator: minimio::Registrator,
+    // The handle to our epoll thread
+    epoll_thread: thread::JoinHandle&lt;()&gt;,
+    /// None = infinite, Some(n) = timeout in n ms, Some(0) = immidiate
+    epoll_timeout: Arc&lt;Mutex&lt;Option&lt;i32&gt;&gt;&gt;,
+    /// Channel used by both our threadpool and our epoll thread to send events
+    /// to the main loop
+    event_reciever: Receiver&lt;PollEvent&gt;,
+    /// Creates an unique identity for our callbacks
+    identity_token: usize,
+    /// The number of events pending. When this is zero, we're done
+    pending_events: usize,
+    /// Handles to our threads in the threadpool
+    thread_pool: Vec&lt;NodeThread&gt;,
+    /// Holds all our timers, and an Id for the callback to run once they expire
+    timers: BTreeMap&lt;Instant, usize&gt;,
+    /// A struct to temporarely hold timers to remove. We let Runtinme have
+    /// ownership so we can reuse the same memory
+    timers_to_remove: Vec&lt;Instant&gt;,
 }
-#}</code></pre></pre>
-<h2><a class="header" href="#moving-on" id="moving-on">Moving on</a></h2>
-<p>Now we've already gotten really far by explaining how our eventloop works already
-in the first chapter. Now we just need to set up the infrastructure for this
-loop to work.</p>
-<h1><a class="header" href="#the-threadpool" id="the-threadpool">The threadpool</a></h1>
-<h1><a class="header" href="#the-io-eventqueue" id="the-io-eventqueue">The I/O eventqueue</a></h1>
+
+/// Describes the three main events our epoll-eventloop handles
+enum PollEvent {
+    /// An event from the `threadpool` with a tuple containing the `thread id`,
+    /// the `callback_id` and the data which the we expect to process in our
+    /// callback 
+    Threadpool((usize, usize, Js)),
+    /// An event from the epoll-based eventloop holding the `event_id` for the
+    /// event
+    Epoll(usize),
+    Timeout,
+}
+
+impl Runtime {
+    pub fn new() -&gt; Self {
+        // ===== THE REGULAR THREADPOOL =====
+        let (event_sender, event_reciever) = channel::&lt;PollEvent&gt;();
+        let mut threads = Vec::with_capacity(4);
+
+        for i in 0..4 {
+            let (evt_sender, evt_reciever) = channel::&lt;Event&gt;();
+            let event_sender = event_sender.clone();
+
+            let handle = thread::Builder::new()
+                .name(format!(&quot;pool{}&quot;, i))
+                .spawn(move || {
+
+                    while let Ok(event) = evt_reciever.recv() {
+                        print(format!(&quot;recived a task of type: {}&quot;, event.kind));
+                        
+                        if let ThreadPoolEventKind::Close = event.kind {
+                            break;
+                        };
+
+                        let res = (event.task)();
+                        print(format!(&quot;finished running a task of type: {}.&quot;, event.kind));
+
+                        let event = PollEvent::Threadpool((i, event.callback_id, res));
+                        event_sender.send(event).expect(&quot;threadpool&quot;);
+                    }
+                })
+                .expect(&quot;Couldn't initialize thread pool.&quot;);
+
+            let node_thread = NodeThread {
+                handle,
+                sender: evt_sender,
+            };
+
+            threads.push(node_thread);
+        }
+
+        // ===== EPOLL THREAD =====
+        let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+        let registrator = poll.registrator();
+        let epoll_timeout = Arc::new(Mutex::new(None));
+        let epoll_timeout_clone = epoll_timeout.clone();
+
+        let epoll_thread = thread::Builder::new()
+            .name(&quot;epoll&quot;.to_string())
+            .spawn(move || {
+                let mut events = minimio::Events::with_capacity(1024);
+                
+                loop {
+                    let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+                    let timeout = *epoll_timeout_handle;
+                    drop(epoll_timeout_handle);
+
+                    match poll.poll(&amp;mut events, timeout) {
+                        Ok(v) if v &gt; 0 =&gt; {
+                            for i in 0..v {
+                                let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+                                print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+                                
+                                let event = PollEvent::Epoll(event.id().value() as usize);
+                                event_sender.send(event).expect(&quot;epoll event&quot;);
+                            }
+                        }
+                        Ok(v) if v == 0 =&gt; {
+                            print(&quot;epoll event timeout is ready&quot;);
+                            event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+                            print(&quot;recieved event of type: Close&quot;);
+                            break;
+                        }
+                        Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+                        _ =&gt; (),
+                    }
+                }
+            })
+            .expect(&quot;Error creating epoll thread&quot;);
+
+        Runtime {
+            available_threads: (0..4).collect(),
+            callbacks_to_run: vec![],
+            callback_queue: HashMap::new(),
+            epoll_event_cb_map: HashMap::new(),
+            epoll_pending_events: 0,
+            epoll_registrator: registrator,
+            epoll_thread,
+            epoll_timeout,
+            event_reciever,
+            identity_token: 0,
+            pending_events: 0,
+            thread_pool: threads,
+            timers: BTreeMap::new(),
+            timers_to_remove: vec![],
+        }
+    }
+
+    /// This is the event loop. There are several things we could do here to
+    /// make it a better implementation. One is to set a max backlog of callbacks
+    /// to execute in a single tick, so we don't starve the threadpool or file
+    /// handlers. Another is to dynamically decide if/and how long the thread
+    /// could be allowed to be parked for example by looking at the backlog of
+    /// events, and if there is any backlog disable it. Some of our Vec's will
+    /// only grow, and not resize, so if we have a period of very high load, the
+    /// memory will stay higher than we need until a restart. This could be
+    /// dealt by using a different kind of data structure like a `LinkedList`.
+    pub fn run(mut self, f: impl Fn()) {
+        let rt_ptr: *mut Runtime = &amp;mut self;
+        unsafe { RUNTIME = rt_ptr };
+
+        // just for us priting out during execution
+        let mut ticks = 0; 
+
+        // First we run our &quot;main&quot; function
+        f();
+
+        // ===== EVENT LOOP =====
+        while self.pending_events &gt; 0 {
+            ticks += 1;
+            // NOT PART OF LOOP, JUST FOR US TO SEE WHAT TICK IS EXCECUTING
+            print(format!(&quot;===== TICK {} =====&quot;, ticks));
+
+            // ===== 2. TIMERS =====
+            self.process_expired_timers();
+
+            // ===== 2. CALLBACKS =====
+            // Timer callbacks and if for some reason we have postponed callbacks
+            // to run on the next tick. Not possible in our implementation though.
+            self.run_callbacks();
+
+            // ===== 3. IDLE/PREPARE =====
+            // we won't use this
+
+            // ===== 4. POLL =====
+            // First we need to check if we have any outstanding events at all
+            // and if not we're finished. If not we will wait forever.
+            if self.pending_events == 0 {
+                break;
+            }
+
+            // We want to get the time to the next timeout (if any) and we
+            // set the timeout of our epoll wait to the same as the timeout
+            // for the next timer. If there is none, we set it to infinite (None)
+            let next_timeout = self.get_next_timer();
+            println!(&quot;NEXT_TIMEOUT: {:?}&quot;, next_timeout);
+
+            let mut epoll_timeout_lock = self.epoll_timeout.lock().unwrap();
+            *epoll_timeout_lock = next_timeout;
+            // We release the lock before we wait in `recv`
+            drop(epoll_timeout_lock);
+
+            // We handle one and one event but multiple events could be returned
+            // on the same poll. We won't cover that here though but there are
+            // several ways of handling this.
+            if let Ok(event) = self.event_reciever.recv() {
+                match event {
+                    PollEvent::Timeout =&gt; (),
+                    PollEvent::Threadpool((thread_id, callback_id, data)) =&gt; {
+                        self.process_threadpool_events(thread_id, callback_id, data);
+                    }
+                    PollEvent::Epoll(event_id) =&gt; {
+                        self.process_epoll_events(event_id);
+                    }
+                }
+            }
+            self.run_callbacks();
+
+            // ===== 5. CHECK =====
+            // an set immidiate function could be added pretty easily but we
+            // won't do that here
+
+            // ===== 6. CLOSE CALLBACKS ======
+            // Release resources, we won't do that here, but this is typically
+            // where sockets etc are closed.
+        }
+
+        // We clean up our resources, makes sure all destructors runs.
+        for thread in self.thread_pool.into_iter() {
+            thread.sender.send(Event::close()).expect(&quot;threadpool cleanup&quot;);
+            thread.handle.join().unwrap();
+        }
+
+        self.epoll_registrator.close_loop().unwrap();
+        self.epoll_thread.join().unwrap();
+
+        print(&quot;FINISHED&quot;);
+    }
+
+    fn process_expired_timers(&amp;mut self) {
+        // Need an intermediate variable to please the borrowchecker
+        let timers_to_remove = &amp;mut self.timers_to_remove;
+
+        self.timers
+            .range(..=Instant::now())
+            .for_each(|(k, _)| timers_to_remove.push(*k));
+
+        while let Some(key) = self.timers_to_remove.pop() {
+            let callback_id = self.timers.remove(&amp;key).unwrap();
+            self.callbacks_to_run.push((callback_id, Js::Undefined));
+        }
+    }
+
+    fn get_next_timer(&amp;self) -&gt; Option&lt;i32&gt; {
+        self.timers.iter().nth(0).map(|(&amp;instant, _)| {
+            let mut time_to_next_timeout = instant - Instant::now();
+
+            if time_to_next_timeout &lt; Duration::new(0, 0) {
+                time_to_next_timeout = Duration::new(0, 0);
+            }
+
+            time_to_next_timeout.as_millis() as i32
+        })
+    }
+
+    fn run_callbacks(&amp;mut self) {
+        while let Some((callback_id, data)) = self.callbacks_to_run.pop() {
+            let cb = self.callback_queue.remove(&amp;callback_id).unwrap();
+            cb(data);
+            self.pending_events -= 1;
+        }
+    }
+
+    fn process_epoll_events(&amp;mut self, event_id: usize) {
+        let id = self
+            .epoll_event_cb_map
+            .get(&amp;(event_id as i64))
+            .expect(&quot;Event not in event map.&quot;);
+
+        let callback_id = *id;
+        self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+
+        self.callbacks_to_run.push((callback_id, Js::Undefined));
+        self.epoll_pending_events -= 1;
+    }
+
+    fn process_threadpool_events(&amp;mut self, thread_id: usize, callback_id: usize, data: Js) {
+        self.callbacks_to_run.push((callback_id, data));
+        self.available_threads.push(thread_id);
+    }
+
+    fn get_available_thread(&amp;mut self) -&gt; usize {
+        match self.available_threads.pop() {
+            Some(thread_id) =&gt; thread_id,
+            // We would normally return None and the request and not panic!
+            None =&gt; panic!(&quot;Out of threads.&quot;),
+        }
+    }
+
+    /// If we hit max we just wrap around
+    fn generate_identity(&amp;mut self) -&gt; usize {
+        self.identity_token = self.identity_token.wrapping_add(1);
+        self.identity_token
+    }
+
+    fn generate_cb_identity(&amp;mut self) -&gt; usize {
+        let ident = self.generate_identity();
+        let taken = self.callback_queue.contains_key(&amp;ident);
+
+        // if there is a collision or the identity is already there we loop until we find a new one
+        // we don't cover the case where there are `usize::MAX` number of callbacks waiting since
+        // that if we're fast and queue a new event every nanosecond that will still take 585.5 years
+        // to do on a 64 bit system.
+        if !taken {
+            ident
+        } else {
+            loop {
+                let possible_ident = self.generate_identity();
+                if self.callback_queue.contains_key(&amp;possible_ident) {
+                    break possible_ident;
+                }
+            }
+        }
+    }
+
+    /// Adds a callback to the queue and returns the key
+    fn add_callback(&amp;mut self, ident: usize, cb: impl FnOnce(Js) + 'static) {
+        let boxed_cb = Box::new(cb);
+        self.callback_queue.insert(ident, boxed_cb);
+    }
+
+    pub fn register_io(&amp;mut self, token: usize, cb: impl FnOnce(Js) + 'static) {
+        self.add_callback(token, cb);
+
+        print(format!(&quot;Event with id: {} registered.&quot;, token));
+        self.epoll_event_cb_map.insert(token as i64, token);
+
+        self.pending_events += 1;
+        self.epoll_pending_events += 1;
+    }
+
+    pub fn register_work(
+        &amp;mut self,
+        task: impl Fn() -&gt; Js + Send + 'static,
+        kind: ThreadPoolEventKind,
+        cb: impl FnOnce(Js) + 'static,
+    ) {
+        let callback_id = self.generate_cb_identity();
+        self.add_callback(callback_id, cb);
+
+        let event = Event {
+            task: Box::new(task),
+            callback_id,
+            kind,
+        };
+
+        // we are not going to implement a real scheduler here, just a LIFO queue
+        let available = self.get_available_thread();
+        self.thread_pool[available].sender.send(event).expect(&quot;register work&quot;);
+        self.pending_events += 1;
+    }
+
+    fn set_timeout(&amp;mut self, ms: u64, cb: impl Fn(Js) + 'static) {
+        // Is it theoretically possible to get two equal instants? If so we'll have a bug...
+        let now = Instant::now();
+
+        let cb_id = self.generate_cb_identity();
+        self.add_callback(cb_id, cb);
+        
+        let timeout = now + Duration::from_millis(ms);
+        self.timers.insert(timeout, cb_id);
+        
+        self.pending_events += 1;
+        print(format!(&quot;Registered timer event id: {}&quot;, cb_id));
+    }
+}
+
+pub fn set_timeout(ms: u64, cb: impl Fn(Js) + 'static) {
+    let rt = unsafe { &amp;mut *(RUNTIME as *mut Runtime) };
+    rt.set_timeout(ms, cb);
+}
+
+// ===== THIS IS PLUGINS CREATED IN C++ FOR THE NODE RUNTIME OR PART OF THE RUNTIME ITSELF =====
+// The pointer dereferencing of our runtime is not striclty needed but is mostly for trying to
+// emulate a bit of the same feeling as when you use modules in javascript. We could pass the runtime in
+// as a reference to our startup function.
+
+struct Crypto;
+impl Crypto {
+    fn encrypt(n: usize, cb: impl Fn(Js) + 'static + Clone) {
+        let work = move || {
+            fn fibonacchi(n: usize) -&gt; usize {
+                match n {
+                    0 =&gt; 0,
+                    1 =&gt; 1,
+                    _ =&gt; fibonacchi(n - 1) + fibonacchi(n - 2),
+                }
+            }
+
+            let fib = fibonacchi(n);
+            Js::Int(fib)
+        };
+
+        let rt = unsafe { &amp;mut *RUNTIME };
+        rt.register_work(work, ThreadPoolEventKind::Encrypt, cb);
+    }
+}
+
+struct Fs;
+impl Fs {
+    fn read(path: &amp;'static str, cb: impl Fn(Js) + 'static) {
+        let work = move || {
+            // Let's simulate that there is a very large file we're reading allowing us to actually
+            // observe how the code is executed
+            thread::sleep(std::time::Duration::from_secs(1));
+            let mut buffer = String::new();
+            fs::File::open(&amp;path)
+                .unwrap()
+                .read_to_string(&amp;mut buffer)
+                .unwrap();
+            Js::String(buffer)
+        };
+        let rt = unsafe { &amp;mut *RUNTIME };
+        rt.register_work(work, ThreadPoolEventKind::FileRead, cb);
+    }
+}
+
+struct Http;
+impl Http {
+    pub fn http_get_slow(url: &amp;str, delay_ms: u32, cb: impl Fn(Js) + 'static + Clone) {
+        let rt: &amp;mut Runtime = unsafe { &amp;mut *RUNTIME };
+        
+        // Don't worry, http://slowwly.robertomurray.co.uk is a site for simulating a delayed
+        // response from a server. Perfect for our use case.
+        let mut stream: minimio::TcpStream =
+            minimio::TcpStream::connect(&quot;slowwly.robertomurray.co.uk:80&quot;).unwrap();
+        let request = format!(
+            &quot;GET /delay/{}/url/http://{} HTTP/1.1\r\n\
+             Host: slowwly.robertomurray.co.uk\r\n\
+             Connection: close\r\n\
+             \r\n&quot;,
+            delay_ms, url
+        );
+
+        stream
+            .write_all(request.as_bytes())
+            .expect(&quot;Error writing to stream&quot;);
+
+        let token = rt.generate_cb_identity();
+
+        rt.epoll_registrator
+            .register(&amp;mut stream, token, minimio::Interests::readable())
+            .unwrap();
+
+        let wrapped = move |_n| {
+            let mut stream = stream;
+            let mut buffer = String::new();
+
+            stream
+                .read_to_string(&amp;mut buffer)
+                .expect(&quot;Stream read error&quot;);
+
+            cb(Js::String(buffer));
+        };
+
+        rt.register_io(token, wrapped);
+    }
+}
+
+fn print(t: impl std::fmt::Display) {
+    println!(&quot;Thread: {}\t {}&quot;, current(), t);
+}
+
+fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
+    println!(
+        &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
+        current(),
+        descr.to_uppercase()
+    );
+
+    let content = format!(&quot;{}&quot;, t); 
+    let lines = content.lines().take(2);
+    let main_cont: String = lines.map(|l| format!(&quot;{}\n&quot;, l)).collect();
+    let opt_location = content.find(&quot;Location&quot;);
+
+    let opt_location = opt_location.map(|loc| {
+        content[loc..]
+        .lines()
+        .nth(0)
+        .map(|l| format!(&quot;{}\n&quot;,l))
+        .unwrap_or(String::new())
+    });    
+
+    println!(
+        &quot;{}{}... [Note: Abbreviated for display] ...&quot;,
+        main_cont,
+        opt_location.unwrap_or(String::new())
+    );
+    
+    println!(&quot;===== END CONTENT =====\n&quot;);
+}
+
+fn current() -&gt; String {
+    thread::current().name().unwrap().to_string()
+}
+</code></pre></pre>
 <h1><a class="header" href="#shortcuts-and-improvements" id="shortcuts-and-improvements">Shortcuts and improvements</a></h1>
 <h2><a class="header" href="#shortcuts-1" id="shortcuts-1">Shortcuts</a></h2>
 <p>This is the event loop. There are several things we could do here to make it a better implementation. One is to set a max backlog of callbacks to execute in a single tick, so we don't starve the threadpool or file handlers. Another is to dynamically decide if/and how long the thread could be allowed to be parked for example by looking at the backlog of events, and if there is any backlog disable it. Some of our Vec's will only grow, and not resize, so if we have a period of very high load,the memory will stay higher than we need until a restart. This could be dealt with or a differentdata structure could be used.</p>
-<h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>
 <h1><a class="header" href="#conclusion" id="conclusion">Conclusion</a></h1>
 
                     </main>

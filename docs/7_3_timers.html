@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Writing Cross Platform Abstractions - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        <title>Timers - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_1_1_cross_platform_abstractions.html" class="active"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_2_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing the Node Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_node_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_node_the_main_loop.html"><strong aria-hidden="true">6.3.</strong> The main loop</a></li><li><a href="6_4_implementing_the_runtime.html"><strong aria-hidden="true">6.4.</strong> Implementing the Runtime</a></li><li><a href="6_5_node_the_threadpool.html"><strong aria-hidden="true">6.5.</strong> The threadpool</a></li><li><a href="6_6_node_the_io_eventqueue.html"><strong aria-hidden="true">6.6.</strong> The I/O eventqueue</a></li><li><a href="6_7_shortcuts_and_improvements.html"><strong aria-hidden="true">6.7.</strong> Shortcuts and improvements</a></li><li><a href="6_8_node_final_code.html"><strong aria-hidden="true">6.8.</strong> Final code</a></li></ol></li><li><a href="conclusion.html">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_0_implementing_the_node_eventloop.html"><strong aria-hidden="true">6.</strong> Implementing our &quot;Node&quot; Eventloop</a></li><li><ol class="section"><li><a href="6_1_what_is_node.html"><strong aria-hidden="true">6.1.</strong> What is Node?</a></li><li><a href="6_2_whats_our_plan.html"><strong aria-hidden="true">6.2.</strong> What's our plan</a></li><li><a href="6_3_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.3.</strong> Epoll, Kqueue and IOCP</a></li></ol></li><li><a href="7_0_the_runtime.html"><strong aria-hidden="true">7.</strong> The runtime</a></li><li><ol class="section"><li><a href="7_1_the_main_loop.html"><strong aria-hidden="true">7.1.</strong> Running our runtime - the main loop</a></li><li><a href="7_2_setting_up_runtime.html"><strong aria-hidden="true">7.2.</strong> Setting up our runtime</a></li><li><a href="7_3_timers.html" class="active"><strong aria-hidden="true">7.3.</strong> Timers</a></li><li><a href="7_4_callbacks.html"><strong aria-hidden="true">7.4.</strong> Callbacks</a></li><li><a href="7_5_threadpool.html"><strong aria-hidden="true">7.5.</strong> Threadpool</a></li><li><a href="7_6_io_eventqueue.html"><strong aria-hidden="true">7.6.</strong> I/O eventqueue</a></li><li><a href="7_8_cleaning_up.html"><strong aria-hidden="true">7.7.</strong> Cleaning up</a></li><li><a href="7_9_infrastructure.html"><strong aria-hidden="true">7.8.</strong> Infrastructure</a></li></ol></li><li><a href="8_0_modules.html"><strong aria-hidden="true">8.</strong> Modules</a></li><li><ol class="section"><li><a href="8_1_file_module.html"><strong aria-hidden="true">8.1.</strong> File module</a></li><li><a href="8_2_crypto_module.html"><strong aria-hidden="true">8.2.</strong> Crypto module</a></li><li><a href="8_3_http_module.html"><strong aria-hidden="true">8.3.</strong> Http module</a></li></ol></li><li><a href="9_putting_pieces_together.html"><strong aria-hidden="true">9.</strong> Putting the pieces together</a></li><li><a href="10_final_code.html"><strong aria-hidden="true">10.</strong> Final code</a></li><li><a href="11_shortcuts_and_improvements.html"><strong aria-hidden="true">11.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,24 +145,86 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#about-writing-cross-platform-abstractions" id="about-writing-cross-platform-abstractions">About writing cross platform abstractions</a></h1>
-<p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you want to make a cross platform variant, the amount of code explodes. This is a problem when writing about this stuff in general, but we need some basic understanding on how the different operating systems work under the covers. </p>
-<p>My experience in general is that Linux and Macos have simpler API requiring fewer lines of code, and often (but not always) the exact same call works for both systems.</p>
-<p>Windows on the other hand is mor complex, requires more &quot;magic&quot; constant numbers, requires you to set up more structures to pass in, and way more lines of code. What Windows does have though are very good documentation so even though it's more work you'll also find the official documentation very good.</p>
-<p>This complexity why the Rust community (other languages often has something similar) gathers around crates like <a href="https://github.com/rust-lang/libc">libc</a> which already have defined most methods and constants you need.</p>
+                        <h1><a class="header" href="#timers" id="timers">Timers</a></h1>
+<h2><a class="header" href="#1-check-expired-timers" id="1-check-expired-timers">1. Check expired timers</a></h2>
+<p>The first step in the event loop is checking for expired timers, and we do this 
+in the <code>self.check_expired_timers()</code> function</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+    fn process_expired_timers(&amp;mut self) {
+        // Need an intermediate variable to please the borrowchecker
+        let timers_to_remove = &amp;mut self.timers_to_remove;
+
+        self.timers
+            .range(..=Instant::now())
+            .for_each(|(k, _)| timers_to_remove.push(*k));
+
+        while let Some(key) = self.timers_to_remove.pop() {
+            let callback_id = self.timers.remove(&amp;key).unwrap();
+            self.callbacks_to_run.push((callback_id, Js::Undefined));
+        }
+    }
+
+    fn get_next_timer(&amp;self) -&gt; Option&lt;i32&gt; {
+        self.timers.iter().nth(0).map(|(&amp;instant, _)| {
+            let mut time_to_next_timeout = instant - Instant::now();
+            if time_to_next_timeout &lt; Duration::new(0, 0) {
+                time_to_next_timeout = Duration::new(0, 0);
+            }
+            time_to_next_timeout.as_millis() as i32
+        })
+    }
+#}</code></pre></pre>
+<p>The first thing to note here is that we check <code>self.timers</code> and to understand the
+rest of the syntax we'll have to look what kind of collection this is.</p>
+<p>Now I chose a <code>BTreeMap&lt;Instant, usize&gt;</code> for this collection. The reason is that
+i want to have many <code>Instant</code>'s chronologically. When I add a timer, I calculate
+at what instance it's supposed to be run and I add that to this collection.</p>
+<blockquote>
+<p>BTrees are a very good data structure when you know that your keys will be ordered.</p>
+</blockquote>
+<p>Choosing a <code>BTreeMap</code> here allows me to get a range <code>range(..=Instant::noew())</code>
+which is from the start of the map, up until or equal to the instant NOW.</p>
+<p>Now I take every key in this range and add it to <code>timers_to_remove</code>, and the reason
+for this is that I found no good way to both get a range and remove the key's in one
+operation without allocating a small buffer every time. You can iterate over the range
+but due to the ownership rules you can't remove them at the same time, and we want to
+remove the timers, we've run.</p>
+<p>The eventloop will run repeatedly so avoiding any allocations inside the loop is smart. There is no need to have this overhead.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+while let Some(key) = timers_to_remove.pop() {
+    let callback_id = self.timers.remove(&amp;key).unwrap();
+    self.next_tick_callbacks.push((callback_id, Js::Undefined));
+}
+#}</code></pre></pre>
+<p>The next step is to take every timer that has expired, remove the timer from our <code>self.timers</code> collection and get their <code>callback_id</code>.</p>
+<p>As I explained in the previous chapter, this is an unique Id for this callback. What's
+important here is that we don't run the callback <strong>immediately</strong>. Node actually registers callbacks to be run on the next <code>tick</code>. An exception is the timers since they either have timed out or is a timer with a timeout of <code>0</code>. In this case a timer will not wait for the next tick if it has timed out, or in the case if it has a timeout of <code>0</code> they will be invoked immediately as you'll see next.</p>
+<p>Anyway, for now we add the callback id's to <code>self.next_tick_callbacks</code>.</p>
+<p>Before we continue, let's recap by looking what members of the <code>Runtime</code> struct
+we used here:</p>
+<pre><code class="language-rust no_run noplaypen">pub struct Runtime {
+    pending_events: usize,
+    next_tick_callbacks: Vec&lt;(usize, Js)&gt;,
+    timers: BTreeMap&lt;Instant, usize&gt;,
+}
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="3_1_communicating_with_the_os.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="7_2_setting_up_runtime.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="3_2_the_cpu_and_the_os.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="7_4_callbacks.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -174,13 +236,13 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="3_1_communicating_with_the_os.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="7_2_setting_up_runtime.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a href="3_2_the_cpu_and_the_os.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="7_4_callbacks.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
