@@ -148,22 +148,21 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
-<p>This book aims to take a deep down into the why and how of concurrent programming. First we build
-a good foundation of knowledge, before we use that knowledge to implement a toy version of the
+<p><strong>Don't block the event loop! Don't poll in a busy loop! Increase throughput! Use async I/O! Cuncurrency is not parallelism!</strong></p>
+<p>You've most likely heard and read claims like these many times before,
+and maybe, at some point you've thought you understood everything
+only to find yourself confused a moment later. Especially when you want to
+understand how it works on a fundamental level involving different Operating Systems.</p>
+<p>Me too.</p>
+<p>So I spent a couple of hundred hours to try to fix that for myself. I wrote
+this story as a result of that and now I invite you to join me on that journey.</p>
+<p>This book aims to take a look at the <em>why</em> and <em>how</em> of concurrent programming. First we build
+a good foundation of basic knowledge, before we use that knowledge to implement a toy version of the
 Node.js runtime.</p>
 <blockquote>
 <p>This book is developed in the open and has <a href="https://github.com/cfsamson/book-investigating-async-basics">it's repository here</a>.
 The final code in this book is located here if you want to clone it and play with it or improve it.</p>
 </blockquote>
-<p>Don't block the eventloop! Don't poll in a loop! Increase throughput! Concurrency.
-Parallelism.</p>
-<p>You've most likely heard and read about this many times before,
-and maybe, at some point you've thought you understood everything
-only to find yourself confused a moment later. Especially when you want to
-understand how it works on three different Operating Systems.</p>
-<p>Me too.</p>
-<p>So I spent a couple of hundred hours to try to fix that for myself. Then I wrote
-this story and now I invite you to join me on that journey.</p>
 <p>I warn you though, we need to venture from philosophical heights where we try to
 formally define a &quot;task&quot; all the way down to the deep waters where firmware and
 other strange creatures rule (I believe some of the more wicked creatures there
@@ -221,16 +220,17 @@ but they're thin enough to let us easily peek under the covers to see how things
 we explore concepts, and where the code examples are small and easy to understand, but it will
 be more code towards the end and you'll get the most out of it by learning the basics first.</p>
 <p>I do recommend that you read my book preceding this <a href="https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/">Green threads explained in 200 lines of Rust</a>
-since I cover quite a bit about Rust, stacks, threads and inline assembly there and
+since I cover quite a bit about Rust basics, stacks, threads and inline assembly there and
 will not repeat everything here. However, it's definitely not a must.</p>
 <blockquote>
 <p><a href="https://www.rust-lang.org/tools/install">You will find everything you need to set up Rust here</a></p>
 </blockquote>
 <h2><a class="header" href="#following-along" id="following-along">Following along</a></h2>
 <p>For this book I use <code>mdbook</code>, which has the nice benefit of being able to run
-the code we write directly in the book. However, this only runs the Linux version
-and since part of the challenge here is to write for three platforms I've included
-and explained that code too, but you'll have to copy it over and run it yourself.</p>
+the code we write directly in the book. However, we're working with I/O and cross
+platform syscalls in this book which does make it difficult to have code that runs
+on the Rust Playground, so my best recommendation is to create a project on your local
+computer and follow along by copying the code over and run it locally.</p>
 <h2><a class="header" href="#disclaimer" id="disclaimer">Disclaimer</a></h2>
 <ol>
 <li>

@@ -1,24 +1,23 @@
 # Introduction
 
-This book aims to take a deep down into the why and how of concurrent programming. First we build
-a good foundation of knowledge, before we use that knowledge to implement a toy version of the
+**Don't block the event loop! Don't poll in a busy loop! Increase throughput! Use async I/O! Cuncurrency is not parallelism!**
+
+You've most likely heard and read claims like these many times before,
+and maybe, at some point you've thought you understood everything
+only to find yourself confused a moment later. Especially when you want to
+understand how it works on a fundamental level involving different Operating Systems.
+
+Me too.
+
+So I spent a couple of hundred hours to try to fix that for myself. I wrote
+this story as a result of that and now I invite you to join me on that journey.
+
+This book aims to take a look at the _why_ and _how_ of concurrent programming. First we build
+a good foundation of basic knowledge, before we use that knowledge to implement a toy version of the
 Node.js runtime.
 
 > This book is developed in the open and has [it's repository here](https://github.com/cfsamson/book-investigating-async-basics).
 > The final code in this book is located here if you want to clone it and play with it or improve it.
-
-Don't block the eventloop! Don't poll in a loop! Increase throughput! Concurrency.
-Parallelism.
-
-You've most likely heard and read about this many times before,
-and maybe, at some point you've thought you understood everything
-only to find yourself confused a moment later. Especially when you want to
-understand how it works on three different Operating Systems.
-
-Me too.
-
-So I spent a couple of hundred hours to try to fix that for myself. Then I wrote
-this story and now I invite you to join me on that journey.
 
 I warn you though, we need to venture from philosophical heights where we try to
 formally define a "task" all the way down to the deep waters where firmware and
@@ -70,7 +69,7 @@ we explore concepts, and where the code examples are small and easy to understan
 be more code towards the end and you'll get the most out of it by learning the basics first.
 
 I do recommend that you read my book preceding this [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
-since I cover quite a bit about Rust, stacks, threads and inline assembly there and
+since I cover quite a bit about Rust basics, stacks, threads and inline assembly there and
 will not repeat everything here. However, it's definitely not a must.
 
 > [You will find everything you need to set up Rust here](https://www.rust-lang.org/tools/install)
@@ -78,9 +77,10 @@ will not repeat everything here. However, it's definitely not a must.
 ## Following along
 
 For this book I use `mdbook`, which has the nice benefit of being able to run
-the code we write directly in the book. However, this only runs the Linux version
-and since part of the challenge here is to write for three platforms I've included
-and explained that code too, but you'll have to copy it over and run it yourself.
+the code we write directly in the book. However, we're working with I/O and cross
+platform syscalls in this book which does make it difficult to have code that runs
+on the Rust Playground, so my best recommendation is to create a project on your local
+computer and follow along by copying the code over and run it locally.
 
 ## Disclaimer
 
