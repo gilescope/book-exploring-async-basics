@@ -7,7 +7,31 @@ larger concepts mentally easiest to parse and understand. That also means that
 sometimes I have to introduce a bit of code that will be explained later, just
 don't worry. I'll go through everything.
 
-The first thing we need is a `Runtime` to hold all the state our `Runtime`needs.
+The very first thing we need to do is to create a Rust project to run our code in:
+
+```
+cargo new async-basics
+cd async-basics
+```
+
+Now, as I've explained we'll need to use the `minimio` library that we'll explain
+thoroughly in the next book:
+
+In `Cargo.toml`
+
+```toml
+[dependencies]
+minimio = {git = "https://github.com/cfsamson/examples-io-eventloop", branch = "master"}
+```
+
+A second option is to clone the repository containing all the code we're going
+to write and go through that as we go along:
+
+```
+git clone https://github.com/cfsamson/examples-minimio.git
+```
+
+The second thing we need is a `Runtime` to hold all the state our `Runtime`needs.
 I've added comments to the code so it's easier to understand when you go through
 the repository:
 

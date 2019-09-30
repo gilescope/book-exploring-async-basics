@@ -151,7 +151,21 @@
 larger concepts mentally easiest to parse and understand. That also means that
 sometimes I have to introduce a bit of code that will be explained later, just
 don't worry. I'll go through everything.</p>
-<p>The first thing we need is a <code>Runtime</code> to hold all the state our <code>Runtime</code>needs.
+<p>The very first thing we need to do is to create a Rust project to run our code in:</p>
+<pre><code>cargo new async-basics
+cd async-basics
+</code></pre>
+<p>Now, as I've explained we'll need to use the <code>minimio</code> library that we'll explain
+thoroughly in the next book:</p>
+<p>In <code>Cargo.toml</code></p>
+<pre><code class="language-toml">[dependencies]
+minimio = {git = &quot;https://github.com/cfsamson/examples-io-eventloop&quot;, branch = &quot;master&quot;}
+</code></pre>
+<p>A second option is to clone the repository containing all the code we're going
+to write and go through that as we go along:</p>
+<pre><code>git clone https://github.com/cfsamson/examples-minimio.git
+</code></pre>
+<p>The second thing we need is a <code>Runtime</code> to hold all the state our <code>Runtime</code>needs.
 I've added comments to the code so it's easier to understand when you go through
 the repository:</p>
 <pre><code class="language-rust no_run noplaypen">pub struct Runtime {
