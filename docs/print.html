@@ -2113,6 +2113,20 @@ pub struct Runtime {
 }
 #}</code></pre></pre>
 <h1><a class="header" href="#the-threadpool-1" id="the-threadpool-1">The Threadpool</a></h1>
+<p>The threadpool is where we'll process the CPU intensive tasks and the I/O tasks
+which can't be reasonably handled by <code>epoll, kqueue or IOCP</code>. One of these tasks
+are file system operations.</p>
+<p>The reason for doing file I/O in the thread pool is complex, but the main takeaway
+is that due to how files are cached and how the hard drive works, most often the
+file I/O will be <code>Ready</code> almost immediately, so waiting for that in a event queue
+has very little effect in practice.</p>
+<p>The second reason is that while Windows do have a completion based model, Linux
+and Macos doesn't. Reading a file into a buffer which your process controls can take some
+time, and if we do that in our main loop it will block a little bit which we really try
+to avoid.</p>
+<p>By doing this in a thread pool we make sure that these operations won't block our
+main event loop and only notify us once the data is ready for us in memory.</p>
+<p>The code we need to add to process events from the thread pool is short an simple:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2121,22 +2135,56 @@ fn process_threadpool_events(&amp;mut self, thread_id: usize, callback_id: usize
     self.available_threads.push(thread_id);
 }
 #}</code></pre></pre>
-<h1><a class="header" href="#io-eventqueue" id="io-eventqueue">I/O eventqueue</a></h1>
+<p>We take <code>thread_id</code>, <code>callback_id</code> and <code>data</code> as arguments. We get this through
+the channel we have shared with our <code>threadpool</code> threads.</p>
+<p>Once we have that information we push our callbacks into the queue of <code>callbacks_to_run</code>
+which will run on the next call to <code>run_callbacks</code> we went through in the previous chapter.</p>
+<p>Last we take the <code>id</code> of the thread that sent the finished task and put it into
+our pool of available threads.</p>
+<h1><a class="header" href="#io-event-queue" id="io-event-queue">I/O event queue</a></h1>
+<p>The I/O event queue is what handles most of our I/O tasks. Now we'll go through
+how we register events to that queue later on, but once an event is ready we
+it sends the <code>event_id</code> through our channel.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-fn process_epoll_events(&amp;mut self, event_id: usize) {
-    let id = self
-        .epoll_event_cb_map
-        .get(&amp;(event_id as i64))
-        .expect(&quot;Event not in event map.&quot;);
-    let callback_id = *id;
-    self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+    fn process_epoll_events(&amp;mut self, event_id: usize) {
+        let event_id = event_id as i64;
 
-    self.callbacks_to_run.push((callback_id, Js::Undefined));
-    self.epoll_pending_events -= 1;
-}
+        let callback_id = *self
+            .epoll_event_cb_map
+            .get(&amp;event_id)
+            .expect(&quot;Event not in event map.&quot;);
+
+        self.epoll_event_cb_map.remove(&amp;event_id);
+
+        self.callbacks_to_run.push((callback_id, Js::Undefined));
+        self.epoll_pending_events -= 1;
+    }
 #}</code></pre></pre>
+<p>Now the first thing we do is to cast the <code>event_id</code> to an <code>i64</code> which both our
+methods expect just so we don't need to clutter our code with more casts than we
+need.</p>
+<p>The second thing we do is to get the <code>callback_id</code> which is the Id of the callback
+we want to run once the event is finished.</p>
+<p>We'll go through why we want to map the <code>event_id</code> to a <code>callback_id</code> later but
+it's just convenient for us to keep these Id's seperated for now.</p>
+<blockquote>
+<p>You might be wondering how we can <code>dereference</code> <code>self</code> in this call: <code>let callback_id = *self...</code>.
+The reason for this is that we're not actually dereferencing <code>self</code>, but we're
+dereferencing the value returned from <code>self.epoll_event_cb_map.get(&amp;event_id)...</code>.
+Since this is an <code>usize</code>, which is one of our primitive types that implement <code>Copy</code>
+this will work fine.</p>
+</blockquote>
+<p>Next up we remove the event from our <code>event_id &lt;-&gt; callback_id</code> map with 
+<code>self.epoll_event_cb_map.remove(&amp;event_id)</code>.</p>
+<p>Lastly we add the <code>callback_id</code> to the collection of callbacks to run. We pass
+in <code>Js::Undefined</code> since we'll not actually pass any data along here. You'll see
+why when we reach the `<a href="./8_3_http_module.html">Http module</a> chapter, but the main
+point is that the I/O queue doesn't return any data itself, it just tells us that
+data is ready to be read.</p>
+<p>Lastly it's only for our own bookeeping we decrement the count of outstanding
+<code>epoll_pending_events</code> so we keep track of how many events we have pending.</p>
 <h1><a class="header" href="#cleaning-up" id="cleaning-up">Cleaning up</a></h1>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
@@ -2384,6 +2432,12 @@ fn current() -&gt; String {
 }
 #}</code></pre></pre>
 <h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>
+<p>Remember, for this to run you need to create a cargo binary project, and add the
+following dependency to your <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">[dependencies]
+minimio = {git = &quot;https://github.com/cfsamson/examples-io-eventloop&quot;, branch = &quot;master&quot;}
+</code></pre>
+<p>In <code>main.rs</code> you can paste in this code:</p>
 <pre><pre class="playpen"><code class="language-rust">/// Think of this function as the javascript program you have written
 fn javascript() {
     print(&quot;First call to read test.txt&quot;);
@@ -2798,13 +2852,14 @@ impl Runtime {
     }
 
     fn process_epoll_events(&amp;mut self, event_id: usize) {
-        let id = self
+        let event_id = event_id as i64;
+
+        let callback_id = *self
             .epoll_event_cb_map
-            .get(&amp;(event_id as i64))
+            .get(&amp;event_id)
             .expect(&quot;Event not in event map.&quot;);
 
-        let callback_id = *id;
-        self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+        self.epoll_event_cb_map.remove(&amp;event_id);
 
         self.callbacks_to_run.push((callback_id, Js::Undefined));
         self.epoll_pending_events -= 1;
@@ -3029,6 +3084,7 @@ fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
 fn current() -&gt; String {
     thread::current().name().unwrap().to_string()
 }
+
 </code></pre></pre>
 <h1><a class="header" href="#shortcuts-and-improvements" id="shortcuts-and-improvements">Shortcuts and improvements</a></h1>
 <h2><a class="header" href="#shortcuts-1" id="shortcuts-1">Shortcuts</a></h2>

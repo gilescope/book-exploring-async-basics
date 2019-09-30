@@ -146,6 +146,12 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>
+<p>Remember, for this to run you need to create a cargo binary project, and add the
+following dependency to your <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">[dependencies]
+minimio = {git = &quot;https://github.com/cfsamson/examples-io-eventloop&quot;, branch = &quot;master&quot;}
+</code></pre>
+<p>In <code>main.rs</code> you can paste in this code:</p>
 <pre><pre class="playpen"><code class="language-rust">/// Think of this function as the javascript program you have written
 fn javascript() {
     print(&quot;First call to read test.txt&quot;);
@@ -560,13 +566,14 @@ impl Runtime {
     }
 
     fn process_epoll_events(&amp;mut self, event_id: usize) {
-        let id = self
+        let event_id = event_id as i64;
+
+        let callback_id = *self
             .epoll_event_cb_map
-            .get(&amp;(event_id as i64))
+            .get(&amp;event_id)
             .expect(&quot;Event not in event map.&quot;);
 
-        let callback_id = *id;
-        self.epoll_event_cb_map.remove(&amp;(event_id as i64));
+        self.epoll_event_cb_map.remove(&amp;event_id);
 
         self.callbacks_to_run.push((callback_id, Js::Undefined));
         self.epoll_pending_events -= 1;
@@ -791,6 +798,7 @@ fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
 fn current() -&gt; String {
     thread::current().name().unwrap().to_string()
 }
+
 </code></pre></pre>
 
                     </main>

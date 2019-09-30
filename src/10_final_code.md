@@ -1,5 +1,15 @@
 # Final code
 
+Remember, for this to run you need to create a cargo binary project, and add the
+following dependency to your `Cargo.toml`:
+
+```toml
+[dependencies]
+minimio = {git = "https://github.com/cfsamson/examples-io-eventloop", branch = "master"}
+```
+
+In `main.rs` you can paste in this code:
+
 ```rust
 /// Think of this function as the javascript program you have written
 fn javascript() {
@@ -415,13 +425,14 @@ impl Runtime {
     }
 
     fn process_epoll_events(&mut self, event_id: usize) {
-        let id = self
+        let event_id = event_id as i64;
+
+        let callback_id = *self
             .epoll_event_cb_map
-            .get(&(event_id as i64))
+            .get(&event_id)
             .expect("Event not in event map.");
 
-        let callback_id = *id;
-        self.epoll_event_cb_map.remove(&(event_id as i64));
+        self.epoll_event_cb_map.remove(&event_id);
 
         self.callbacks_to_run.push((callback_id, Js::Undefined));
         self.epoll_pending_events -= 1;
@@ -646,4 +657,5 @@ fn print_content(t: impl std::fmt::Display, descr: &str) {
 fn current() -> String {
     thread::current().name().unwrap().to_string()
 }
+
 ```
