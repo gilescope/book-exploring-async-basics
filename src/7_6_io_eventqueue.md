@@ -28,7 +28,7 @@ The second thing we do is to get the `callback_id` which is the Id of the callba
 we want to run once the event is finished.
 
 We'll go through why we want to map the `event_id` to a `callback_id` later but
-it's just convenient for us to keep these Id's seperated for now.
+it's just convenient for us to keep these Id's separated for now.
 
 > You might be wondering how we can `dereference` `self` in this call: `let callback_id = *self...`.
 > The reason for this is that we're not actually dereferencing `self`, but we're

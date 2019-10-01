@@ -1,5 +1,8 @@
 # Cleaning up
 
+Lastly we clean up after ourselves by joining all our threads so we know that
+all destructors have ran without errors after we're finished.
+
 ```rust
 // We clean up our resources, makes sure all destructors runs.
 for thread in self.thread_pool.into_iter() {
@@ -12,3 +15,13 @@ self.epoll_thread.join().unwrap();
 
 print("FINISHED");
 ```
+
+Before we join the thread on our thread pool we send a `Close` event which
+unparks the thread and exits the loop we're in.
+
+How we clean up after ourselves in `minimio` will be covered in the book that
+covers this topic specifically.   
+ 
+  
+   
+   
