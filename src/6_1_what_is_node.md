@@ -59,9 +59,12 @@ Most C++ extensions for Node uses this threadpool to perform their work and that
 
 ## Further information
 
-If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:
+If you do want to know more about the Node eventloop I have one short page of the `libuv` documentation I can
+refer you to and two talks for you that I find great (and correct) on this subject:
 
-This first one is made held by [@piscisaureus](https://github.com/piscisaureus) and is an excellent 15 minute overview - i especially recommend this one as its short and to the point:
+[Libuv Design Overview](http://docs.libuv.org/en/v1.x/design.html#design-overview)
+
+This first talk one is made held by [@piscisaureus](https://github.com/piscisaureus) and is an excellent 15 minute overview - i especially recommend this one as its short and to the point:
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 

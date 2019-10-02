@@ -146,6 +146,8 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#cleaning-up" id="cleaning-up">Cleaning up</a></h1>
+<p>Lastly we clean up after ourselves by joining all our threads so we know that
+all destructors have ran without errors after we're finished.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -160,6 +162,13 @@ self.epoll_thread.join().unwrap();
 
 print(&quot;FINISHED&quot;);
 #}</code></pre></pre>
+<p>Before we join the thread on our thread pool we send a <code>Close</code> event which
+unparks the thread and exits the loop we're in.</p>
+<p>How we clean up after ourselves in <code>minimio</code> will be covered in the book that
+covers this topic specifically.</p>
+<p>If you want to read more about why it's a good practice to join all threads
+and clean up after us before we exit, I can recommend the article <a href="https://matklad.github.io/2019/08/23/join-your-threads.html">Join Your Threads</a>
+written by <a href="https://matklad.github.io/">@matklad</a>.</p>
 
                     </main>
 

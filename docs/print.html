@@ -1449,8 +1449,10 @@ it's what we'll do in our example.</p>
 <p>I/O tasks which can't be handled by the cross platform eventqueue is also handled here which is the case with file reads which we use in our example.</p>
 <p>Most C++ extensions for Node uses this threadpool to perform their work and that is one of many reasons they are used for CPU heavy tasks.</p>
 <h2><a class="header" href="#further-information" id="further-information">Further information</a></h2>
-<p>If you do want to know more about the Node eventloop I have two talks for you that I find great (and correct) on this subject:</p>
-<p>This first one is made held by <a href="https://github.com/piscisaureus">@piscisaureus</a> and is an excellent 15 minute overview - i especially recommend this one as its short and to the point:</p>
+<p>If you do want to know more about the Node eventloop I have one short page of the <code>libuv</code> documentation I can
+refer you to and two talks for you that I find great (and correct) on this subject:</p>
+<p><a href="http://docs.libuv.org/en/v1.x/design.html#design-overview">Libuv Design Overview</a></p>
+<p>This first talk one is made held by <a href="https://github.com/piscisaureus">@piscisaureus</a> and is an excellent 15 minute overview - i especially recommend this one as its short and to the point:</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PNa9OMajw9w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <p>The second one is slightly longer but is also an excellent talk held by <a href="https://github.com/nebrius">Bryan Hughes</a></p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/zphcsoSJMvM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -1611,8 +1613,6 @@ the repository:</p>
     callbacks_to_run: Vec&lt;(usize, Js)&gt;,
     /// All registered callbacks
     callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
-    /// Maps an epoll event to a callback
-    epoll_event_cb_map: HashMap&lt;i64, usize&gt;,
     /// Number of pending epoll events, only used by us to print for this example
     epoll_pending_events: usize,
     /// Our event registrator which registers interest in events with the OS
@@ -1640,7 +1640,35 @@ the repository:</p>
 <p>Now, I've added some comments here to explain what they're for and in the coming
 chapters we'll cover every one of them.</p>
 <p>I'll continue by defining some of the types we use here.</p>
-<p>First is <code>NodeThread</code>, which represents a thread in our threadpool. As you
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+struct Task {
+    task: Box&lt;dyn Fn() -&gt; Js + Send + 'static&gt;,
+    callback_id: usize,
+    kind: ThreadPoolTaskKind,
+}
+
+impl Task {
+    fn close() -&gt; Self {
+        Task {
+            task: Box::new(|| Js::Undefined),
+            callback_id: 0,
+            kind: ThreadPoolTaskKind::Close,
+        }
+    }
+}
+#}</code></pre></pre>
+<p>We need a task object, which represents a task we want to finish in our thread
+pool. I'll go through the types in this object in a later <a href="./7_9_infrastructure.html">chapter</a> so don't worry too much about them now if you find them
+hard to grasp. Everything will be explained.</p>
+<p>We also create an implementation of a <code>Close</code> task. We need this to clean up after
+ourselves and close down the thread pool. <code>|| Js::Undefined</code> might seem strange
+but it's only a function that returns <code>Js::Undefined</code>, we just need it since we
+won't make <code>task</code> an <code>Option</code> just for this one case. It's just so we don't have
+to match on <code>task</code> all the way through our code, it's more than enough to parse
+already.</p>
+<p>First is <code>NodeThread</code>, which represents a thread in our thread pool. As you
 see we have a <code>JoinHandle</code> (which we get when we call <code>thread::spawn</code>) and the
 sending part of a channel. This channel, sends messages of the type <code>Event</code>.</p>
 <pre><pre class="playpen"><code class="language-rust">
@@ -1663,13 +1691,13 @@ is an <code>enum</code> indicating what kind of event this is.</p>
     kind: EventKind,
 }
 </code></pre>
-<p>We introduced two new types here: <code>Js</code> and <code>ThreadPoolEventKind</code>. First we'll cover <code>ThreadPoolEventKind</code>.
+<p>We introduced two new types here: <code>Js</code> and <code>ThreadPoolTaskKind</code>. First we'll cover <code>ThreadPoolTaskKind</code>.
 As you see we have three kinds of events: a <code>FileRead</code> which is a file that has
 been read, and an <code>Encrypt</code> that represents an operation from our <code>Crypto</code> module.
 The event <code>Close</code> is used to let the threads in our <code>threadpool</code> that we're closing
 the loop and let them exit out of their loops.</p>
 <p>As you might understand, this object is only used in the <code>threadpool</code></p>
-<pre><code class="language-rust no_run noplaypen">pub enum ThreadPoolEventKind {
+<pre><code class="language-rust no_run noplaypen">pub enum ThreadPoolTaskKind {
     FileRead,
     Encrypt,
     Close,
@@ -2149,43 +2177,44 @@ it sends the <code>event_id</code> through our channel.</p>
 # #![allow(unused_variables)]
 #fn main() {
     fn process_epoll_events(&amp;mut self, event_id: usize) {
-        let event_id = event_id as i64;
-
-        let callback_id = *self
-            .epoll_event_cb_map
-            .get(&amp;event_id)
-            .expect(&quot;Event not in event map.&quot;);
-
-        self.epoll_event_cb_map.remove(&amp;event_id);
-
-        self.callbacks_to_run.push((callback_id, Js::Undefined));
+        self.callbacks_to_run.push((event_id, Js::Undefined));
         self.epoll_pending_events -= 1;
     }
 #}</code></pre></pre>
-<p>Now the first thing we do is to cast the <code>event_id</code> to an <code>i64</code> which both our
-methods expect just so we don't need to clutter our code with more casts than we
-need.</p>
-<p>The second thing we do is to get the <code>callback_id</code> which is the Id of the callback
-we want to run once the event is finished.</p>
-<p>We'll go through why we want to map the <code>event_id</code> to a <code>callback_id</code> later but
-it's just convenient for us to keep these Id's seperated for now.</p>
-<blockquote>
-<p>You might be wondering how we can <code>dereference</code> <code>self</code> in this call: <code>let callback_id = *self...</code>.
-The reason for this is that we're not actually dereferencing <code>self</code>, but we're
-dereferencing the value returned from <code>self.epoll_event_cb_map.get(&amp;event_id)...</code>.
-Since this is an <code>usize</code>, which is one of our primitive types that implement <code>Copy</code>
-this will work fine.</p>
-</blockquote>
-<p>Next up we remove the event from our <code>event_id &lt;-&gt; callback_id</code> map with 
-<code>self.epoll_event_cb_map.remove(&amp;event_id)</code>.</p>
-<p>Lastly we add the <code>callback_id</code> to the collection of callbacks to run. We pass
+<p>As we'll see later on, the way we designed this, we actually made our <code>event_id</code>
+and <code>callback_id</code> the same value since both represents an unique value for this
+event. It simplifies things slightly for us.</p>
+<p>W add the <code>callback_id</code> to the collection of callbacks to run. We pass
 in <code>Js::Undefined</code> since we'll not actually pass any data along here. You'll see
 why when we reach the `<a href="./8_3_http_module.html">Http module</a> chapter, but the main
 point is that the I/O queue doesn't return any data itself, it just tells us that
 data is ready to be read.</p>
 <p>Lastly it's only for our own bookeeping we decrement the count of outstanding
 <code>epoll_pending_events</code> so we keep track of how many events we have pending.</p>
+<blockquote>
+<p><strong>Why even keep track of how many <code>epoll_events</code> are pending?</strong>
+We don't use this value here, but I added it to make it easier to create
+some <code>print</code> statements showing the status of our runtime at different points.
+However, there are good reasons to keep track of these events even if we don't use them.</p>
+<p>One area we're taking shortcuts on all the way here is security. If someone were
+to build a public facing server out of this, we need to account for slow networks
+and malicious users. </p>
+<p>Since we use <code>IOCP</code>, which is a completion based model, we allocate memory for
+a buffer for each <code>Read</code> or <code>Write</code> event. When we lend this memory to the OS,
+we're in a weird situation. We own it, but we can't touch it. There are several
+ways in which we could register interest in more events than occur, and thereby
+allocating memory that is just held in the buffers. Now if someone wanted to crash
+our server, they could cause this intentionally.</p>
+<p>A good practice is therefore to create a &quot;high watermark&quot; by keeping track of
+the number of pending events, and when we reach that watermark, we queue events
+instead of registering them with the OS.</p>
+<p>By extension, this is also why you should <strong>always</strong> have a timeout on these events
+so that you at some point can reclaim the memory and return an timeout error if
+necessary.</p>
+</blockquote>
 <h1><a class="header" href="#cleaning-up" id="cleaning-up">Cleaning up</a></h1>
+<p>Lastly we clean up after ourselves by joining all our threads so we know that
+all destructors have ran without errors after we're finished.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2200,7 +2229,16 @@ self.epoll_thread.join().unwrap();
 
 print(&quot;FINISHED&quot;);
 #}</code></pre></pre>
+<p>Before we join the thread on our thread pool we send a <code>Close</code> event which
+unparks the thread and exits the loop we're in.</p>
+<p>How we clean up after ourselves in <code>minimio</code> will be covered in the book that
+covers this topic specifically.</p>
+<p>If you want to read more about why it's a good practice to join all threads
+and clean up after us before we exit, I can recommend the article <a href="https://matklad.github.io/2019/08/23/join-your-threads.html">Join Your Threads</a>
+written by <a href="https://matklad.github.io/">@matklad</a>.</p>
 <h1><a class="header" href="#infrastructure" id="infrastructure">Infrastructure</a></h1>
+<p>Now, for everything to work we need some helpers to make our infrastructure work.</p>
+<p>First of all, we need a way to get the <code>id</code> of an available thread.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2211,69 +2249,177 @@ print(&quot;FINISHED&quot;);
             None =&gt; panic!(&quot;Out of threads.&quot;),
         }
     }
+#}</code></pre></pre>
+<p>As you see, we take one huge shortcut here. If we run out of threads, we <code>panic!</code>.
+This is not good, and we should rather implement logic to queue these requests
+and run them as soon as a thread is available. However, our code is already getting
+long, and it's not very important for our goal of learning about <code>async</code>.</p>
+<p>Maybe this implementing such a queue is a good reader-exercise? Feel free to fork
+the repository and go ahead :)</p>
+<p>The next thing we need to do is to create an unique identity for our callbacks.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
 
-    /// If we hit max we just wrap around
-    fn generate_identity(&amp;mut self) -&gt; usize {
-        self.identity_token = self.identity_token.wrapping_add(1);
-        self.identity_token
-    }
+#fn main() {
+/// If we hit max we just wrap around
+fn generate_identity(&amp;mut self) -&gt; usize {
+    self.identity_token = self.identity_token.wrapping_add(1);
+    self.identity_token
+}
 
-    fn generate_cb_identity(&amp;mut self) -&gt; usize {
-        let ident = self.generate_identity();
-        let taken = self.callback_queue.contains_key(&amp;ident);
+fn generate_cb_identity(&amp;mut self) -&gt; usize {
+    let ident = self.generate_identity();
+    let taken = self.callback_queue.contains_key(&amp;ident);
 
-        // if there is a collision or the identity is already there we loop until we find a new one
-        // we don't cover the case where there are `usize::MAX` number of callbacks waiting since
-        // that if we're fast and queue a new event every nanosecond that will still take 585.5 years
-        // to do on a 64 bit system.
-        if !taken {
-            ident
-        } else {
-            loop {
-                let possible_ident = self.generate_identity();
-                if self.callback_queue.contains_key(&amp;possible_ident) {
-                    break possible_ident;
-                }
+    // if there is a collision or the identity is already there we loop until we
+    // find a new one. We don't cover the case where there are `usize::max_value()`
+    // number of callbacks waiting since that if we're fast and queue a new event
+    // every nanosecond that will stilltake 585 years to do on a 64 bit system.
+    if !taken {
+        ident
+    } else {
+        loop {
+            let possible_ident = self.generate_identity();
+            if self.callback_queue.contains_key(&amp;possible_ident) {
+                break possible_ident;
             }
         }
     }
+}
+#}</code></pre></pre>
+<p>The function <code>generate_cb_identity</code> is where it all happens, <code>genereate_identity</code> is just
+a small function so we try to avoid the long functions we had in the introduction.</p>
+<blockquote>
+<p>Now, there are some important considerations to be aware of. Even though we use
+several threads, we use a regular <code>usize</code> here and the reason for that is that
+it's only one thread that will be generating Id's. This could cause problems if
+several threads tried to <code>read</code> and <code>generate</code> new Id's at the same time.</p>
+</blockquote>
+<p>We use the <code>wrapping_add</code> method on <code>usize</code> to get the next Id, this means that
+when we reach <code>18446744073709551615</code> we wrap around to 0 again.</p>
+<p>We do check of our callback_queue contains our key (even though that is unlikely
+by design), and if it's taken we just generate a new one until we find a available
+one.</p>
+<p>Next up is the method we use to add a callback to our <code>callback_queue</code>:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+/// Adds a callback to the queue and returns the key
+fn add_callback(&amp;mut self, ident: usize, cb: impl FnOnce(Js) + 'static) {
+    let boxed_cb = Box::new(cb);
+    self.callback_queue.insert(ident, boxed_cb);
+}
+#}</code></pre></pre>
+<p>If you haven't seen the signature <code>cb: impl impl FnOnce(Js) + 'static</code> before I'll
+explain it briefly here.</p>
+<p>The <code>impl ...</code> means that we accept an arguments that implements the trait <code>FnOnce(Js)</code>
+with a <code>'static</code> lifetime. <a href="https://doc.rust-lang.org/std/ops/trait.FnOnce.html">FnOnce</a> is
+a trait implemented by <code>closures</code>. There are three main traits a <code>closure</code> can implement
+in Rust and <code>FnOnce</code> is the one you'll use if you take ownership over a captured
+variable and consume it.</p>
+<p>Since you consume the variable a <code>closure</code> implementing <code>FnOnce</code> can only be called
+once. Our closure takes ownership over the <code>Js</code> parameter we pass in and consumes
+it. It's implicit that <code>FnOnce</code> returns <code>()</code> in this case so we don't have to write
+<code>FnOnce(Js) -&gt; ()</code>.</p>
+<p>Since callbacks are meant to only be called once, this is a perfectly fine bound
+for us to use here.</p>
+<p>Now, traits doesn't have a size so for the compiler to be able to allocate space
+for it on the stack we either need to take a reference <code>&amp;FnOnce(Js)</code> or place it
+on the heap using <code>Box</code>. We do the latter since that's the only thing that makes
+sense for our use case. Box is a pointer to a heap allocated variable which we do
+know the size of so we store that reference in our <code>callback_queue</code> HashMap.</p>
+<blockquote>
+<p>What makes a closure?
+A function in rust can be defined as easily as <code>|| { }</code>. If this is all we write
+it's the same as a function pointer, equivalent to just referencing <code>my_method</code> (whithout parenthesis).
+It becomes a <code>closure</code> as soon as you &quot;close&quot; over your environment by referencing
+variables that's not owned by the <code>function</code>.</p>
+<p><code>Fn</code> traits are automatically implemented, and whether it implements <code>Fn</code>, <code>FnMut</code>
+or <code>FnOnce</code> depend whether you take ownership over a non-copy variable, take a shared
+reference <code>&amp;</code> or an exclusive reference <code>&amp;mut</code> (often called a mutable reference).</p>
+</blockquote>
+<p>Now that we got some closure basics out of the way we can move on. The next method
+is how we register <code>I/O</code> work. This is how we register an <code>epoll</code> event with our runtime:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub fn register_event_epoll(&amp;mut self, token: usize, cb: impl FnOnce(Js) + 'static) {
+    self.add_callback(token, cb);
 
-    /// Adds a callback to the queue and returns the key
-    fn add_callback(&amp;mut self, ident: usize, cb: impl FnOnce(Js) + 'static) {
-        let boxed_cb = Box::new(cb);
-        self.callback_queue.insert(ident, boxed_cb);
-    }
+    print(format!(&quot;Event with id: {} registered.&quot;, token));
+    self.pending_events += 1;
+    self.epoll_pending_events += 1;
+}
+#}</code></pre></pre>
+<p>The first thing we do is to add the callback to our <code>callback_queue</code>, calling the
+method we explained previously. Next we do a print statement, just since we want
+to print out the flow of our program we need to add this at strategic places.</p>
+<blockquote>
+<p>One important thing to note here. Our <code>token</code> in this case is already guaranteed
+to be unique. We generate it in the <code>Http</code> module (which is the only one registering
+events by using this method in our example). The reason for this will become clear
+in a few short chapters. Just note that we don't need to call <code>generate_cb_identity</code> here.</p>
+</blockquote>
+<p>We increase the counters on both <code>pending_events</code> and <code>epoll_pending_events</code>.</p>
+<p>Our next method registers work for the thread pool</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub fn register_event_threadpool(
+    &amp;mut self,
+    task: impl Fn() -&gt; Js + Send + 'static,
+    kind: ThreadPoolTaskKind,
+    cb: impl FnOnce(Js) + 'static,
+) {
+    let callback_id = self.generate_cb_identity();
+    self.add_callback(callback_id, cb);
 
-    pub fn register_io(&amp;mut self, token: usize, cb: impl FnOnce(Js) + 'static) {
-        self.add_callback(token, cb);
+    let event = Task {
+        task: Box::new(task),
+        callback_id,
+        kind,
+    };
 
-        print(format!(&quot;Event with id: {} registered.&quot;, token));
-        self.epoll_event_cb_map.insert(token as i64, token);
-        self.pending_events += 1;
-        self.epoll_pending_events += 1;
-    }
-
-    pub fn register_work(
-        &amp;mut self,
-        task: impl Fn() -&gt; Js + Send + 'static,
-        kind: ThreadPoolEventKind,
-        cb: impl FnOnce(Js) + 'static,
-    ) {
-        let callback_id = self.generate_cb_identity();
-        self.add_callback(callback_id, cb);
-
-        let event = Event {
-            task: Box::new(task),
-            callback_id,
-            kind,
-        };
-
-        // we are not going to implement a real scheduler here, just a LIFO queue
-        let available = self.get_available_thread();
-        self.thread_pool[available].sender.send(event).expect(&quot;register work&quot;);
-        self.pending_events += 1;
-    }
-
+    // we are not going to implement a real scheduler here, just a LIFO queue
+    let available = self.get_available_thread();
+    self.thread_pool[available].sender.send(event).expect(&quot;register work&quot;);
+    self.pending_events += 1;
+}
+#}</code></pre></pre>
+<p>Let's first have a look at the arguments to this function (aside from <code>&amp;mut self</code>).</p>
+<p><code>task: impl Fn() -&gt; Js + Send + 'static</code> is a task we want to run on a separate
+thread. This closure has the bond: <code>Fn() -&gt; Js + Send + 'static</code> which means
+it's a <code>closure</code> that takes no arguments, but returns a type of <code>Js</code>. It needs to
+be <code>'Send</code> since we're sending this task to another thread.</p>
+<p><code>kind: ThreadPoolTaskKind</code> lets us know what kind of task this. We do this for
+two reasons:</p>
+<ol>
+<li>We need to be able to signal a <code>Close</code> event to our threads</li>
+<li>We want to be able to print the kind of task each event received.</li>
+</ol>
+<p>As you understand, we don't have to create a <code>Kind</code> for every task, but since we
+want to print out what the thread received we need some way of judging what kind
+of task each thread received.</p>
+<p>The last argument <code>cb: impl FnOnce(Js) + 'static</code> is our callback. It's not a coincidence
+that our <code>task</code> returns a type of <code>Js</code> and our callback takes a <code>Js</code> as an argument. The
+result of the work we do in our thread is the input to our callback. This closure doesn't
+need to be <code>Send</code> since we don't pass the callback itself to the thread pool.</p>
+<p>Next we generate a new identity with <code>self.generate_cb_identity()</code> and we add the
+callback to our callback queue.</p>
+<p>Then we construct a new <code>Event</code>, and as I have shown earlier, we need to <code>Box</code> the
+closure.</p>
+<p>Now, the last part could be made arbitrarily complex. This is where you decide how
+you want to schedule your work to the thread pool. In our case we just get an
+available thread (and <code>panic!</code> if we're out of thread - ouch), and we send our task
+to the thread which then runs it until it's finished.</p>
+<p>You could make priorities based on <code>TaskKind</code>, you could try to decide which tasks
+are short and which are long and prioritize them based on load. A lot of exiting
+stuff could be done here. We will choose the simplest possible one though and just
+push them directly to a thread in the order they come.</p>
+<p>The last part of the &quot;infrastructure&quot; is a function to set a timeout. </p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
     fn set_timeout(&amp;mut self, ms: u64, cb: impl Fn(Js) + 'static) {
         // Is it theoretically possible to get two equal instants? If so we'll have a bug...
         let now = Instant::now();
@@ -2285,7 +2431,37 @@ print(&quot;FINISHED&quot;);
         print(format!(&quot;Registered timer event id: {}&quot;, cb_id));
     }
 #}</code></pre></pre>
+<p>Set timeout uses <code>std::time::Instant</code> to get a representation of &quot;now&quot;. It's the first
+thing we do since the user expects the timeout to be calculated from &quot;now&quot;, and some
+of our operations here might take a little time.</p>
+<p>We generate an identity for the callback <code>cb</code> passed in to <code>set_timeout</code> and add
+that callback to our callback queue.</p>
+<p>We add the <code>duration</code> in milliseconds to our <code>Instant</code> so we know at what time
+our timeout times out.</p>
+<p>We insert the <code>callback_id</code> instant to our <code>BtreeMap</code> with the calculated <code>Instant</code> as
+the key.</p>
+<p>We increase the counter for <code>pending_events</code> and print out a message for us to
+be able to follow the flow of our program.</p>
+<blockquote>
+<p>This might be a good time to talk briefly about our choice of a <code>BTreeMap</code> as
+the collection we store timers in.</p>
+<p>From the documentation we can read <em>&quot;In theory, a binary search tree (BST) is the optimal choice for a sorted map, as a perfectly balanced BST performs the theoretical minimum amount of comparisons necessary to find an element (log2n).&quot;</em>
+Now, this isn't a Binary Tree but a BTree. While a BST allocates one node for each value, a BTree allocates
+a small <code>Vec</code> of values for each node. Modern computers reads much more data than we normally ask for
+into its caches, and thats one reason they love contagious parts of memory. A BTree will result in
+a more optimal &quot;cache efficiency&quot; which often trumps the gains of the theoretically more optimal
+algorithm in a true BST.</p>
+<p>Lastly, since we're talking about searching sorted collections here, and timeouts, is a perfect example
+of such, we'll of course use this when it's so readily available to us in Rusts standard library.</p>
+</blockquote>
 <h1><a class="header" href="#modules" id="modules">Modules</a></h1>
+<p>We're soon at the end now. Actually, our core runtime is finished, but we need
+a way to actually make it work with our &quot;javascripty&quot; code.</p>
+<p>The modules here would be the equivalent of &quot;C++&quot; modules in Node, and in theory
+we could allow for people to make modules that register work to be either done in
+our <code>threadpool</code> or our <code>epoll</code> event queue.</p>
+<p>The first one we'll cover is also the simplest, but it will also introduce us to
+why we stored a pointer to our <code>Runtime</code> as a global constant.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2294,7 +2470,22 @@ pub fn set_timeout(ms: u64, cb: impl Fn(Js) + 'static) {
     rt.set_timeout(ms, cb);
 }
 #}</code></pre></pre>
+<p>To be able in our &quot;javascript&quot; to just call <code>set_timeout(...)</code> without injecting our
+runtime into our <code>javascript</code> function (which we could do if we wanted to write
+better Rust) we need to dereference a mutable pointer to our runtime.</p>
+<p>Now, we know this is safe for two reasons.</p>
+<ol>
+<li><code>RUNTIME</code> is always access from one thread</li>
+<li>We know that all calls to our <code>modules</code> will be in <code>Runtime.run(...)</code> at which point we know that <code>RUNTIME</code> will be a valid pointer</li>
+</ol>
+<p>Now it's not pretty, and that's also why I explain why we do it, and why it's safe here. Normally, all <code>unsafe</code>
+code should contain a reason why it's used, and why it's safe in a comment.</p>
+<p>Once we have referenced the pointer to <code>RUNTIME</code> we can call methods on it and in 
+this case we simply call <code>rt.set_timeout(ms, cb)</code> which sets a timeout as you saw
+in the last chapter.</p>
 <h1><a class="header" href="#file-module" id="file-module">File module</a></h1>
+<p>The <code>Fs</code> module contains File operations. Right now we only expose a <code>read</code> method
+since that's all we need. As you can imagine we can add all sorts of methods here.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2317,6 +2508,68 @@ impl Fs {
     }
 }
 #}</code></pre></pre>
+<p>We simply create an empty <code>struct Fs;</code>. This is one of <a href="https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts">Rusts Zero Sized Types (ZST)</a> and does not occupy any space, but it's still useful for us.</p>
+<p>The <code>read</code> method takes a file path and a callback as arguments. The callback will get
+called once the operation is finished and accepts a <code>Js</code> object as an input.</p>
+<p><code>let work = move || {...</code> is a closure. This closure is the actual <code>Task</code> that we
+want to run on our <code>threadpool</code>. None of the code in <code>work</code> will actually run here,
+we only define what we want to do when <code>work()</code> gets called.</p>
+<p>In our closure we first wait for a second. These operations are so fast (and our file is so small)
+that if we want to observe what's going on in any meaningful way we need to slow things down. Let's pretend
+its a huge file that takes a second to read.</p>
+<p>We read the file into a buffer and then return <code>Js::String(buffer)</code>.</p>
+<blockquote>
+<p>You might remember from the <a href="./7_9_infrastructure.html">Infrastructure chapter</a> that
+our <code>register_work</code> method received a task argument <code>task: impl Fn() -&gt; Js + Send + 'static</code>.
+As you see here, our closure returns a <code>Js</code>object and takes no arguments, which means
+it conforms to this signature. The <code>Fn</code> trait will be automatically derived. 
+<code>Send</code> is also an automatically derived trait, which means that we can't implement
+<code>Send</code>. However if we tried to send types that are <code>!Send</code> to our thread by
+referencing them in our closure we would get an error.</p>
+</blockquote>
+<p>The last part is that we dereference our runtime and call <code>rt.register_work(work, ThreadPoolEventKind::FileRead, cb)</code>
+to register the task with our <code>threadpool</code>.</p>
+<h2><a class="header" href="#bonus-material" id="bonus-material">Bonus material</a></h2>
+<p>You might be wondering why we (and <code>libuv</code> and Rusts own <code>tokio</code>) do file operations
+in the <code>threadpool</code> and not in our <code>epoll-event-queue</code>? It's I/O  isn't it?</p>
+<p>The reason for this is actually several.</p>
+<p>First and foremost. The OS will cache a lot of files that are frequently accessed,
+and when the data is cached it will be available immediately. There is no real I/O in
+such case. And it seems that most programs tend to access the same files over and over
+so a cache hit will often be the case. Think of a web server for example, there's often
+a very limited amount of data accessed on disk.</p>
+<p>Now if we say that data is cached most of the time, so it's readily available, it can
+be more expensive to actually register an event with the <code>epoll-event-queue</code> - get an immediate
+notification that the event is <code>Ready</code> and then perform the read. It's better to just
+read it in a blocking manner right away.</p>
+<p>Even worse, in our design the file will be read on our main thread, which means that
+if it's a large file it will still take some time to read it from the OS cache to
+your process memory (your buffer) and that will block our entire event loop.</p>
+<p>Better do that in the thread pool.</p>
+<p>Secondly, the support for async file operations is limited and to a varying degree
+well implemented. The only system that does this pretty good is Windows since it
+uses a <code>completion</code> based model (which means it can let you know when the data is
+read into your buffer). </p>
+<p>It makes sense for a completion based model to try to do this asynchronously, but
+since the real effect are so small and the code complexity is high (especially when you're
+writing a server that is cross platform) most implementations find that using a thread pool
+gives good enough performance.</p>
+<p>To sum i all up:</p>
+<p><strong>Threadpool:</strong></p>
+<ul>
+<li>Less code complexity</li>
+<li>Good performance</li>
+<li>Very little penalty in most use cases (like web servers)</li>
+<li>Blocking file operations are well optimized on most platforms</li>
+</ul>
+<p><strong>Async file I/O:</strong></p>
+<ul>
+<li>Increased code complexity</li>
+<li>Poor and limited APIs (Linux and Macos has different limitations)</li>
+<li>Weak platform support (does not work very well with a readiness based model)</li>
+<li>Little to no real gain for most use cases</li>
+</ul>
+<p>You want to know more you say? Of course, <a href="https://blog.libtorrent.org/2012/10/asynchronous-disk-io/">I have an article for you</a> if you want to get to know even more about this specific topic.</p>
 <h1><a class="header" href="#crypto-module" id="crypto-module">Crypto module</a></h1>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
@@ -2385,6 +2638,8 @@ impl Http {
     }
 }
 #}</code></pre></pre>
+<p>Could <code>yield</code> self by wrapping the rest of our execution in a new callback and register
+a new event, which runs &quot;the rest&quot; when it's done.</p>
 <h1><a class="header" href="#putting-the-pieces-together" id="putting-the-pieces-together">Putting the pieces together</a></h1>
 <pre><pre class="playpen"><code class="language-rust">fn main() {
     let rt = Runtime::new();

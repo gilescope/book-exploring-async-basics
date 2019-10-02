@@ -43,8 +43,6 @@ pub struct Runtime {
     callbacks_to_run: Vec<(usize, Js)>,
     /// All registered callbacks
     callback_queue: HashMap<usize, Box<dyn FnOnce(Js)>>,
-    /// Maps an epoll event to a callback
-    epoll_event_cb_map: HashMap<i64, usize>,
     /// Number of pending epoll events, only used by us to print for this example
     epoll_pending_events: usize,
     /// Our event registrator which registers interest in events with the OS
@@ -75,7 +73,35 @@ chapters we'll cover every one of them.
 
 I'll continue by defining some of the types we use here.
 
-First is `NodeThread`, which represents a thread in our threadpool. As you
+```rust
+struct Task {
+    task: Box<dyn Fn() -> Js + Send + 'static>,
+    callback_id: usize,
+    kind: ThreadPoolTaskKind,
+}
+
+impl Task {
+    fn close() -> Self {
+        Task {
+            task: Box::new(|| Js::Undefined),
+            callback_id: 0,
+            kind: ThreadPoolTaskKind::Close,
+        }
+    }
+}
+```
+We need a task object, which represents a task we want to finish in our thread
+pool. I'll go through the types in this object in a later [chapter](./7_9_infrastructure.md) so don't worry too much about them now if you find them
+hard to grasp. Everything will be explained.
+
+We also create an implementation of a `Close` task. We need this to clean up after
+ourselves and close down the thread pool. `|| Js::Undefined` might seem strange
+but it's only a function that returns `Js::Undefined`, we just need it since we
+won't make `task` an `Option` just for this one case. It's just so we don't have
+to match on `task` all the way through our code, it's more than enough to parse
+already.
+
+First is `NodeThread`, which represents a thread in our thread pool. As you
 see we have a `JoinHandle` (which we get when we call `thread::spawn`) and the
 sending part of a channel. This channel, sends messages of the type `Event`.
 
@@ -101,7 +127,7 @@ struct Event {
 }
 ```
 
-We introduced two new types here: `Js` and `ThreadPoolEventKind`. First we'll cover `ThreadPoolEventKind`.
+We introduced two new types here: `Js` and `ThreadPoolTaskKind`. First we'll cover `ThreadPoolTaskKind`.
 As you see we have three kinds of events: a `FileRead` which is a file that has
 been read, and an `Encrypt` that represents an operation from our `Crypto` module.
 The event `Close` is used to let the threads in our `threadpool` that we're closing
@@ -110,7 +136,7 @@ the loop and let them exit out of their loops.
 As you might understand, this object is only used in the `threadpool`
 
 ```rust,no_run,noplaypen
-pub enum ThreadPoolEventKind {
+pub enum ThreadPoolTaskKind {
     FileRead,
     Encrypt,
     Close,

@@ -146,6 +146,13 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#modules" id="modules">Modules</a></h1>
+<p>We're soon at the end now. Actually, our core runtime is finished, but we need
+a way to actually make it work with our &quot;javascripty&quot; code.</p>
+<p>The modules here would be the equivalent of &quot;C++&quot; modules in Node, and in theory
+we could allow for people to make modules that register work to be either done in
+our <code>threadpool</code> or our <code>epoll</code> event queue.</p>
+<p>The first one we'll cover is also the simplest, but it will also introduce us to
+why we stored a pointer to our <code>Runtime</code> as a global constant.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -154,6 +161,19 @@ pub fn set_timeout(ms: u64, cb: impl Fn(Js) + 'static) {
     rt.set_timeout(ms, cb);
 }
 #}</code></pre></pre>
+<p>To be able in our &quot;javascript&quot; to just call <code>set_timeout(...)</code> without injecting our
+runtime into our <code>javascript</code> function (which we could do if we wanted to write
+better Rust) we need to dereference a mutable pointer to our runtime.</p>
+<p>Now, we know this is safe for two reasons.</p>
+<ol>
+<li><code>RUNTIME</code> is always access from one thread</li>
+<li>We know that all calls to our <code>modules</code> will be in <code>Runtime.run(...)</code> at which point we know that <code>RUNTIME</code> will be a valid pointer</li>
+</ol>
+<p>Now it's not pretty, and that's also why I explain why we do it, and why it's safe here. Normally, all <code>unsafe</code>
+code should contain a reason why it's used, and why it's safe in a comment.</p>
+<p>Once we have referenced the pointer to <code>RUNTIME</code> we can call methods on it and in 
+this case we simply call <code>rt.set_timeout(ms, cb)</code> which sets a timeout as you saw
+in the last chapter.</p>
 
                     </main>
 

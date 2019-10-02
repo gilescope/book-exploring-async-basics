@@ -146,6 +146,8 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#file-module" id="file-module">File module</a></h1>
+<p>The <code>Fs</code> module contains File operations. Right now we only expose a <code>read</code> method
+since that's all we need. As you can imagine we can add all sorts of methods here.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -168,6 +170,68 @@ impl Fs {
     }
 }
 #}</code></pre></pre>
+<p>We simply create an empty <code>struct Fs;</code>. This is one of <a href="https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts">Rusts Zero Sized Types (ZST)</a> and does not occupy any space, but it's still useful for us.</p>
+<p>The <code>read</code> method takes a file path and a callback as arguments. The callback will get
+called once the operation is finished and accepts a <code>Js</code> object as an input.</p>
+<p><code>let work = move || {...</code> is a closure. This closure is the actual <code>Task</code> that we
+want to run on our <code>threadpool</code>. None of the code in <code>work</code> will actually run here,
+we only define what we want to do when <code>work()</code> gets called.</p>
+<p>In our closure we first wait for a second. These operations are so fast (and our file is so small)
+that if we want to observe what's going on in any meaningful way we need to slow things down. Let's pretend
+its a huge file that takes a second to read.</p>
+<p>We read the file into a buffer and then return <code>Js::String(buffer)</code>.</p>
+<blockquote>
+<p>You might remember from the <a href="./7_9_infrastructure.html">Infrastructure chapter</a> that
+our <code>register_work</code> method received a task argument <code>task: impl Fn() -&gt; Js + Send + 'static</code>.
+As you see here, our closure returns a <code>Js</code>object and takes no arguments, which means
+it conforms to this signature. The <code>Fn</code> trait will be automatically derived. 
+<code>Send</code> is also an automatically derived trait, which means that we can't implement
+<code>Send</code>. However if we tried to send types that are <code>!Send</code> to our thread by
+referencing them in our closure we would get an error.</p>
+</blockquote>
+<p>The last part is that we dereference our runtime and call <code>rt.register_work(work, ThreadPoolEventKind::FileRead, cb)</code>
+to register the task with our <code>threadpool</code>.</p>
+<h2><a class="header" href="#bonus-material" id="bonus-material">Bonus material</a></h2>
+<p>You might be wondering why we (and <code>libuv</code> and Rusts own <code>tokio</code>) do file operations
+in the <code>threadpool</code> and not in our <code>epoll-event-queue</code>? It's I/O  isn't it?</p>
+<p>The reason for this is actually several.</p>
+<p>First and foremost. The OS will cache a lot of files that are frequently accessed,
+and when the data is cached it will be available immediately. There is no real I/O in
+such case. And it seems that most programs tend to access the same files over and over
+so a cache hit will often be the case. Think of a web server for example, there's often
+a very limited amount of data accessed on disk.</p>
+<p>Now if we say that data is cached most of the time, so it's readily available, it can
+be more expensive to actually register an event with the <code>epoll-event-queue</code> - get an immediate
+notification that the event is <code>Ready</code> and then perform the read. It's better to just
+read it in a blocking manner right away.</p>
+<p>Even worse, in our design the file will be read on our main thread, which means that
+if it's a large file it will still take some time to read it from the OS cache to
+your process memory (your buffer) and that will block our entire event loop.</p>
+<p>Better do that in the thread pool.</p>
+<p>Secondly, the support for async file operations is limited and to a varying degree
+well implemented. The only system that does this pretty good is Windows since it
+uses a <code>completion</code> based model (which means it can let you know when the data is
+read into your buffer). </p>
+<p>It makes sense for a completion based model to try to do this asynchronously, but
+since the real effect are so small and the code complexity is high (especially when you're
+writing a server that is cross platform) most implementations find that using a thread pool
+gives good enough performance.</p>
+<p>To sum i all up:</p>
+<p><strong>Threadpool:</strong></p>
+<ul>
+<li>Less code complexity</li>
+<li>Good performance</li>
+<li>Very little penalty in most use cases (like web servers)</li>
+<li>Blocking file operations are well optimized on most platforms</li>
+</ul>
+<p><strong>Async file I/O:</strong></p>
+<ul>
+<li>Increased code complexity</li>
+<li>Poor and limited APIs (Linux and Macos has different limitations)</li>
+<li>Weak platform support (does not work very well with a readiness based model)</li>
+<li>Little to no real gain for most use cases</li>
+</ul>
+<p>You want to know more you say? Of course, <a href="https://blog.libtorrent.org/2012/10/asynchronous-disk-io/">I have an article for you</a> if you want to get to know even more about this specific topic.</p>
 
                     </main>
 

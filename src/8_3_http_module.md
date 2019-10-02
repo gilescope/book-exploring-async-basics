@@ -40,3 +40,6 @@ impl Http {
     }
 }
 ```
+
+Could `yield` self by wrapping the rest of our execution in a new callback and register
+a new event, which runs "the rest" when it's done.

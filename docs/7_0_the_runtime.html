@@ -175,8 +175,6 @@ the repository:</p>
     callbacks_to_run: Vec&lt;(usize, Js)&gt;,
     /// All registered callbacks
     callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
-    /// Maps an epoll event to a callback
-    epoll_event_cb_map: HashMap&lt;i64, usize&gt;,
     /// Number of pending epoll events, only used by us to print for this example
     epoll_pending_events: usize,
     /// Our event registrator which registers interest in events with the OS
@@ -204,7 +202,35 @@ the repository:</p>
 <p>Now, I've added some comments here to explain what they're for and in the coming
 chapters we'll cover every one of them.</p>
 <p>I'll continue by defining some of the types we use here.</p>
-<p>First is <code>NodeThread</code>, which represents a thread in our threadpool. As you
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+struct Task {
+    task: Box&lt;dyn Fn() -&gt; Js + Send + 'static&gt;,
+    callback_id: usize,
+    kind: ThreadPoolTaskKind,
+}
+
+impl Task {
+    fn close() -&gt; Self {
+        Task {
+            task: Box::new(|| Js::Undefined),
+            callback_id: 0,
+            kind: ThreadPoolTaskKind::Close,
+        }
+    }
+}
+#}</code></pre></pre>
+<p>We need a task object, which represents a task we want to finish in our thread
+pool. I'll go through the types in this object in a later <a href="./7_9_infrastructure.html">chapter</a> so don't worry too much about them now if you find them
+hard to grasp. Everything will be explained.</p>
+<p>We also create an implementation of a <code>Close</code> task. We need this to clean up after
+ourselves and close down the thread pool. <code>|| Js::Undefined</code> might seem strange
+but it's only a function that returns <code>Js::Undefined</code>, we just need it since we
+won't make <code>task</code> an <code>Option</code> just for this one case. It's just so we don't have
+to match on <code>task</code> all the way through our code, it's more than enough to parse
+already.</p>
+<p>First is <code>NodeThread</code>, which represents a thread in our thread pool. As you
 see we have a <code>JoinHandle</code> (which we get when we call <code>thread::spawn</code>) and the
 sending part of a channel. This channel, sends messages of the type <code>Event</code>.</p>
 <pre><pre class="playpen"><code class="language-rust">
@@ -227,13 +253,13 @@ is an <code>enum</code> indicating what kind of event this is.</p>
     kind: EventKind,
 }
 </code></pre>
-<p>We introduced two new types here: <code>Js</code> and <code>ThreadPoolEventKind</code>. First we'll cover <code>ThreadPoolEventKind</code>.
+<p>We introduced two new types here: <code>Js</code> and <code>ThreadPoolTaskKind</code>. First we'll cover <code>ThreadPoolTaskKind</code>.
 As you see we have three kinds of events: a <code>FileRead</code> which is a file that has
 been read, and an <code>Encrypt</code> that represents an operation from our <code>Crypto</code> module.
 The event <code>Close</code> is used to let the threads in our <code>threadpool</code> that we're closing
 the loop and let them exit out of their loops.</p>
 <p>As you might understand, this object is only used in the <code>threadpool</code></p>
-<pre><code class="language-rust no_run noplaypen">pub enum ThreadPoolEventKind {
+<pre><code class="language-rust no_run noplaypen">pub enum ThreadPoolTaskKind {
     FileRead,
     Encrypt,
     Close,
