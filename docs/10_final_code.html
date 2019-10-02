@@ -151,6 +151,14 @@ following dependency to your <code>Cargo.toml</code>:</p>
 <pre><code class="language-toml">[dependencies]
 minimio = {git = &quot;https://github.com/cfsamson/examples-io-eventloop&quot;, branch = &quot;master&quot;}
 </code></pre>
+<p>In the root of you project, add a file called <code>test.txt</code> (this is important), and
+add the text:</p>
+<pre><code>Hello world! This is a text to encrypt!
+</code></pre>
+<p>What you write in the file is not important. But how many characters is since we
+calculate the fibonacchi number based on how many characters there are in the file.</p>
+<p>Add to much text and you'll wait for a long time. Of course, you can just change
+the logic yourself now to do something else.</p>
 <p>In <code>main.rs</code> you can paste in this code:</p>
 <pre><pre class="playpen"><code class="language-rust">/// Think of this function as the javascript program you have written
 fn javascript() {

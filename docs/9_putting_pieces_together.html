@@ -146,18 +146,42 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#putting-the-pieces-together" id="putting-the-pieces-together">Putting the pieces together</a></h1>
+<p>The first step to get this to run is obvious. We need a main function. Fortunately
+it's a short one:</p>
 <pre><pre class="playpen"><code class="language-rust">fn main() {
     let rt = Runtime::new();
     rt.run(javascript);
 }
 </code></pre></pre>
+<p>We instanciate our runtime, and we pass inn a pointer to our <code>javascript</code> function.</p>
+<p>The next parts are just helper methods to let us print out interesting things
+about our <code>Runtime</code> while it's running.</p>
+<p>For those new to Rust I'll spend the time to explain them anyway:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn current() -&gt; String {
+    thread::current().name().unwrap().to_string()
+}
+#}</code></pre></pre>
+<p>The <code>current</code> method prints out the name of the current thread it's called from.</p>
+<p>Since we have several threads handling tasks for us, this will help us keep track
+of what goes on where.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 fn print(t: impl std::fmt::Display) {
     println!(&quot;Thread: {}\t {}&quot;, current(), t);
 }
-
+#}</code></pre></pre>
+<p>This function takes an argument that implements the <code>Display</code> trait. This trait
+defines how we want a type to displayed as text. We call our <code>current</code> function to
+get the name of the current thread and outputs it <code>stdout</code>.</p>
+<p>The next function us a bit of an introduction to iterators. When we have content
+to print we use this one:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
 fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
     println!(
         &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
@@ -187,10 +211,55 @@ fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
     println!(&quot;===== END CONTENT =====\n&quot;);
 }
 
-fn current() -&gt; String {
-    thread::current().name().unwrap().to_string()
-}
 #}</code></pre></pre>
+<p>Let's explain the iterators step by step:</p>
+<p>First we have:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let content = format!(&quot;{}&quot;, t); 
+let lines = content.lines().take(2);
+let main_cont: String = lines.map(|l| format!(&quot;{}\n&quot;, l)).collect();
+#}</code></pre></pre>
+<p>Content is just the content we want to print out. This is tailor made to print
+out the interesting parts of our <code>http</code> reponse, namely the first few lines and
+the <code>location</code> header so we know which call it was that got returned.</p>
+<p>We only want to print out the two first lines so we get an iterator over those
+by calling <code>content.lines().take(2)</code>.</p>
+<p>The next step is to create a <code>String</code> out of these two lines.</p>
+<p><code>lines.map(|l| format!(&quot;{}\n&quot;, l)).collect();</code> Takes every line and <code>maps</code> them as
+a new string which we append <code>\n</code> to to preserve the line breaks (if we don't do
+that the lines will come out as a single line). Then we <code>collect</code> that into a <code>String</code>.</p>
+<p>We know they collect to a <code>String</code> since we annotated the type of <code>main_cont</code> in <code>let main_cont: String</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let opt_location = content.find(&quot;Location&quot;);
+let opt_location = opt_location.map(|loc| {
+        content[loc..]
+        .lines()
+        .nth(0)
+        .map(|l| format!(&quot;{}\n&quot;,l))
+        .unwrap_or(String::new())
+    }); 
+#}</code></pre></pre>
+<p>The next part finds the location of the &quot;Location&quot; header. <code>find</code> returns an <code>Option</code>,
+just keep that in mind.</p>
+<p>The next step, we use <code>map</code> again, but this time we use <code>map</code> on an <code>Option</code> type.
+In this context, map means that <strong>if</strong> there is <code>Some</code> value, we want to work with that,
+which means that <code>map(|loc| {...</code> loc is an index of the where the <code>Location</code> header was found.</p>
+<p>Now what we do is that we take a range of our <code>content</code> string starting from the index
+of where we found the <code>Location</code> header, and all the way to the end of the string.</p>
+<p>From this range we access the iterator over its lines by calling <code>lines()</code>, we take the first
+line from this iterator <code>nth(0)</code>. Now again, this returns an <code>Option</code>, so we use <code>map</code>
+again to define what we'll do in the case if it's <code>Some</code>. </p>
+<p>This means that <strong>if</strong> the first line of <code>content[loc..]</code> is something we pass that
+into our closure <code>map(|l| format!(&quot;{}\n&quot;,l))</code>, which results in <code>l</code> as this line.</p>
+<p>We simply map this line into a <code>String</code> which we have appended a line break to.</p>
+<p>Lastly we <code>unwrap</code> the result of these operations. If you kept your thoungue right
+all the way through this should either be Some(the_first_line_starting_with_Location),
+or None. If it's None we just pass inn an empty <code>String</code>.</p>
+<p>Lastly we output everything.</p>
 
                     </main>
 

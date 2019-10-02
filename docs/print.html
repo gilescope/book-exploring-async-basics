@@ -2571,6 +2571,9 @@ gives good enough performance.</p>
 </ul>
 <p>You want to know more you say? Of course, <a href="https://blog.libtorrent.org/2012/10/asynchronous-disk-io/">I have an article for you</a> if you want to get to know even more about this specific topic.</p>
 <h1><a class="header" href="#crypto-module" id="crypto-module">Crypto module</a></h1>
+<p>As you'll soon understand, we won't actually cover cryptography here, but we'll
+simulate a CPU intensive operation that would block if not run on the threadpool.</p>
+<p>Without further ado: The Glorious Crypto Module</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2595,7 +2598,27 @@ impl Crypto {
     }
 }
 #}</code></pre></pre>
+<p>Ok, so this will be familiar with what we do in our <code>Fs</code> module since this
+module also sends work to the <code>threadpool</code>. </p>
+<p>Again we create a closure. Remember that none of the code in the closure will be
+run here, but it will get called in one of our worker threads.</p>
+<p>The logic here is not very interesting, we take a number <code>n</code> as argument and calculate
+the n'th fibonacchi number recursively. A famous and inefficient way of putting your
+CPU to work.</p>
+<p>Once that is finished we return the result as <code>Js::Int(fib)</code>.</p>
+<p>Lastly we dereference our <code>RUNTIME</code> and we call <code>rt.register_work(work, ThreadPoolEventKind::Encrypt, cb)</code>
+to register our task with the <code>threadpool</code>.</p>
+<p>Let's move on, we're very soon at the finish line.</p>
 <h1><a class="header" href="#http-module" id="http-module">Http module</a></h1>
+<p>The <code>Http</code> module is probably the one I personally find interesting. There is
+two reasons:</p>
+<ol>
+<li>We create a Http GET request from scratch and wait for the response</li>
+<li>The method <code>epoll_registrator.register(&amp;mut stream, token, minimio::Interests::readable())</code> is the
+result of a huge amount of research and work to get working. Look forward to the next book
+where we dive into that.</li>
+</ol>
+<p>Let's look at the code first and then step through it:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2638,21 +2661,146 @@ impl Http {
     }
 }
 #}</code></pre></pre>
-<p>Could <code>yield</code> self by wrapping the rest of our execution in a new callback and register
-a new event, which runs &quot;the rest&quot; when it's done.</p>
+<p>First we call the method <code>http_get_slow</code> since we're simulating a slow response, again
+this is for us to see and control how the events will occur since we're trying to learn.</p>
+<p>Here the first thing we do is dereference our runtime. We need to use a bit of its functionality here.</p>
+<p>The next step is to create a <code>minimio::TcpStream</code>. Now why not the regular <code>TcpStream</code> from
+the standard library?</p>
+<blockquote>
+<p>Well, you do remember that <code>kqueue</code> and <code>epoll</code> are readiness based and <code>IOCP</code> is
+completion based right? Well, to have single ergonomic API for all platforms
+we need to abstract over this interface. While <code>kqueue</code> and <code>epoll</code> can just read
+when a <code>Read</code> event is ready, we need the <code>TcpStream</code> to create a buffer that it
+hands over to the OS on Windows. So when we call <code>TcpStream</code> read, we read from
+this buffer on Windows.</p>
+</blockquote>
+<p>We connect to <code>slowwly.robertomurray.co.uk:80</code> which is just a site <a href="https://github.com/rob-murray">Robert Murray</a> has created
+to simulate slow responses. He's kind enough to let us all use it. We can choose the delay we want on
+each request.</p>
+<p>Next we construct a http GET request. The line breaks, and spacing is important here
+as is the two blank lines at the bottom.</p>
+<p>You might wonder why we use <code>\r\n\</code> as line breaks here instead of the standard <code>\n</code>?</p>
+<p>This is because a http GET request expects <code>CRLF</code> and not just <code>LF</code>, using only <code>\</code> will
+give us an error.</p>
+<p>In this request we construct it by passing in the delay we want and the address we
+want to be redirected to.</p>
+<p>Next we write this request to our <code>TcpStream</code>. In a real implementation this would
+have been done by issuing the write in an async manner and then register an event
+when the write has happened.</p>
+<blockquote>
+<p>We write it blocking here since by implementing both <code>read</code> and <code>write</code> we'll have
+to create much more code, and the <strong>understanding</strong> of how this works will not really
+benefit that much (the understanding of how a web server works would though but thats
+beyond our scope today)</p>
+</blockquote>
+<p>Now we get to the exiting part.</p>
+<p>First we need to generate a <code>token</code>. This token will follow our <code>event</code> and be passed
+on to the OS. When the OS returns it also returns this token so we know what event
+occurred.</p>
+<p>For convenience we use the same token as our <code>callback_id</code> since it will be unique, and
+events &lt;-&gt; callbacks will map 1:1 the way we have designed this.</p>
+<p>Our next call actually issues a syscall to the underlying OS and registers our
+interest in an event of type <code>Readable</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+rt.epoll_registrator
+            .register(&amp;mut stream, token, minimio::Interests::readable())
+            .unwrap();
+#}</code></pre></pre>
+<p>The reason we need <code>&amp;mut stream</code> here is Windows and <code>IOCP</code>. Our stream holds a
+buffer that we'll pass on to Windows. <strong>This buffer must not be touched</strong> while
+the OS lends it exclusively. This way we leverage Rusts borrowchecker to help us
+make sure of that.</p>
+<blockquote>
+<p>However, this has a drawback. We don't really need it to be <code>&amp;mut</code> on <code>linux</code> and <code>macos</code>
+so on these systems we might get a compiler warning letting us know it doesn't need
+to be <code>&amp;mut</code>. There are ways around this though, but in the interest of actually finishing
+both books I had to stop somewhere and this is not the worlds end.</p>
+</blockquote>
+<p>The main point here is that we register an interest to read in a non-blocking manner.</p>
+<p>I'll repeat this part of the code so you have it right in front of you while i
+explain:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+    let wrapped = move |_n| {
+            let mut stream = stream;
+            let mut buffer = String::new();
+            stream
+                .read_to_string(&amp;mut buffer)
+                .expect(&quot;Stream read error&quot;);
+            cb(Js::String(buffer));
+        };
+#}</code></pre></pre>
+<p>Since our callback expects a <code>Js::String</code> we can't actually pass the buffer. We need
+to wrap our callback so we first read out the data to a <code>String</code> which we then
+can pass to our code.</p>
+<p>Now in a better implementation, we would not issue a blocking call like <code>read_to_string</code>
+because it might be that at some point this will block if not all the data we need
+is present at once. The right thing to do then would be to read parts of the
+data into a buffer while calling <code>stream.read(..)</code> in a loop, and at some point
+this might return an <code>Err::WouldBlock</code> at which we re-wrap our callback and re-register
+our read event to read the rest.</p>
+<blockquote>
+<p>Another reason this might block is that threads might get what is called a &quot;spurious&quot; wakeup.</p>
+<p>What is that? Well, the OS might wake up the thread, without there being any data there. The
+reason for this is kind of hard to get confirmed, but as far as I understand, this can happen if
+the OS is in doubt if an event occurred or not. It does apparently happen that some interrupts
+might get issued without the OS getting notified. This can be caused by unfortunate timing since
+there are some bits of code that needs to be executed &quot;uninterrupted&quot; and there is a way for the
+OS to instruct the CPU to filter some interrupts for short periods. The OS can't be &quot;optimistic&quot; in the
+sense that it assumes the event didn't happen since that would cause the process to wait indefinitely
+if the event did occur. So instead it might just wake up the thread.</p>
+<p>Also, there are performance optimizations
+in operating systems that might cause them to choose to wake up waiting threads in a process for unknown
+reasons. Therefore, accounting for spurious wakeups is part of the &quot;contract&quot; between the programmer
+and the OS.</p>
+<p>Either way, the OS assumes we have logic in place to account for this and just re-register our event
+if it was a spurious wakeup.</p>
+</blockquote>
+<p>In our implementation, whether the data is not fully available or if it was a spurious wakeup, we'll end
+up blocking. It's fine, we're just trying to understand. We're not re-implementing <code>libuv</code> anyway.</p>
+<p>The last part is registering this event with our <code>epoll_thread</code>.</p>
+<p>Now, we're practically at the finish line. All the interesting parts are covered, we just
+need a few more small things to get it all up and running.</p>
 <h1><a class="header" href="#putting-the-pieces-together" id="putting-the-pieces-together">Putting the pieces together</a></h1>
+<p>The first step to get this to run is obvious. We need a main function. Fortunately
+it's a short one:</p>
 <pre><pre class="playpen"><code class="language-rust">fn main() {
     let rt = Runtime::new();
     rt.run(javascript);
 }
 </code></pre></pre>
+<p>We instanciate our runtime, and we pass inn a pointer to our <code>javascript</code> function.</p>
+<p>The next parts are just helper methods to let us print out interesting things
+about our <code>Runtime</code> while it's running.</p>
+<p>For those new to Rust I'll spend the time to explain them anyway:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn current() -&gt; String {
+    thread::current().name().unwrap().to_string()
+}
+#}</code></pre></pre>
+<p>The <code>current</code> method prints out the name of the current thread it's called from.</p>
+<p>Since we have several threads handling tasks for us, this will help us keep track
+of what goes on where.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 fn print(t: impl std::fmt::Display) {
     println!(&quot;Thread: {}\t {}&quot;, current(), t);
 }
-
+#}</code></pre></pre>
+<p>This function takes an argument that implements the <code>Display</code> trait. This trait
+defines how we want a type to displayed as text. We call our <code>current</code> function to
+get the name of the current thread and outputs it <code>stdout</code>.</p>
+<p>The next function us a bit of an introduction to iterators. When we have content
+to print we use this one:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
 fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
     println!(
         &quot;\n===== THREAD {} START CONTENT - {} =====&quot;,
@@ -2682,16 +2830,69 @@ fn print_content(t: impl std::fmt::Display, descr: &amp;str) {
     println!(&quot;===== END CONTENT =====\n&quot;);
 }
 
-fn current() -&gt; String {
-    thread::current().name().unwrap().to_string()
-}
 #}</code></pre></pre>
+<p>Let's explain the iterators step by step:</p>
+<p>First we have:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let content = format!(&quot;{}&quot;, t); 
+let lines = content.lines().take(2);
+let main_cont: String = lines.map(|l| format!(&quot;{}\n&quot;, l)).collect();
+#}</code></pre></pre>
+<p>Content is just the content we want to print out. This is tailor made to print
+out the interesting parts of our <code>http</code> reponse, namely the first few lines and
+the <code>location</code> header so we know which call it was that got returned.</p>
+<p>We only want to print out the two first lines so we get an iterator over those
+by calling <code>content.lines().take(2)</code>.</p>
+<p>The next step is to create a <code>String</code> out of these two lines.</p>
+<p><code>lines.map(|l| format!(&quot;{}\n&quot;, l)).collect();</code> Takes every line and <code>maps</code> them as
+a new string which we append <code>\n</code> to to preserve the line breaks (if we don't do
+that the lines will come out as a single line). Then we <code>collect</code> that into a <code>String</code>.</p>
+<p>We know they collect to a <code>String</code> since we annotated the type of <code>main_cont</code> in <code>let main_cont: String</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let opt_location = content.find(&quot;Location&quot;);
+let opt_location = opt_location.map(|loc| {
+        content[loc..]
+        .lines()
+        .nth(0)
+        .map(|l| format!(&quot;{}\n&quot;,l))
+        .unwrap_or(String::new())
+    }); 
+#}</code></pre></pre>
+<p>The next part finds the location of the &quot;Location&quot; header. <code>find</code> returns an <code>Option</code>,
+just keep that in mind.</p>
+<p>The next step, we use <code>map</code> again, but this time we use <code>map</code> on an <code>Option</code> type.
+In this context, map means that <strong>if</strong> there is <code>Some</code> value, we want to work with that,
+which means that <code>map(|loc| {...</code> loc is an index of the where the <code>Location</code> header was found.</p>
+<p>Now what we do is that we take a range of our <code>content</code> string starting from the index
+of where we found the <code>Location</code> header, and all the way to the end of the string.</p>
+<p>From this range we access the iterator over its lines by calling <code>lines()</code>, we take the first
+line from this iterator <code>nth(0)</code>. Now again, this returns an <code>Option</code>, so we use <code>map</code>
+again to define what we'll do in the case if it's <code>Some</code>. </p>
+<p>This means that <strong>if</strong> the first line of <code>content[loc..]</code> is something we pass that
+into our closure <code>map(|l| format!(&quot;{}\n&quot;,l))</code>, which results in <code>l</code> as this line.</p>
+<p>We simply map this line into a <code>String</code> which we have appended a line break to.</p>
+<p>Lastly we <code>unwrap</code> the result of these operations. If you kept your thoungue right
+all the way through this should either be Some(the_first_line_starting_with_Location),
+or None. If it's None we just pass inn an empty <code>String</code>.</p>
+<p>Lastly we output everything.</p>
 <h1><a class="header" href="#final-code" id="final-code">Final code</a></h1>
 <p>Remember, for this to run you need to create a cargo binary project, and add the
 following dependency to your <code>Cargo.toml</code>:</p>
 <pre><code class="language-toml">[dependencies]
 minimio = {git = &quot;https://github.com/cfsamson/examples-io-eventloop&quot;, branch = &quot;master&quot;}
 </code></pre>
+<p>In the root of you project, add a file called <code>test.txt</code> (this is important), and
+add the text:</p>
+<pre><code>Hello world! This is a text to encrypt!
+</code></pre>
+<p>What you write in the file is not important. But how many characters is since we
+calculate the fibonacchi number based on how many characters there are in the file.</p>
+<p>Add to much text and you'll wait for a long time. Of course, you can just change
+the logic yourself now to do something else.</p>
 <p>In <code>main.rs</code> you can paste in this code:</p>
 <pre><pre class="playpen"><code class="language-rust">/// Think of this function as the javascript program you have written
 fn javascript() {
@@ -3345,6 +3546,17 @@ fn current() -&gt; String {
 <h2><a class="header" href="#shortcuts-1" id="shortcuts-1">Shortcuts</a></h2>
 <p>This is the event loop. There are several things we could do here to make it a better implementation. One is to set a max backlog of callbacks to execute in a single tick, so we don't starve the threadpool or file handlers. Another is to dynamically decide if/and how long the thread could be allowed to be parked for example by looking at the backlog of events, and if there is any backlog disable it. Some of our Vec's will only grow, and not resize, so if we have a period of very high load,the memory will stay higher than we need until a restart. This could be dealt with or a differentdata structure could be used.</p>
 <h1><a class="header" href="#conclusion" id="conclusion">Conclusion</a></h1>
+<p>Congratulations!!</p>
+<p>What a ride, huh? We're finished, take a break and get som fresh air. You've deserved
+it.</p>
+<p>We did cover a lot in this book in a fairly condensed manner. I hope I kept my
+initial promise of what we were going to learn and that you also got something
+usefull out of this.</p>
+<p>Anyway, I want to thank you for reading all the way to the end, and I really do hope you enjoyed it.</p>
+<p>Feel free to visit the repository of this book. I would love to hear from you
+if you think there is improvements I could make or if you just found it a good read.</p>
+<p>Until next time!</p>
+<p>Carl Fredrik Samson</p>
 
                     </main>
 
