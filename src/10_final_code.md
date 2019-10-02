@@ -8,6 +8,19 @@ following dependency to your `Cargo.toml`:
 minimio = {git = "https://github.com/cfsamson/examples-io-eventloop", branch = "master"}
 ```
 
+In the root of you project, add a file called `test.txt` (this is important), and
+add the text:
+
+```
+Hello world! This is a text to encrypt!
+```
+
+What you write in the file is not important. But how many characters is since we
+calculate the fibonacchi number based on how many characters there are in the file.
+
+Add to much text and you'll wait for a long time. Of course, you can just change
+the logic yourself now to do something else.
+
 In `main.rs` you can paste in this code:
 
 ```rust
