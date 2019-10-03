@@ -224,12 +224,13 @@ explain it briefly here.</p>
 <p>The <code>impl ...</code> means that we accept an arguments that implements the trait <code>FnOnce(Js)</code>
 with a <code>'static</code> lifetime. <a href="https://doc.rust-lang.org/std/ops/trait.FnOnce.html">FnOnce</a> is
 a trait implemented by <code>closures</code>. There are three main traits a <code>closure</code> can implement
-in Rust and <code>FnOnce</code> is the one you'll use if you take ownership over a captured
-variable and consume it.</p>
+in Rust and <code>FnOnce</code> is the one you'll use if you plan on consume an instance from
+the environment.</p>
 <p>Since you consume the variable a <code>closure</code> implementing <code>FnOnce</code> can only be called
-once. Our closure takes ownership over the <code>Js</code> parameter we pass in and consumes
-it. It's implicit that <code>FnOnce</code> returns <code>()</code> in this case so we don't have to write
-<code>FnOnce(Js) -&gt; ()</code>.</p>
+once. Our closure will take ownership over resources we create in our <code>main</code> thread
+and consume it. We want this since once consumed, the resources we used will be cleaned
+up as a result of Rusts <code>RAII</code> pattern. It's implicit that <code>FnOnce</code> returns <code>()</code> in this 
+case so we don't have to write <code>FnOnce(Js) -&gt; ()</code>.</p>
 <p>Since callbacks are meant to only be called once, this is a perfectly fine bound
 for us to use here.</p>
 <p>Now, traits doesn't have a size so for the compiler to be able to allocate space

@@ -6,7 +6,7 @@ We still don't have a threadpool or a I/O eventloop running
 so the next step is to set this up so we can start focusing on how to work with
 our "Node" Runtime.
 
-## Let's take this step by step
+### Let's take this step by step
 
 The first thing we do is to add a `new` method that returns an instance of our
 `Runtime`:
@@ -108,15 +108,19 @@ out information for us to see:
 
 ```rust
 while let Ok(task) = evt_reciever.recv() {
+        print(format!("recived a task of type: {}", task.kind));
+        
+        if let ThreadPoolTaskKind::Close = task.kind {
+            break;
+        };
 
-    print(format!("recived a task of type: {}", task.kind));
-    let res = (task.task)();
+        let res = (task.task)();
+        print(format!("finished running a task of type: {}.", task.kind));
 
-    print(format!("finished running a task of type: {}.", task.kind));
-    threadp_sender.send((i, task.callback_id, res)).unwrap();
-}
-
-print("FINISHED");
+        let event = PollEvent::Threadpool((i, task.callback_id, res));
+        event_sender.send(event).expect("threadpool");
+    }
+})
 ```
 
 The first thing we do is to listen on our `Recieve` part of the channel (remember,
@@ -124,13 +128,72 @@ we gave the `Send` part to our `main` thread). This function will actually
 `park` our thread until we receive a message so it consumes no resources while
 waiting.
 
-When we get a `task` we first print out what kind of task we got. The next thing
-we do is to run our task `let res = (task.task)();`. This is where the work will
+When we get a `task` we first print out what kind of task we got. 
+
+The next thing we do is to check if this was a `Close` task, if thats true
+we break out of our loop which in turn will close the thread.
+
+If it wasn't a `Close` task we run our task `let res = (task.task)();`. This is where the work will
 actually be done. We know from the signature of this task that it returns a `Js`
 object once it's finished.
 
 The nest thing we do is to print out that we finished running a task, before we
-send the `thread_id`, the `callback_id` and the data returned as a `Js` object back
+send a `PollEvent::Threadpool` event with `thread_id`, the `callback_id` and the data returned as a `Js` object back
 to our main thread.
 
-This will loop
+Back in our `main` thread again we'll finally we store the `JoinHandle`, and the
+`Send` part of the channel in our `NodeThread` struct and push it to our
+collection of threads (which now represents our threadpool).
+
+## The Epoll Thread
+
+This will handle our Epoll/Kqueue/IOCP thread. This thread will only wait for
+incoming events reported by the OS, and once that's done it will send the Id of
+the event to our main thread which in turn will actually handle the event and call
+the callback.
+
+The code here is a bit more involved, but we'll take it step by step below.
+
+The code looks like this:
+
+```rust
+let mut poll = minimio::Poll::new().expect("Error creating epoll queue");
+let registrator = poll.registrator();
+let epoll_timeout = Arc::new(Mutex::new(None));
+let epoll_timeout_clone = epoll_timeout.clone();
+
+let epoll_thread = thread::Builder::new()
+    .name("epoll".to_string())
+    .spawn(move || {
+        let mut events = minimio::Events::with_capacity(1024);
+        
+        loop {
+            let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+            let timeout = *epoll_timeout_handle;
+            drop(epoll_timeout_handle);
+
+            match poll.poll(&mut events, timeout) {
+                Ok(v) if v > 0 => {
+                    for i in 0..v {
+                        let event = events.get_mut(i).expect("No events in event list.");
+                        print(format!("epoll event {} is ready", event.id().value()));
+                        
+                        let event = PollEvent::Epoll(event.id().value() as usize);
+                        event_sender.send(event).expect("epoll event");
+                    }
+                }
+                Ok(v) if v == 0 => {
+                    print("epoll event timeout is ready");
+                    event_sender.send(PollEvent::Timeout).expect("epoll timeout");
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {
+                    print("recieved event of type: Close");
+                    break;
+                }
+                Err(e) => panic!("{:?}", e),
+                _ => (),
+            }
+        }
+    })
+    .expect("Error creating epoll thread");
+```

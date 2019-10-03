@@ -150,7 +150,7 @@
 <p>We still don't have a threadpool or a I/O eventloop running
 so the next step is to set this up so we can start focusing on how to work with
 our &quot;Node&quot; Runtime.</p>
-<h2><a class="header" href="#lets-take-this-step-by-step" id="lets-take-this-step-by-step">Let's take this step by step</a></h2>
+<h3><a class="header" href="#lets-take-this-step-by-step" id="lets-take-this-step-by-step">Let's take this step by step</a></h3>
 <p>The first thing we do is to add a <code>new</code> method that returns an instance of our
 <code>Runtime</code>:</p>
 <pre><pre class="playpen"><code class="language-rust">
@@ -159,33 +159,41 @@ our &quot;Node&quot; Runtime.</p>
 impl Runtime {
     pub fn new() -&gt; Self {
 #}</code></pre></pre>
-<p>Now the real work starts. Next up is our thread pool. Node defaults to 4 threads
-which we will copy. This is configurable in <code>Node</code> but we will take a shortcut
-and hard code it:</p>
+<p>Now the real work starts. First up is our thread pool. The first thing we do is
+to set up a channel which our threads can use to send messages to our main thread.</p>
+<p>The channel will take a tuple <code>(usize, usize, Js)</code> which will be <code>thread_id</code>,
+<code>callback_id</code> and the data returned when we run our <code>Task</code>.</p>
+<p>The <code>Receiver</code> part will be stored in our <code>Runtime</code>, and the <code>Sender</code> part will
+be cloned to each of our threads.</p>
+<p>Node defaults to 4 threads which we will copy. This is configurable in <code>Node</code> 
+but we will take a shortcut and hard code it:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-let (threadp_sender, threadp_reciever) = channel::&lt;(usize, usize, Js)&gt;();
+let (event_sender, event_reciever) = channel::&lt;PollEvent&gt;();
 let mut threads = Vec::with_capacity(4);
 
 for i in 0..4 {
-    let (evt_sender, evt_reciever) = channel::&lt;Event&gt;();
-    let threadp_sender = threadp_sender.clone();
+    let (evt_sender, evt_reciever) = channel::&lt;Task&gt;();
+    let event_sender = event_sender.clone();
 
     let handle = thread::Builder::new()
         .name(format!(&quot;pool{}&quot;, i))
         .spawn(move || {
 
-            while let Ok(event) = evt_reciever.recv() {
+            while let Ok(task) = evt_reciever.recv() {
+                print(format!(&quot;recived a task of type: {}&quot;, task.kind));
+                
+                if let ThreadPoolTaskKind::Close = task.kind {
+                    break;
+                };
 
-                print(format!(&quot;recived a task of type: {}&quot;, event.kind));
-                let res = (event.task)();
+                let res = (task.task)();
+                print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
 
-                print(format!(&quot;finished running a task of type: {}.&quot;, event.kind));
-                threadp_sender.send((i, event.callback_id, res)).unwrap();
+                let event = PollEvent::Threadpool((i, task.callback_id, res));
+                event_sender.send(event).expect(&quot;threadpool&quot;);
             }
-
-            print(&quot;FINISHED&quot;);
         })
         .expect(&quot;Couldn't initialize thread pool.&quot;);
 
@@ -198,15 +206,126 @@ for i in 0..4 {
 }
 
 #}</code></pre></pre>
-<p>There is a lot going on here so let's break it down.</p>
-<p>First we set up a channel to communicate with our threadpool. The channel will
-be of type <code>Channel&lt;(usize, usize, JS)&gt;</code> as you notice we use a <code>tuple</code> here instead
-of a struct, but we try to keep this simple now and won't introduce any new
-functionality.</p>
+<p>Next up is actually creating our threads. <code>for i in 0..4</code> is an iterator over the
+values 0, 1, 2 and 3. Since we push each thread to a <code>Vec</code> these values will be
+treated as both the Id of the thread and the index it has in our <code>Vec</code>.</p>
+<p>Next up we create a new channel which we will use to send messages <strong>to</strong> our
+threads. Each thread keeps their <code>Receiver</code>, and we'll store the <code>Send</code> part
+in the struct <code>NodeThread</code> which will represent a thread in our threadpool.</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-let (threadp_sender, threadp_reciever) = channel::&lt;(usize, usize, Js)&gt;();
+let (evt_sender, evt_reciever) = channel::&lt;Event&gt;();
+let threadp_sender = threadp_sender.clone();
+#}</code></pre></pre>
+<p>As you see here, we also clone the <code>Sender</code> part which we'll pass on to each thread
+so they can send messages to our <code>main</code> thread.</p>
+<p>After that's done we build our thread. We'll use <code>thread::Builder::new()</code> instead
+of use <code>thread::spawn</code> since we want to give each thread a name. We'll only use this
+name when we <code>print</code> from our event since it will be clear from which thread
+we printed the message. </p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let handle = thread::Builder::new()
+        .name(format!(&quot;pool{}&quot;, i))
+        .spawn(move || {
+#}</code></pre></pre>
+<p>You'll also see here that we <code>spawn</code> our thread finally and create a closure.</p>
+<blockquote>
+<p>Why do we need the <code>move</code> keyword in this closure?</p>
+<p>The reason is that this closure is spawned from the main thread, so any environment
+we close over needs to be owned, since it can't reference any values on the stack
+of the <code>main</code> thread. I'll leave you with a relevant quote from <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/closures.html#closures">chapter about
+<code>closures</code> in TRPL</a></p>
+<p><strong>...they give a closure its own stack frame. Without move, a closure may be
+tied to the stack frame that created it, while a move closure is self-contained.</strong></p>
+</blockquote>
+<p>The body of our new threads are really simple, most of the lines are about printing
+out information for us to see:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+while let Ok(task) = evt_reciever.recv() {
+        print(format!(&quot;recived a task of type: {}&quot;, task.kind));
+        
+        if let ThreadPoolTaskKind::Close = task.kind {
+            break;
+        };
+
+        let res = (task.task)();
+        print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
+
+        let event = PollEvent::Threadpool((i, task.callback_id, res));
+        event_sender.send(event).expect(&quot;threadpool&quot;);
+    }
+})
+#}</code></pre></pre>
+<p>The first thing we do is to listen on our <code>Recieve</code> part of the channel (remember,
+we gave the <code>Send</code> part to our <code>main</code> thread). This function will actually
+<code>park</code> our thread until we receive a message so it consumes no resources while
+waiting.</p>
+<p>When we get a <code>task</code> we first print out what kind of task we got. </p>
+<p>The next thing we do is to check if this was a <code>Close</code> task, if thats true
+we break out of our loop which in turn will close the thread.</p>
+<p>If it wasn't a <code>Close</code> task we run our task <code>let res = (task.task)();</code>. This is where the work will
+actually be done. We know from the signature of this task that it returns a <code>Js</code>
+object once it's finished.</p>
+<p>The nest thing we do is to print out that we finished running a task, before we
+send a <code>PollEvent::Threadpool</code> event with <code>thread_id</code>, the <code>callback_id</code> and the data returned as a <code>Js</code> object back
+to our main thread.</p>
+<p>Back in our <code>main</code> thread again we'll finally we store the <code>JoinHandle</code>, and the
+<code>Send</code> part of the channel in our <code>NodeThread</code> struct and push it to our
+collection of threads (which now represents our threadpool).</p>
+<h2><a class="header" href="#the-epoll-thread" id="the-epoll-thread">The Epoll Thread</a></h2>
+<p>This will handle our Epoll/Kqueue/IOCP thread. This thread will only wait for
+incoming events reported by the OS, and once that's done it will send the Id of
+the event to our main thread which in turn will actually handle the event and call
+the callback.</p>
+<p>The code here is a bit more involved, but we'll take it step by step below.</p>
+<p>The code looks like this:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+let registrator = poll.registrator();
+let epoll_timeout = Arc::new(Mutex::new(None));
+let epoll_timeout_clone = epoll_timeout.clone();
+
+let epoll_thread = thread::Builder::new()
+    .name(&quot;epoll&quot;.to_string())
+    .spawn(move || {
+        let mut events = minimio::Events::with_capacity(1024);
+        
+        loop {
+            let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+            let timeout = *epoll_timeout_handle;
+            drop(epoll_timeout_handle);
+
+            match poll.poll(&amp;mut events, timeout) {
+                Ok(v) if v &gt; 0 =&gt; {
+                    for i in 0..v {
+                        let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+                        print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+                        
+                        let event = PollEvent::Epoll(event.id().value() as usize);
+                        event_sender.send(event).expect(&quot;epoll event&quot;);
+                    }
+                }
+                Ok(v) if v == 0 =&gt; {
+                    print(&quot;epoll event timeout is ready&quot;);
+                    event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+                    print(&quot;recieved event of type: Close&quot;);
+                    break;
+                }
+                Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+                _ =&gt; (),
+            }
+        }
+    })
+    .expect(&quot;Error creating epoll thread&quot;);
 #}</code></pre></pre>
 
                     </main>
