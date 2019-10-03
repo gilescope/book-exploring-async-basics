@@ -79,13 +79,14 @@ explain it briefly here.
 The `impl ...` means that we accept an arguments that implements the trait `FnOnce(Js)`
 with a `'static` lifetime. [FnOnce](https://doc.rust-lang.org/std/ops/trait.FnOnce.html) is
 a trait implemented by `closures`. There are three main traits a `closure` can implement
-in Rust and `FnOnce` is the one you'll use if you take ownership over a captured
-variable and consume it.
+in Rust and `FnOnce` is the one you'll use if you plan on consume an instance from
+the environment.
 
 Since you consume the variable a `closure` implementing `FnOnce` can only be called
-once. Our closure takes ownership over the `Js` parameter we pass in and consumes
-it. It's implicit that `FnOnce` returns `()` in this case so we don't have to write
-`FnOnce(Js) -> ()`.
+once. Our closure will take ownership over resources we create in our `main` thread
+and consume it. We want this since once consumed, the resources we used will be cleaned
+up as a result of Rusts `RAII` pattern. It's implicit that `FnOnce` returns `()` in this 
+case so we don't have to write `FnOnce(Js) -> ()`.
 
 Since callbacks are meant to only be called once, this is a perfectly fine bound
 for us to use here.
