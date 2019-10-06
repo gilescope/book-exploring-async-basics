@@ -5,19 +5,20 @@
 You've most likely heard and read claims like these many times before,
 and maybe, at some point you've thought you understood everything
 only to find yourself confused a moment later. Especially when you want to
-understand how it works on a fundamental level involving different Operating Systems.
+understand how it works on a fundamental level.
 
-Me too.
+**Me too.**
 
 So I spent a couple of hundred hours to try to fix that for myself. I wrote
 this story as a result of that and now I invite you to join me on that journey.
 
-This book aims to take a look at the _why_ and _how_ of concurrent programming. First we build
+This book aims to take a look at the **why** and **how** of concurrent programming. First we build
 a good foundation of basic knowledge, before we use that knowledge to implement a toy version of the
 Node.js runtime.
 
 > This book is developed in the open and has [it's repository here](https://github.com/cfsamson/book-investigating-async-basics).
-> The final code in this book is located here if you want to clone it and play with it or improve it.
+> The book and the accomanying code is MIT licensed so feel free to clone away
+> and play with it.
 
 I warn you though, we need to venture from philosophical heights where we try to
 formally define a "task" all the way down to the deep waters where firmware and
@@ -26,34 +27,29 @@ are tasked with naming low level OS syscalls and structures on Windows. However,
 have yet to confirm this.).
 
 > Everything in this book will cover the topics for the three major Operating Systems
-> Linux, Macos and Windows.
+> Linux, Macos and Windows. We'll also only cover the details on how this works
+> on 64 bit systems.
 
 ## Who is this book for?
 
-You'll have to be adventurous, curious, and a bit forgiving. Even though we
-cover some complex topics we'll have to simplify them significantly to be able
-to learn anything from them in a small book. You can probably spend the better
-part of a career becoming an expert in several of the fields we cover, so forgive
-me already now for not being able to cover all of them with the precision,
-thoroughness and respect they deserve.
+I originally started out wanting to explore the fundamentals and inner workings
+of Rusts Futures. Reading through RFC's, motivations and discussions I realized
+that to really understand the **why** and **how** of Rust's Futures, I needed a very good
+understanding of how async code works in general, and the different strategies to handle it.
 
-However, this book might be interesting for you if you:
+**This book might be interesting for you if you:**
 
-- Want to know the difference between parallel and concurrent, and finding a mental model to explain why concurrency is valuable.
+- Want to take a deep dive into what concurrency is, including its history and how it differs from parallelism.
 
-- Are curious on how to make syscalls on three different platforms using only Rusts standard library.
+- Are curious on how to make syscalls on three different platforms, and learning how that's done on three different abstraction levels.
 
-- Think it's fun to see if you can generate a software interrupt and make a syscall using inline assembly.
+- Want to know more about how OS, CPU and Hardware handles concurrency.
 
-- Want to know more about how OS and the CPU handles concurrency.
+- Want to learn the basics of Epoll, Kqueue and IOCP and prepare yourself for the next book that will cover these in detail.
 
-- Think figuring out how your code, the OS, your CPU, a device driver and some firmware handles I/O is interesting.
-
-- Can accept a detour where we see how the CPU "knows" if a memory address is invalid.
+- Think using our research to write a **toy** node.js runtime is pretty cool.
 
 - Have read enough articles about it but want to know more about what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.
-
-- Think using the knowledge from our research to write a **toy** node.js runtime is pretty cool.
 
 - Already know some Rust but want to learn more.
 
@@ -62,25 +58,28 @@ where we try to get a better understanding of all these subjects.
 
 > We'll only use Rusts standard library. The reason for this is that we really want to know how tings
 > work, and Rusts standard library strikes the perfect balance for this task providing abstractions
-> but they're thin enough to let us easily peek under the covers to see how things work.
+> but they're thin enough to let us easily peek under the covers and see what really happens.
+
+## Following along
+
+Even though I use `mdbook`, which has the nice benefit of being able to run
+the code we write directly in the book, we're working with I/O and cross
+platform syscalls in this book which is not a good fit for the Rust playground. 
+
+My best recommendation is to create a project on your local
+computer and follow along by copying the code over and run it locally.
+
+## Prerequisites
 
 You don't have to be a Rust programmer to follow along. This book will have numerous chapters where
 we explore concepts, and where the code examples are small and easy to understand, but it will
-be more code towards the end and you'll get the most out of it by learning the basics first.
+be more code towards the end and you'll get the most out of it by learning the basics first. In this case [The Rust Programming Language](https://doc.rust-lang.org/book/title-page.html) is the best place to start.
 
 I do recommend that you read my book preceding this [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
 since I cover quite a bit about Rust basics, stacks, threads and inline assembly there and
 will not repeat everything here. However, it's definitely not a must.
 
 > [You will find everything you need to set up Rust here](https://www.rust-lang.org/tools/install)
-
-## Following along
-
-For this book I use `mdbook`, which has the nice benefit of being able to run
-the code we write directly in the book. However, we're working with I/O and cross
-platform syscalls in this book which does make it difficult to have code that runs
-on the Rust Playground, so my best recommendation is to create a project on your local
-computer and follow along by copying the code over and run it locally.
 
 ## Disclaimer
 
@@ -94,13 +93,27 @@ many shortcuts to keep this concise and short.
 I will try to point out obvious places we could do a better job or take big
 shortcuts.
 
-If you see something that is imprecise or even wrong I really hope you'll consider
-contributing to make this better for the next person reading it. 
-
+> Even though we
+> cover some complex topics we'll have to simplify them significantly to be able
+> to learn anything from them in a small(ish) book. You can probably spend the better
+> part of a career becoming an expert in several of the fields we cover, so forgive
+> me already now for not being able to cover all of them with the precision,
+> thoroughness and respect they deserve. 
 
 ## Credits
 
 Substantial contributions will be credited here.
+
+## Contributing
+
+I have no other interest in this than to share knowledge that might be hard to
+come by with others, making it easier for them to acquire it. If you want to
+contribute to make this better there are two places to go:
+
+1. [The base repo for this book](https://github.com/cfsamson/book-investigating-async-basics) for all feedback and content changes
+2. [The base repo for the code example we use](https://github.com/cfsamson/examples-io-eventloop) for all improvements to the example code
+
+Everything from spelling mistakes to errors or inaccuracies are greatly appreciated. It will only make this book better for the next person readin it.
 
 ## Why I wrote this and companion books
 
@@ -117,23 +130,8 @@ reading the RFC's and discussions about Rusts async story:
 
 - [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
 
-A book where we explore green threads by implementing our own green threads in Rust.
+- [Exploring Async Basics by Implementing the Node Event Loop in Rust](https://cfsamson.github.io/book-investigating-async-basics/) (this book)
 
-- Investigating Async Basics by Implementing the Node.js Eventloop in Rust
+- [Exploring Epoll, Kqueue and IOCP with Rust](https://github.com/cfsamson/book-exploring-epoll-kqueue-iocp) a companion book to the "Async Basics" book
 
-This is the book you're reading now.
-
-- Investigating Epoll, Kqueue and IOCP with Rust
- 
-Will be released October 2. 2019. We implement an extremely simple and limited
-cross platform eventloop based on Epoll, Kqueue and IOCP. Even though it's simple
-and bad, it will be working and will be "easy" to understand. A good place
-to start if you want to dig further.
-
-We use this library in this book, but it was too much to include here.
-
-- Investigating Rusts Futures (TBD)
-
-This book has not even started yet, and I will see if I can provide a useful
-alternative or add anything usefull at all since there is so much being written
-about this right now.
+- Exploring Rusts Futures (TBD) - a different look on the **why** and **how** of Rusts futures

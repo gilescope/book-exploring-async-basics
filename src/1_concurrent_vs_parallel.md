@@ -155,9 +155,9 @@ The Operating System might not run your code from start to end at all. It might 
 
 So synchronous execution is only an illusion. But from the perspective of you as a programmer it's not, and that is the important takeaway:
 
-When we talk about concurrency without providing any other context we are using you as a programmer and your code (your process) as the reference frame. If you start pondering about concurrency
-whithout keeping this in the back of your head it will get confusing very fast.
+**When we talk about concurrency without providing any other context we are using you as a programmer and your code (your process) as the reference frame. If you start pondering about concurrency
+whithout keeping this in the back of your head it will get confusing very fast.**
 
 The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and learn that might seem contradicting really is not. You'll just have to consider the reference frame first.
 
-If this still sounds complicated, I understand. Just sitting and reflecting about concurrency is difficult, but if we try to keep these thoughts in the back of our head when we work with code I promise it will get less and less confusing.
+If this still sounds complicated, I understand. Just sitting and reflecting about concurrency is difficult, but if we try to keep these thoughts in the back of our head when we work with async code I promise it will get less and less confusing.
