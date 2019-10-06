@@ -152,16 +152,17 @@
 <p>You've most likely heard and read claims like these many times before,
 and maybe, at some point you've thought you understood everything
 only to find yourself confused a moment later. Especially when you want to
-understand how it works on a fundamental level involving different Operating Systems.</p>
-<p>Me too.</p>
+understand how it works on a fundamental level.</p>
+<p><strong>Me too.</strong></p>
 <p>So I spent a couple of hundred hours to try to fix that for myself. I wrote
 this story as a result of that and now I invite you to join me on that journey.</p>
-<p>This book aims to take a look at the <em>why</em> and <em>how</em> of concurrent programming. First we build
+<p>This book aims to take a look at the <strong>why</strong> and <strong>how</strong> of concurrent programming. First we build
 a good foundation of basic knowledge, before we use that knowledge to implement a toy version of the
 Node.js runtime.</p>
 <blockquote>
 <p>This book is developed in the open and has <a href="https://github.com/cfsamson/book-investigating-async-basics">it's repository here</a>.
-The final code in this book is located here if you want to clone it and play with it or improve it.</p>
+The book and the accomanying code is MIT licensed so feel free to clone away
+and play with it.</p>
 </blockquote>
 <p>I warn you though, we need to venture from philosophical heights where we try to
 formally define a &quot;task&quot; all the way down to the deep waters where firmware and
@@ -170,40 +171,33 @@ are tasked with naming low level OS syscalls and structures on Windows. However,
 have yet to confirm this.).</p>
 <blockquote>
 <p>Everything in this book will cover the topics for the three major Operating Systems
-Linux, Macos and Windows.</p>
+Linux, Macos and Windows. We'll also only cover the details on how this works
+on 64 bit systems.</p>
 </blockquote>
 <h2><a class="header" href="#who-is-this-book-for" id="who-is-this-book-for">Who is this book for?</a></h2>
-<p>You'll have to be adventurous, curious, and a bit forgiving. Even though we
-cover some complex topics we'll have to simplify them significantly to be able
-to learn anything from them in a small book. You can probably spend the better
-part of a career becoming an expert in several of the fields we cover, so forgive
-me already now for not being able to cover all of them with the precision,
-thoroughness and respect they deserve.</p>
-<p>However, this book might be interesting for you if you:</p>
+<p>I originally started out wanting to explore the fundamentals and inner workings
+of Rusts Futures. Reading through RFC's, motivations and discussions I realized
+that to really understand the <strong>why</strong> and <strong>how</strong> of Rust's Futures, I needed a very good
+understanding of how async code works in general, and the different strategies to handle it.</p>
+<p><strong>This book might be interesting for you if you:</strong></p>
 <ul>
 <li>
-<p>Want to know the difference between parallel and concurrent, and finding a mental model to explain why concurrency is valuable.</p>
+<p>Want to take a deep dive into what concurrency is, including its history and how it differs from parallelism.</p>
 </li>
 <li>
-<p>Are curious on how to make syscalls on three different platforms using only Rusts standard library.</p>
+<p>Are curious on how to make syscalls on three different platforms, and learning how that's done on three different abstraction levels.</p>
 </li>
 <li>
-<p>Think it's fun to see if you can generate a software interrupt and make a syscall using inline assembly.</p>
+<p>Want to know more about how OS, CPU and Hardware handles concurrency.</p>
 </li>
 <li>
-<p>Want to know more about how OS and the CPU handles concurrency.</p>
+<p>Want to learn the basics of Epoll, Kqueue and IOCP and prepare yourself for the next book that will cover these in detail.</p>
 </li>
 <li>
-<p>Think figuring out how your code, the OS, your CPU, a device driver and some firmware handles I/O is interesting.</p>
-</li>
-<li>
-<p>Can accept a detour where we see how the CPU &quot;knows&quot; if a memory address is invalid.</p>
+<p>Think using our research to write a <strong>toy</strong> node.js runtime is pretty cool.</p>
 </li>
 <li>
 <p>Have read enough articles about it but want to know more about what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.</p>
-</li>
-<li>
-<p>Think using the knowledge from our research to write a <strong>toy</strong> node.js runtime is pretty cool.</p>
 </li>
 <li>
 <p>Already know some Rust but want to learn more.</p>
@@ -214,23 +208,24 @@ where we try to get a better understanding of all these subjects.</p>
 <blockquote>
 <p>We'll only use Rusts standard library. The reason for this is that we really want to know how tings
 work, and Rusts standard library strikes the perfect balance for this task providing abstractions
-but they're thin enough to let us easily peek under the covers to see how things work.</p>
+but they're thin enough to let us easily peek under the covers and see what really happens.</p>
 </blockquote>
+<h2><a class="header" href="#following-along" id="following-along">Following along</a></h2>
+<p>Even though I use <code>mdbook</code>, which has the nice benefit of being able to run
+the code we write directly in the book, we're working with I/O and cross
+platform syscalls in this book which is not a good fit for the Rust playground. </p>
+<p>My best recommendation is to create a project on your local
+computer and follow along by copying the code over and run it locally.</p>
+<h2><a class="header" href="#prerequisites" id="prerequisites">Prerequisites</a></h2>
 <p>You don't have to be a Rust programmer to follow along. This book will have numerous chapters where
 we explore concepts, and where the code examples are small and easy to understand, but it will
-be more code towards the end and you'll get the most out of it by learning the basics first.</p>
+be more code towards the end and you'll get the most out of it by learning the basics first. In this case <a href="https://doc.rust-lang.org/book/title-page.html">The Rust Programming Language</a> is the best place to start.</p>
 <p>I do recommend that you read my book preceding this <a href="https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/">Green threads explained in 200 lines of Rust</a>
 since I cover quite a bit about Rust basics, stacks, threads and inline assembly there and
 will not repeat everything here. However, it's definitely not a must.</p>
 <blockquote>
 <p><a href="https://www.rust-lang.org/tools/install">You will find everything you need to set up Rust here</a></p>
 </blockquote>
-<h2><a class="header" href="#following-along" id="following-along">Following along</a></h2>
-<p>For this book I use <code>mdbook</code>, which has the nice benefit of being able to run
-the code we write directly in the book. However, we're working with I/O and cross
-platform syscalls in this book which does make it difficult to have code that runs
-on the Rust Playground, so my best recommendation is to create a project on your local
-computer and follow along by copying the code over and run it locally.</p>
 <h2><a class="header" href="#disclaimer" id="disclaimer">Disclaimer</a></h2>
 <ol>
 <li>
@@ -247,10 +242,25 @@ I will try to point out obvious places we could do a better job or take big
 shortcuts.</p>
 </li>
 </ol>
-<p>If you see something that is imprecise or even wrong I really hope you'll consider
-contributing to make this better for the next person reading it. </p>
+<blockquote>
+<p>Even though we
+cover some complex topics we'll have to simplify them significantly to be able
+to learn anything from them in a small(ish) book. You can probably spend the better
+part of a career becoming an expert in several of the fields we cover, so forgive
+me already now for not being able to cover all of them with the precision,
+thoroughness and respect they deserve. </p>
+</blockquote>
 <h2><a class="header" href="#credits" id="credits">Credits</a></h2>
 <p>Substantial contributions will be credited here.</p>
+<h2><a class="header" href="#contributing" id="contributing">Contributing</a></h2>
+<p>I have no other interest in this than to share knowledge that might be hard to
+come by with others, making it easier for them to acquire it. If you want to
+contribute to make this better there are two places to go:</p>
+<ol>
+<li><a href="https://github.com/cfsamson/book-investigating-async-basics">The base repo for this book</a> for all feedback and content changes</li>
+<li><a href="https://github.com/cfsamson/examples-io-eventloop">The base repo for the code example we use</a> for all improvements to the example code</li>
+</ol>
+<p>Everything from spelling mistakes to errors or inaccuracies are greatly appreciated. It will only make this book better for the next person readin it.</p>
 <h2><a class="header" href="#why-i-wrote-this-and-companion-books" id="why-i-wrote-this-and-companion-books">Why I wrote this and companion books</a></h2>
 <p>This started as a wish to write an article about Rusts Futures 3.0, but has now
 expanded into 3 finished books about concurrency in general and hopefully, at
@@ -261,27 +271,19 @@ asking &quot;why?&quot; to everything.</p>
 <p>Basically, the list below is a result of this urge to understand <em>why</em> while
 reading the RFC's and discussions about Rusts async story: </p>
 <ul>
-<li><a href="https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/">Green threads explained in 200 lines of Rust</a></li>
+<li>
+<p><a href="https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/">Green threads explained in 200 lines of Rust</a></p>
+</li>
+<li>
+<p><a href="https://cfsamson.github.io/book-investigating-async-basics/">Exploring Async Basics by Implementing the Node Event Loop in Rust</a> (this book)</p>
+</li>
+<li>
+<p><a href="https://github.com/cfsamson/book-exploring-epoll-kqueue-iocp">Exploring Epoll, Kqueue and IOCP with Rust</a> a companion book to the &quot;Async Basics&quot; book</p>
+</li>
+<li>
+<p>Exploring Rusts Futures (TBD) - a different look on the <strong>why</strong> and <strong>how</strong> of Rusts futures</p>
+</li>
 </ul>
-<p>A book where we explore green threads by implementing our own green threads in Rust.</p>
-<ul>
-<li>Investigating Async Basics by Implementing the Node.js Eventloop in Rust</li>
-</ul>
-<p>This is the book you're reading now.</p>
-<ul>
-<li>Investigating Epoll, Kqueue and IOCP with Rust</li>
-</ul>
-<p>Will be released October 2. 2019. We implement an extremely simple and limited
-cross platform eventloop based on Epoll, Kqueue and IOCP. Even though it's simple
-and bad, it will be working and will be &quot;easy&quot; to understand. A good place
-to start if you want to dig further.</p>
-<p>We use this library in this book, but it was too much to include here.</p>
-<ul>
-<li>Investigating Rusts Futures (TBD)</li>
-</ul>
-<p>This book has not even started yet, and I will see if I can provide a useful
-alternative or add anything usefull at all since there is so much being written
-about this right now.</p>
 <h1><a class="header" href="#whats-the-difference-between-concurrency-and-parallelism" id="whats-the-difference-between-concurrency-and-parallelism">What's the difference between concurrency and parallelism?</a></h1>
 <p>We’ll right of the bat dive into this subject by defining what concurrency is, and since it’s very easy to confuse concurrent with parallel we have to try to make the difference clear from the get go.</p>
 <blockquote>
@@ -399,10 +401,10 @@ in some sort of reference frame.</p>
 <p>When you write code that is perfectly synchronous from your perspective, let's take a look at how that looks from the operating system perspective.</p>
 <p>The Operating System might not run your code from start to end at all. It might stop and resume your process many times. The CPU might get interrupted and handle som inputs while you think it's only focused on your task. </p>
 <p>So synchronous execution is only an illusion. But from the perspective of you as a programmer it's not, and that is the important takeaway:</p>
-<p>When we talk about concurrency without providing any other context we are using you as a programmer and your code (your process) as the reference frame. If you start pondering about concurrency
-whithout keeping this in the back of your head it will get confusing very fast.</p>
+<p><strong>When we talk about concurrency without providing any other context we are using you as a programmer and your code (your process) as the reference frame. If you start pondering about concurrency
+whithout keeping this in the back of your head it will get confusing very fast.</strong></p>
 <p>The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and learn that might seem contradicting really is not. You'll just have to consider the reference frame first.</p>
-<p>If this still sounds complicated, I understand. Just sitting and reflecting about concurrency is difficult, but if we try to keep these thoughts in the back of our head when we work with code I promise it will get less and less confusing.</p>
+<p>If this still sounds complicated, I understand. Just sitting and reflecting about concurrency is difficult, but if we try to keep these thoughts in the back of our head when we work with async code I promise it will get less and less confusing.</p>
 <h1><a class="header" href="#async-history" id="async-history">Async history</a></h1>
 <p>In the start computers had one CPU and it executed a set of instructions written
 by a programmer one by one. No scheduling, no threads, no multitasking. This was
@@ -410,54 +412,45 @@ how computers worked for a long time. We're talking back when the days where a
 program looked like this:</p>
 <p><img src="./images/punched_card_deck.jpg" alt="Image" /></p>
 <p>There were operating systems being researched though and when personal computing
-started to grow in the 80's we had operating systems like DOS. They usually
-yielded control of the entire CPU to the program currently executing and it was
+started to grow in the 80's we had operating systems like DOS. </p>
+<p>They usually yielded control of the entire CPU to the program currently executing and it was
 up to the programmer to make things work and implement any kind of multitasking
 for their program. This worked fine, but as interactive UIs using a mouse and
 windowed operating systems became the norm, this simply couldn't work anymore.</p>
 <h2><a class="header" href="#non-preemptive-multitasking" id="non-preemptive-multitasking">Non-preemptive multitasking</a></h2>
-<p>The method used to be able to keep the UI interactive and running background
-processes, was accomplished by non-preemtive multitasking. This kind of 
-multitasking put the responsibility of letting the OS run other tasks like 
-responding to input from the mouse, or running a background task in the hands of
-the programmer. Typically the programmer <code>yielded</code> control to the OS.</p>
-<p>Beside off loading a huge responsibility to every programmer writing a program
-for your platform, this was also error prone. A small mistake in a programs code
-could halt or crash the entire system. If you remember Windows 95, you also
-remember the times when a window hung and you could paint the entire screen with
-it (almost the same way as the end in Solitare, the card game that came with Windows).
-This was reportedly a typical error in the code that was supposed to yield control
+<p>The first method used to be able to keep a UI interactive (and running background
+processes), was accomplished by what we call <code>non-preemtive multitasking</code>. </p>
+<p>This kind of multitasking put the responsibility of letting the OS run other tasks like responding to input from the mouse, or running a background task in the hands of the programmer. </p>
+<p>Typically the programmer <code>yielded</code> control to the OS.</p>
+<p>Besides off loading a huge responsibility to every programmer writing a program
+for your platform, this was naturally error prone. A small mistake in a programs code
+could halt or crash the entire system. </p>
+<blockquote>
+<p>If you remember Windows 95, you also remember the times when a window hung and you could paint the entire screen with it (almost the same way as the end in Solitare, the card game that came with Windows).</p>
+<p>This was reportedly a typical error in the code that was supposed to yield control
 to the operating system.</p>
-<p>If you're not sure about what this kind of threaded multitasking is I wrote about
-recommend my previous book that explains this part of multitasking pretty well.
-You'll know everything you need about threads, contexts, stacks and scheduling
-for following along.</p>
+</blockquote>
 <h2><a class="header" href="#preemtive-multitasking" id="preemtive-multitasking">Preemtive multitasking</a></h2>
 <p>While non-preemtive multitasking sounded like a good idea, it turned out to
-create serious problems as well. I will not list them here but as you can imagine,
-letting every program and programmer out there be responsible for parts of the
-scheduling of tasks in an operating system will be chaos and ultimately lead to
-a bad user experience.</p>
+create serious problems as well. Letting every program and programmer out there be responsible for having a responsive UI in an operating system can ultimately lead to a bad user experience if.</p>
 <p>The solution was to place the responsibility of scheduling the CPU resources
 between the programs that requested it (including to OS itself) in the hands of
 the OS. The OS can stop execution of a process, do something else, and switch back.</p>
-<p>In a single core machine you can visualize this as running a program you wrote,
-and the OS stops to update the mouse position, and switches back to your program.
-This can happen many times each second, not only to keep the UI responsive but
-it can also give some time to other background tasks and IO events.</p>
+<p>On a single core machine you can visualize this as running a program you wrote,
+the OS stops your program to update the mouse position, switches back to your program to continue and then so forth...</p>
+<p>The OS is then responsible for scheduling tasks and does this by switching contexts on the CPU. This process can happen many times each second, not only to keep the UI responsive but it can also give some time to other background tasks and IO events.</p>
 <p>This is now the prevailing way to design an operating system.</p>
+<blockquote>
+<p>If you want to learn more about this kind of threaded multitasking I recommend reading my previous book about <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/">green threads</a>. This is a nice introduction where you'll be able to get the basic knowledge you need about threads, contexts, stacks and scheduling.</p>
+</blockquote>
 <h2><a class="header" href="#hyperthreading" id="hyperthreading">Hyperthreading</a></h2>
-<p>As CPU's evolved and added more functionality like several ALUs (Algorithmic Logical Unit) 
-and more logical units in general, the CPU manufacturers realized that the entire
-CPU was never utilitized fully. For example when an operation only required some
-parts of the CPU, an instruction could be run on the ALU simultaneously. This
-became the start of Hyperthreading.</p>
+<p>As CPU's evolved and added more functionality like several ALUs (Algorithmic Logical Unit) and more logical units in general, the CPU manufacturers realized that the entire CPU was never utilitized fully. For example when an operation only required some parts of the CPU, an instruction could be run on the ALU simultaneously. This became the start of Hyperthreading.</p>
 <p>You see, on your computer today that it has i.e. 6 cores, and 12 logical cores.
 This is exactly where Hyperthreading comes in. It &quot;simulates&quot; two cores on the
 same core by using unused parts of the CPU to drive progress on thread &quot;2&quot;
 simultaneously as it's running the code on thread &quot;1&quot;. It does this by using a
 number of smart tricks (like the one with the ALU).</p>
-<p>Now we could actually offload some work on one thread while keeping the UI
+<p>Now, having hypertreading, we could actually offload some work on one thread while keeping the UI
 interactive by responding to events in the second thread even though we only
 had one CPU core.</p>
 <blockquote>
@@ -475,31 +468,29 @@ Processors get faster by improving caches, branch prediction, speculative execut
 and working on the processing pipelines of the processors, but the gains seems to
 be diminishing.</p>
 <p>On the other hand, new processors are so small they allow us to have many on the
-same chip instead. Now most CPUs have many cores, including hyperthreading.</p>
+same chip instead. Now most CPUs have many cores, and most often each core will also have the ability to perform hyperthreading.</p>
 <h2><a class="header" href="#so-how-synchronous-is-the-code-you-write-really-" id="so-how-synchronous-is-the-code-you-write-really-">So how synchronous is the code you write, really ?</a></h2>
-<p>As many things this depends on your perspective. From the perspective of your process
-and the code you write for it, everything will normally happen in the order you
-write it.</p>
+<p>As many things this depends on your perspective. From the perspective of your process and the code you write for it, everything will normally happen in the order you write it.</p>
 <p>From the OS perspective it might, or might not, interrupt your code, pause it
 and run some other code in the meantime before resuming your process.</p>
-<p>From the perspective of the CPU it will mostly execute instructions one at a time[1].
+<p>From the perspective of the CPU it will mostly execute instructions one at a time *.
 They don't care who wrote the code though so when a hardware interrupt happens,
 they will immediately stop and give control to an interrupt handler. This is how
 the CPU handles concurrency.</p>
 <blockquote>
-<p>[1] However, modern CPU can also do a lot if things in parallel. Most CPUs are
+<p>* However, modern CPU can also do a lot if things in parallel. Most CPUs are
 pipelined, meaning that the next instruction is loaded while the current is
 executing. It might have a branch predictor that tries to figure out what
-instructions to load next. The processor can also reorder instructions by using
+instructions to load next. </p>
+<p>The processor can also reorder instructions by using
 &quot;out of order execution&quot; if it believes it makes things faster this way without
-&quot;asking&quot; or &quot;telling&quot; the programmer or the OS so you might not have any guarantee
-that A happens before B. The CPU offloads some work to separate &quot;coprocessors&quot;
-like the FPU for for floating point calculations leaving the main CPU ready to
-do other tasks et cetera.</p>
+&quot;asking&quot; or &quot;telling&quot; the programmer or the OS so you might not have any guarantee that A happens before B. </p>
+<p>The CPU offloads some work to separate &quot;coprocessors&quot; like the FPU for for floating point calculations leaving the main CPU ready to do other tasks et cetera.</p>
 <p>As a high level overview, it's OK to model the CPU as operating in a synchronous
 manner, but lets for now just make a mental note that this is a model with some
-caveats that becomes especially important when talking about parallelism,
-synchronization primitives like mutexes and atomics and security.</p>
+caveats that becomes especially important when talking about parallelism and
+synchronization primitives like mutexes, atomics and the security of computers
+and operating systems.</p>
 </blockquote>
 <h1><a class="header" href="#the-operating-system" id="the-operating-system">The Operating System</a></h1>
 <p>The operating system stands in the center of everything we do as programmers,
@@ -1913,7 +1904,7 @@ execute here. I just include it for for completeness but we won't do anything in
 <h2><a class="header" href="#7-give" id="7-give">7. Give</a></h2>
 <p>I pretty much explain this step in the comments. Typically releasing resources,
 like closing sockets, is done here.</p>
-<h2><a class="header" href="#the-run-function" id="the-run-function">The <code>run</code> function</a></h2>
+<h2><a class="header" href="#the-final-run-function" id="the-final-run-function">The final <code>run</code> function</a></h2>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2155,6 +2146,286 @@ let epoll_thread = thread::Builder::new()
         }
     })
     .expect(&quot;Error creating epoll thread&quot;);
+#}</code></pre></pre>
+<p>Lets start by initializing some variables:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+let registrator = poll.registrator();
+let epoll_timeout = Arc::new(Mutex::new(None));
+let epoll_timeout_clone = epoll_timeout.clone();
+#}</code></pre></pre>
+<p>The first thing we do is to instantiate a new <code>minimio::Poll</code>. This is the main
+entry point into our <code>kqueue/epoll/iocp</code> event queue.</p>
+<blockquote>
+<p><code>minimio::Poll</code> does several things under the hood. It sets up a structure for
+us to store some information about the state of the event queue, and most
+importantly makes a syscall to the underlying OS and asks it for a handle to 
+either an <code>epoll</code> instance, a <code>kqueue</code> or to an <code>Completion Port</code>. We won't
+register anything here yet, but we need this handle to later make sure we register
+interest with the queue we're polling.</p>
+</blockquote>
+<p>Next up is also part of <code>minimio</code> we get a <code>Registrator</code>. This struct is &quot;detached&quot;
+from the <code>Poll</code> struct, but it holds a cpoy of the same handle to the event queue.</p>
+<p>This way we kan store the <code>Registrator</code> in our main thread and send off the <code>Poll</code>
+instance to our <code>epoll</code> thread. Our registrator can only register events to the
+queue and that's it.</p>
+<blockquote>
+<p>How can <code>Registrator</code> know that the <code>epoll</code> thread hasn't stopped?</p>
+<p>We'll cover this in detail in the next book, but both <code>Poll</code> and <code>Registrator</code>
+holds a reference to an <code>AtomicBool</code> which only job is to indicate if the queue
+is &quot;alive&quot; or not. In the <code>Drop</code> implemenation of <code>Poll</code> we set this flag to
+false in which case a coll to register an event will return an <code>Err</code>.</p>
+</blockquote>
+<p><code>epoll_timeout</code> is the time to the next timeout. If there is no more timeouts the
+value is <code>None</code>. We wrap this in a <code>Arc&lt;Mutex&lt;&gt;&gt;</code>, since we'll be writing to
+this from the main thread, and reading from it in the <code>epoll</code> thread.</p>
+<p><code>epoll_timeout_clone</code> is just increasing the ref-count on our <code>Arc</code> so that
+we can send this to our <code>epoll</code> thread.</p>
+<p>Next up is spawning our thread. We do this the exact same way as for the thread
+pool, but we name the thread <code>epoll</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let epoll_thread = thread::Builder::new()
+    .name(&quot;epoll&quot;.to_string())
+    .spawn(move || {
+#}</code></pre></pre>
+<p>Now we're inside the <code>epoll</code> thread and will define what this thread needs to
+do to poll and handle events.</p>
+<p>First we allocate a buffer to hold event objects that we get from our <code>poll</code> instance.
+These objects contain information about the event that's occurred including a
+<code>token</code> we pass in when we register the event. This <code>token</code> identifies what event
+has occurred. In our case the token is a simple <code>usize</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let mut events = minimio::Events::with_capacity(1024);
+#}</code></pre></pre>
+<p>We allocate the buffer here since we only allocate this once when we do it here,
+and we want to avoid allocating a new buffer on every turn of our <code>loop</code>.</p>
+<p>Basically, our <code>epoll</code> thread will run a loop which consciously polls for new
+events.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+loop {
+#}</code></pre></pre>
+<p>The interesting logic is inside the loop, and first we read the timeout value which
+should be synced with the next timeout that expires in our main loop.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+let timeout = *epoll_timeout_handle;
+drop(epoll_timeout_handle);
+#}</code></pre></pre>
+<p>To do this we first need to <code>lock</code> the mutex so we know we have exclusive access
+to the <code>timeout</code> value. Now, <code>timeout</code> is of the type <code>Option&lt;i32&gt;</code>, since <code>i32</code>
+implements the <code>Copy</code> trait we can dereference it, which in this case will copy,
+the value and store it in our <code>timeout</code> variable.</p>
+<p><code>drop(epoll_timeout_handle)</code> is not something you'll see often. The <code>MutexGuard</code> we
+get in return when we call <code>epoll_timeout_clone.lock().unwrap()</code> is a <a href="https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization">RAII</a>
+guard. Which means that it will hold a resource (in this case the lock on the mutex)
+until it's deallocated(released). In Rust, the release happens when the value is
+<code>Dropped</code> which normally is by the end of a scope (<code>{...}</code>).</p>
+<p>We need to release the lock since the next call will block until an event occurs
+which means our lock wouldn't have been released and we would end up in a <code>deadlock</code>
+when trying to write a value to our <code>epoll_timeout</code> in our main thread.</p>
+<p>The next part is a handful, but bear in mind that much of what we do here is
+printing out information for us to observe.</p>
+<p>Calling <code>poll</code> will block the loop until an event occurs <strong>or</strong> the timeout has
+elapsed. <code>poll</code> takes in an exclusive reference to our event buffer, and an <code>Option&lt;i32&gt;</code>
+as a timeout. A value of <code>None</code> will block indefinitely.</p>
+<blockquote>
+<p>When we say <code>block</code> here we mean that the OS parks our thread, and switches
+context to another thread. However, it keeps track over that our <code>epoll</code> thread
+listens to events and wakes it up again when any of the events we have registered
+interests to has happened.</p>
+</blockquote>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+match poll.poll(&amp;mut events, timeout) {
+    Ok(v) if v &gt; 0 =&gt; {
+        for i in 0..v {
+            let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+            print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+            
+            let event = PollEvent::Epoll(event.id().value() as usize);
+            event_sender.send(event).expect(&quot;epoll event&quot;);
+        }
+    }
+    Ok(v) if v == 0 =&gt; {
+        print(&quot;epoll event timeout is ready&quot;);
+        event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+    }
+    Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+        print(&quot;recieved event of type: Close&quot;);
+        break;
+    }
+    Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+    _ =&gt; unreachable!(),
+}
+#}</code></pre></pre>
+<p>We <code>match</code> on the result of the <code>poll</code> so when the OS returns we choose what to do.</p>
+<p>We basically have 4 cases we are concerned about:</p>
+<ol>
+<li>We get an Ok(n) where n is larger than 0, in this case we have events to process</li>
+<li>We get an Ok(n) where n is 0, we know this either is a <code>spurious</code> wakeup or that a timeout has occurred</li>
+<li>We get an Err of kind <code>Interrupted</code>, in which case we treat this as a close signal and we close the loop</li>
+<li>We get an Err which is not of type <code>Interrupted</code>, we know something bad has happened, and we <code>panic!</code></li>
+</ol>
+<p>If you haven't seen the syntax <code>Ok(v) if v &gt; 0</code> before it's what we call a <code> match guard</code>
+which lets us refine what we're matching against. In this case, we only match on
+values of <code>v</code> larger than <code>0</code>.</p>
+<p>For completeness I'll also explain <code>Err(ref e) if e.kind()</code>, the <code>ref</code> keyword
+tells the compiler that we want a reference to <code>e</code> and don't want to take
+ownership over it.</p>
+<p>The last case <code>_ =&gt; unreachable!()</code> is just needed since the compiler doesn't realize that
+we're matching on all values of <code>Ok()</code> here. The value is of type <code>Ok(usize)</code> so
+it can't be negative, and we're telling the compiler here that we've got all
+cases covered.</p>
+<p>Lastly we create a <code>Runtime</code> struct and store all the data we've intialized so
+far into it:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+  Runtime {
+    available_threads: (0..4).collect(),
+    callbacks_to_run: vec![],
+    callback_queue: HashMap::new(),
+    epoll_pending_events: 0,
+    epoll_registrator: registrator,
+    epoll_thread,
+    epoll_timeout,
+    event_reciever,
+    identity_token: 0,
+    pending_events: 0,
+    thread_pool: threads,
+    timers: BTreeMap::new(),
+    timers_to_remove: vec![],
+}
+#}</code></pre></pre>
+<p>Worth noting is that we know all threads are available here so <code>(0..4).collect()</code>
+will just create a <code>Vec&lt;usize&gt;</code> with the values <code>[0, 1, 2, 3]</code>.</p>
+<p>In Rust, when we write:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+...
+epoll_registrator: registrator,
+epoll_thread,
+...
+#}</code></pre></pre>
+<p>We're in this case assigning <code>registrator</code> to <code>epoll_registrator</code> which is a
+bit more descriptive. But since we have a variable with the name <code>epoll_thread</code>
+already we don't need to write <code>epoll_thread: epoll_thread</code> since the compiler
+figures that out for us.</p>
+<p>Now the final initialization code for our runtime breaks all &quot;best practices&quot; of
+how long methods you should have but for our case I find it easier to write about
+this if we don't need to jump between functions too much and can just cover all this
+logic from a-z:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl Runtime {
+    pub fn new() -&gt; Self {
+        // ===== THE REGULAR THREADPOOL =====
+        let (event_sender, event_reciever) = channel::&lt;PollEvent&gt;();
+        let mut threads = Vec::with_capacity(4);
+
+        for i in 0..4 {
+            let (evt_sender, evt_reciever) = channel::&lt;Task&gt;();
+            let event_sender = event_sender.clone();
+
+            let handle = thread::Builder::new()
+                .name(format!(&quot;pool{}&quot;, i))
+                .spawn(move || {
+
+                    while let Ok(task) = evt_reciever.recv() {
+                        print(format!(&quot;recived a task of type: {}&quot;, task.kind));
+                        
+                        if let ThreadPoolTaskKind::Close = task.kind {
+                            break;
+                        };
+
+                        let res = (task.task)();
+                        print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
+
+                        let event = PollEvent::Threadpool((i, task.callback_id, res));
+                        event_sender.send(event).expect(&quot;threadpool&quot;);
+                    }
+                })
+                .expect(&quot;Couldn't initialize thread pool.&quot;);
+
+            let node_thread = NodeThread {
+                handle,
+                sender: evt_sender,
+            };
+
+            threads.push(node_thread);
+        }
+
+        // ===== EPOLL THREAD =====
+        let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+        let registrator = poll.registrator();
+        let epoll_timeout = Arc::new(Mutex::new(None));
+        let epoll_timeout_clone = epoll_timeout.clone();
+
+        let epoll_thread = thread::Builder::new()
+            .name(&quot;epoll&quot;.to_string())
+            .spawn(move || {
+                let mut events = minimio::Events::with_capacity(1024);
+                
+                loop {
+                    let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+                    let timeout = *epoll_timeout_handle;
+                    drop(epoll_timeout_handle);
+
+                    match poll.poll(&amp;mut events, timeout) {
+                        Ok(v) if v &gt; 0 =&gt; {
+                            for i in 0..v {
+                                let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+                                print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+                                
+                                let event = PollEvent::Epoll(event.id().value() as usize);
+                                event_sender.send(event).expect(&quot;epoll event&quot;);
+                            }
+                        }
+                        Ok(v) if v == 0 =&gt; {
+                            print(&quot;epoll event timeout is ready&quot;);
+                            event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+                            print(&quot;recieved event of type: Close&quot;);
+                            break;
+                        }
+                        Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+                        _ =&gt; unreachable!(),
+                    }
+                }
+            })
+            .expect(&quot;Error creating epoll thread&quot;);
+
+        Runtime {
+            available_threads: (0..4).collect(),
+            callbacks_to_run: vec![],
+            callback_queue: HashMap::new(),
+            epoll_pending_events: 0,
+            epoll_registrator: registrator,
+            epoll_thread,
+            epoll_timeout,
+            event_reciever,
+            identity_token: 0,
+            pending_events: 0,
+            thread_pool: threads,
+            timers: BTreeMap::new(),
+            timers_to_remove: vec![],
+        }
+    }
+} 
 #}</code></pre></pre>
 <h1><a class="header" href="#timers" id="timers">Timers</a></h1>
 <h2><a class="header" href="#1-check-expired-timers" id="1-check-expired-timers">1. Check expired timers</a></h2>

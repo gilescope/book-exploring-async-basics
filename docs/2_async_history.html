@@ -152,54 +152,45 @@ how computers worked for a long time. We're talking back when the days where a
 program looked like this:</p>
 <p><img src="./images/punched_card_deck.jpg" alt="Image" /></p>
 <p>There were operating systems being researched though and when personal computing
-started to grow in the 80's we had operating systems like DOS. They usually
-yielded control of the entire CPU to the program currently executing and it was
+started to grow in the 80's we had operating systems like DOS. </p>
+<p>They usually yielded control of the entire CPU to the program currently executing and it was
 up to the programmer to make things work and implement any kind of multitasking
 for their program. This worked fine, but as interactive UIs using a mouse and
 windowed operating systems became the norm, this simply couldn't work anymore.</p>
 <h2><a class="header" href="#non-preemptive-multitasking" id="non-preemptive-multitasking">Non-preemptive multitasking</a></h2>
-<p>The method used to be able to keep the UI interactive and running background
-processes, was accomplished by non-preemtive multitasking. This kind of 
-multitasking put the responsibility of letting the OS run other tasks like 
-responding to input from the mouse, or running a background task in the hands of
-the programmer. Typically the programmer <code>yielded</code> control to the OS.</p>
-<p>Beside off loading a huge responsibility to every programmer writing a program
-for your platform, this was also error prone. A small mistake in a programs code
-could halt or crash the entire system. If you remember Windows 95, you also
-remember the times when a window hung and you could paint the entire screen with
-it (almost the same way as the end in Solitare, the card game that came with Windows).
-This was reportedly a typical error in the code that was supposed to yield control
+<p>The first method used to be able to keep a UI interactive (and running background
+processes), was accomplished by what we call <code>non-preemtive multitasking</code>. </p>
+<p>This kind of multitasking put the responsibility of letting the OS run other tasks like responding to input from the mouse, or running a background task in the hands of the programmer. </p>
+<p>Typically the programmer <code>yielded</code> control to the OS.</p>
+<p>Besides off loading a huge responsibility to every programmer writing a program
+for your platform, this was naturally error prone. A small mistake in a programs code
+could halt or crash the entire system. </p>
+<blockquote>
+<p>If you remember Windows 95, you also remember the times when a window hung and you could paint the entire screen with it (almost the same way as the end in Solitare, the card game that came with Windows).</p>
+<p>This was reportedly a typical error in the code that was supposed to yield control
 to the operating system.</p>
-<p>If you're not sure about what this kind of threaded multitasking is I wrote about
-recommend my previous book that explains this part of multitasking pretty well.
-You'll know everything you need about threads, contexts, stacks and scheduling
-for following along.</p>
+</blockquote>
 <h2><a class="header" href="#preemtive-multitasking" id="preemtive-multitasking">Preemtive multitasking</a></h2>
 <p>While non-preemtive multitasking sounded like a good idea, it turned out to
-create serious problems as well. I will not list them here but as you can imagine,
-letting every program and programmer out there be responsible for parts of the
-scheduling of tasks in an operating system will be chaos and ultimately lead to
-a bad user experience.</p>
+create serious problems as well. Letting every program and programmer out there be responsible for having a responsive UI in an operating system can ultimately lead to a bad user experience if.</p>
 <p>The solution was to place the responsibility of scheduling the CPU resources
 between the programs that requested it (including to OS itself) in the hands of
 the OS. The OS can stop execution of a process, do something else, and switch back.</p>
-<p>In a single core machine you can visualize this as running a program you wrote,
-and the OS stops to update the mouse position, and switches back to your program.
-This can happen many times each second, not only to keep the UI responsive but
-it can also give some time to other background tasks and IO events.</p>
+<p>On a single core machine you can visualize this as running a program you wrote,
+the OS stops your program to update the mouse position, switches back to your program to continue and then so forth...</p>
+<p>The OS is then responsible for scheduling tasks and does this by switching contexts on the CPU. This process can happen many times each second, not only to keep the UI responsive but it can also give some time to other background tasks and IO events.</p>
 <p>This is now the prevailing way to design an operating system.</p>
+<blockquote>
+<p>If you want to learn more about this kind of threaded multitasking I recommend reading my previous book about <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/">green threads</a>. This is a nice introduction where you'll be able to get the basic knowledge you need about threads, contexts, stacks and scheduling.</p>
+</blockquote>
 <h2><a class="header" href="#hyperthreading" id="hyperthreading">Hyperthreading</a></h2>
-<p>As CPU's evolved and added more functionality like several ALUs (Algorithmic Logical Unit) 
-and more logical units in general, the CPU manufacturers realized that the entire
-CPU was never utilitized fully. For example when an operation only required some
-parts of the CPU, an instruction could be run on the ALU simultaneously. This
-became the start of Hyperthreading.</p>
+<p>As CPU's evolved and added more functionality like several ALUs (Algorithmic Logical Unit) and more logical units in general, the CPU manufacturers realized that the entire CPU was never utilitized fully. For example when an operation only required some parts of the CPU, an instruction could be run on the ALU simultaneously. This became the start of Hyperthreading.</p>
 <p>You see, on your computer today that it has i.e. 6 cores, and 12 logical cores.
 This is exactly where Hyperthreading comes in. It &quot;simulates&quot; two cores on the
 same core by using unused parts of the CPU to drive progress on thread &quot;2&quot;
 simultaneously as it's running the code on thread &quot;1&quot;. It does this by using a
 number of smart tricks (like the one with the ALU).</p>
-<p>Now we could actually offload some work on one thread while keeping the UI
+<p>Now, having hypertreading, we could actually offload some work on one thread while keeping the UI
 interactive by responding to events in the second thread even though we only
 had one CPU core.</p>
 <blockquote>
@@ -217,31 +208,29 @@ Processors get faster by improving caches, branch prediction, speculative execut
 and working on the processing pipelines of the processors, but the gains seems to
 be diminishing.</p>
 <p>On the other hand, new processors are so small they allow us to have many on the
-same chip instead. Now most CPUs have many cores, including hyperthreading.</p>
+same chip instead. Now most CPUs have many cores, and most often each core will also have the ability to perform hyperthreading.</p>
 <h2><a class="header" href="#so-how-synchronous-is-the-code-you-write-really-" id="so-how-synchronous-is-the-code-you-write-really-">So how synchronous is the code you write, really ?</a></h2>
-<p>As many things this depends on your perspective. From the perspective of your process
-and the code you write for it, everything will normally happen in the order you
-write it.</p>
+<p>As many things this depends on your perspective. From the perspective of your process and the code you write for it, everything will normally happen in the order you write it.</p>
 <p>From the OS perspective it might, or might not, interrupt your code, pause it
 and run some other code in the meantime before resuming your process.</p>
-<p>From the perspective of the CPU it will mostly execute instructions one at a time[1].
+<p>From the perspective of the CPU it will mostly execute instructions one at a time *.
 They don't care who wrote the code though so when a hardware interrupt happens,
 they will immediately stop and give control to an interrupt handler. This is how
 the CPU handles concurrency.</p>
 <blockquote>
-<p>[1] However, modern CPU can also do a lot if things in parallel. Most CPUs are
+<p>* However, modern CPU can also do a lot if things in parallel. Most CPUs are
 pipelined, meaning that the next instruction is loaded while the current is
 executing. It might have a branch predictor that tries to figure out what
-instructions to load next. The processor can also reorder instructions by using
+instructions to load next. </p>
+<p>The processor can also reorder instructions by using
 &quot;out of order execution&quot; if it believes it makes things faster this way without
-&quot;asking&quot; or &quot;telling&quot; the programmer or the OS so you might not have any guarantee
-that A happens before B. The CPU offloads some work to separate &quot;coprocessors&quot;
-like the FPU for for floating point calculations leaving the main CPU ready to
-do other tasks et cetera.</p>
+&quot;asking&quot; or &quot;telling&quot; the programmer or the OS so you might not have any guarantee that A happens before B. </p>
+<p>The CPU offloads some work to separate &quot;coprocessors&quot; like the FPU for for floating point calculations leaving the main CPU ready to do other tasks et cetera.</p>
 <p>As a high level overview, it's OK to model the CPU as operating in a synchronous
 manner, but lets for now just make a mental note that this is a model with some
-caveats that becomes especially important when talking about parallelism,
-synchronization primitives like mutexes and atomics and security.</p>
+caveats that becomes especially important when talking about parallelism and
+synchronization primitives like mutexes, atomics and the security of computers
+and operating systems.</p>
 </blockquote>
 
                     </main>
