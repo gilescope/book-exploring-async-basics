@@ -164,7 +164,7 @@ execute here. I just include it for for completeness but we won't do anything in
 I pretty much explain this step in the comments. Typically releasing resources,
 like closing sockets, is done here.
 
-## The `run` function
+## The final `run` function
 
 ```rust
 impl Runtime {
