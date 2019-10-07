@@ -128,23 +128,27 @@ responsive UI which has roughly a 60 Hz refresh rate.
 
 ## What about threads provided by the OS?
 
-We'll cover threads a bit more when we talk about operating systems, but I'll 
-mention them here as well. The problem with threads provided by the operating 
-system is that they appear to be mapped to cores. But that is not necessarily 
-the truth even though most operating systems will try to map one thread to a 
-core up to the number of threads is equal to  the number of cores.
+We'll cover threads a bit more when we talk about strategies for handling I/O, but I'll 
+mention them here as well. One challenge when using OS threads to understand concurrency
+is that they appear to be mapped to cores. Thats not neccecarely a correct mental model
+to use even though most operating systems will try to map one thread to one
+core up to the number of threads is equal to the number of cores.
 
 Once we create more threads than there are cores, the OS will switch between our
 threads and progress each of them `concurrently` using the scheduler to give each
-thread some time to run. So in this way, threads can be a means to perform tasks
-in parallel, but they can also be a means to achieve concurrency.
+thread some time to run. And you also have to consider the fact that you program
+is not the only one running on the system. Other programs might spawn several threads
+as well which means there will be many more threads than there are cores on the CPU.
+
+Therefore, threads can be a means to perform tasks in parallel, but they can also
+be a means to achieve concurrency.
 
 This brings me over to the last part about concurrency. It needs to be defined
 in some sort of reference frame.
 
 ## Changing the reference frame
 
-When you write code that is perfectly synchronous from your perspective, let's take a look at how that looks from the operating system perspective.
+When you write code that is perfectly synchronous from your perspective, stop for a second and consider how that looks from the operating system perspective.
 
 The Operating System might not run your code from start to end at all. It might stop and resume your process many times. The CPU might get interrupted and handle som inputs while you think it's only focused on your task. 
 
