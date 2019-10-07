@@ -37,24 +37,24 @@ of Rusts Futures. Reading through RFC's, motivations and discussions I realized
 that to really understand the **why** and **how** of Rust's Futures, I needed a very good
 understanding of how async code works in general, and the different strategies to handle it.
 
-**This book might be interesting for you if you:**
+**This book might be interesting if you:**
 
-- Want to take a deep dive into what concurrency is, including its history and how it differs from parallelism.
+- Want to take a deep dive into what concurrency is and strategies on how to deal with it
 
-- Are curious on how to make syscalls on three different platforms, and learning how that's done on three different abstraction levels.
+- Are curious on how to make syscalls on three different platforms, and do it on three different abstraction levels.
 
-- Want to know more about how OS, CPU and Hardware handles concurrency.
+- Want to know more about how the OS, CPU and hardware handles concurrency.
 
-- Want to learn the basics of Epoll, Kqueue and IOCP and prepare yourself for the next book that will cover these in detail.
+- Want to learn the basics of Epoll, Kqueue and IOCP.
 
 - Think using our research to write a **toy** node.js runtime is pretty cool.
 
-- Have read enough articles about it but want to know more about what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.
+- Want to know more about what the Node eventloop really is, and why most diagrams of it on the web are pretty misleading.
 
 - Already know some Rust but want to learn more.
 
-So, what du you think? Is the answer yes? We'll then join me on this venture
-where we try to get a better understanding of all these subjects.
+So, what du you think? Is the answer yes to some of these questions? Well, then join me on this venture
+as we try to get a better understanding of all these subjects.
 
 > We'll only use Rusts standard library. The reason for this is that we really want to know how tings
 > work, and Rusts standard library strikes the perfect balance for this task providing abstractions
@@ -118,7 +118,7 @@ Everything from spelling mistakes to errors or inaccuracies are greatly apprecia
 ## Why I wrote this and companion books
 
 This started as a wish to write an article about Rusts Futures 3.0, but has now
-expanded into 3 finished books about concurrency in general and hopefully, at
+expanded into 3 books about concurrency in general and hopefully, at
 some point a fourth about Rusts Futures exclusively.
 
 This process has also made me realize why I have vague memories from my childhood

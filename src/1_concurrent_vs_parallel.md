@@ -8,14 +8,9 @@ We’ll right of the bat dive into this subject by defining what concurrency is,
 
 We call the concept of progressing multiple tasks at the same time `Multitasking`.
 There are several ways to multitask. One is by **progressing** tasks concurrently,
-but not at the same time. Another is to progress two tasks at the same time in parallel.
-Parallelism can a way of achieving of concurrency.
-
-When we progress tasks concurrently we say they progress in an asynchronous manner.
-Asynchronous code execution is therefore the way we handle concurrency in programming.
+but not at the same time. Another is to progress two tasks at the exact same time in parallel.
 
 ![paralell vs concurrency](./images/definitions.jpg)
-
 
 ## Lets start off with some definitions
 

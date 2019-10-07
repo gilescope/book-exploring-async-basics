@@ -179,32 +179,32 @@ on 64 bit systems.</p>
 of Rusts Futures. Reading through RFC's, motivations and discussions I realized
 that to really understand the <strong>why</strong> and <strong>how</strong> of Rust's Futures, I needed a very good
 understanding of how async code works in general, and the different strategies to handle it.</p>
-<p><strong>This book might be interesting for you if you:</strong></p>
+<p><strong>This book might be interesting if you:</strong></p>
 <ul>
 <li>
-<p>Want to take a deep dive into what concurrency is, including its history and how it differs from parallelism.</p>
+<p>Want to take a deep dive into what concurrency is and strategies on how to deal with it</p>
 </li>
 <li>
-<p>Are curious on how to make syscalls on three different platforms, and learning how that's done on three different abstraction levels.</p>
+<p>Are curious on how to make syscalls on three different platforms, and do it on three different abstraction levels.</p>
 </li>
 <li>
-<p>Want to know more about how OS, CPU and Hardware handles concurrency.</p>
+<p>Want to know more about how the OS, CPU and hardware handles concurrency.</p>
 </li>
 <li>
-<p>Want to learn the basics of Epoll, Kqueue and IOCP and prepare yourself for the next book that will cover these in detail.</p>
+<p>Want to learn the basics of Epoll, Kqueue and IOCP.</p>
 </li>
 <li>
 <p>Think using our research to write a <strong>toy</strong> node.js runtime is pretty cool.</p>
 </li>
 <li>
-<p>Have read enough articles about it but want to know more about what the Node.js eventloop really is, and why most diagrams of it on the web are pretty misleading.</p>
+<p>Want to know more about what the Node eventloop really is, and why most diagrams of it on the web are pretty misleading.</p>
 </li>
 <li>
 <p>Already know some Rust but want to learn more.</p>
 </li>
 </ul>
-<p>So, what du you think? Is the answer yes? We'll then join me on this venture
-where we try to get a better understanding of all these subjects.</p>
+<p>So, what du you think? Is the answer yes to some of these questions? Well, then join me on this venture
+as we try to get a better understanding of all these subjects.</p>
 <blockquote>
 <p>We'll only use Rusts standard library. The reason for this is that we really want to know how tings
 work, and Rusts standard library strikes the perfect balance for this task providing abstractions
@@ -263,7 +263,7 @@ contribute to make this better there are two places to go:</p>
 <p>Everything from spelling mistakes to errors or inaccuracies are greatly appreciated. It will only make this book better for the next person readin it.</p>
 <h2><a class="header" href="#why-i-wrote-this-and-companion-books" id="why-i-wrote-this-and-companion-books">Why I wrote this and companion books</a></h2>
 <p>This started as a wish to write an article about Rusts Futures 3.0, but has now
-expanded into 3 finished books about concurrency in general and hopefully, at
+expanded into 3 books about concurrency in general and hopefully, at
 some point a fourth about Rusts Futures exclusively.</p>
 <p>This process has also made me realize why I have vague memories from my childhood
 of threats being made about stopping the car and letting me off if I didn't stop
@@ -294,10 +294,7 @@ reading the RFC's and discussions about Rusts async story: </p>
 </blockquote>
 <p>We call the concept of progressing multiple tasks at the same time <code>Multitasking</code>.
 There are several ways to multitask. One is by <strong>progressing</strong> tasks concurrently,
-but not at the same time. Another is to progress two tasks at the same time in parallel.
-Parallelism can a way of achieving of concurrency.</p>
-<p>When we progress tasks concurrently we say they progress in an asynchronous manner.
-Asynchronous code execution is therefore the way we handle concurrency in programming.</p>
+but not at the same time. Another is to progress two tasks at the exact same time in parallel.</p>
 <p><img src="./images/definitions.jpg" alt="paralell vs concurrency" /></p>
 <h2><a class="header" href="#lets-start-off-with-some-definitions" id="lets-start-off-with-some-definitions">Lets start off with some definitions</a></h2>
 <h3><a class="header" href="#resource" id="resource">Resource</a></h3>
