@@ -89,8 +89,8 @@ Yes, the coffee machine is doing work while the "worker" is doing
 maintenance and filling water. But this is the crux: _Our reference frame is the worker, not the whole system. The guy making coffee is your code._ 
 
 > It's the same when you make a database query. After you've sent the query to the database server, 
-> the CPU on the database server will be working on your request while you wait for a response. In > practice, it's a way
-> of parallelizing your work. 
+> the CPU on the database server will be working on your request while you wait for a response. In practice, it's a way
+> of parallelizing your work.
 
 **Concurrency is about working smarter. Parallelism is a way of throwing more resources at the problem.**
 
@@ -111,9 +111,9 @@ you can work on in parallel.
 2. When you need to divide your attention and prevent one task from waiting too 
 long
 
-The first is the classic I/O example, where you will have to wait for a network
-call, a file operation or something else to happen before you can progress one 
-task, but you have many tasks to do so instead of waiting you continue work 
+The first is the classic I/O example: you have to wait for a network
+call, a database query or something else to happen before you can progress a 
+task. However, you have many tasks to do so instead of waiting you continue work 
 elsewhere and either check in regularly to see if the task is ready to progress
 or make sure you are notified when that task is ready to progress.
 
