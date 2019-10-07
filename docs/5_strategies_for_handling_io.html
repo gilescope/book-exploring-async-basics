@@ -147,18 +147,6 @@
                     <main>
                         <h1><a class="header" href="#strategies-for-handling-io" id="strategies-for-handling-io">Strategies for handling I/O</a></h1>
 <p>Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency. Now, just note that I'm covering I/O in general here, but I use network communication as the main example. Different strategies can have different strengths depending on what type of I/O we're talking about.</p>
-<h2><a class="header" href="#the-perfect-solution" id="the-perfect-solution">The perfect solution</a></h2>
-<p>Let's start off by picturing a perfect world, and how the most efficient way of handling I/O in a concurrent manner could look like.</p>
-<p>If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?</p>
-<p><img src="./images/AsyncBasicsSimplified.png" alt="overview" /></p>
-<p>The best way would be the following:</p>
-<ol>
-<li>We give the Network Card a message that we want to be notified <strong>immediately</strong> when new data has arrived for us.</li>
-<li>The network card is hyper optimized in the way it checks for data, it's firmware makes sure of that.</li>
-<li>As soon as some data has arrived for us the Network Card let's us know</li>
-<li>We either finish what we're doing or handle that data immediately</li>
-</ol>
-<p>This is super simplified, and probably not realistic. The idea here is that the logic that is closest to the &quot;problem&quot; and has the best hardware support to handle it does the work. Also, we only get notified when we are expecting something, not on every event that might occur. These assumptions are not very realistic.</p>
 <h2><a class="header" href="#1-using-os-threads" id="1-using-os-threads">1. Using OS threads</a></h2>
 <p>Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.</p>
 <p><strong>Pros:</strong></p>
@@ -171,12 +159,12 @@
 <p><strong>Cons:</strong></p>
 <ul>
 <li>OS level threads come with a rather large stack. If you have many tasks happening simultaneously (like in a webserver under heavy load) you'll run out of memory pretty soon.</li>
-<li>There are a lot of syscalls involved this can be pretty costly</li>
+<li>There are a lot of syscalls involved. This can be pretty costly when the number of tasks is high.</li>
 <li>The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish</li>
 <li>The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.</li>
 </ul>
 <h2><a class="header" href="#2-green-threads" id="2-green-threads">2. Green threads</a></h2>
-<p>Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
+<p>Another common way of handling this is green threads. Languages like Go uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
 <p><strong>Pros:</strong></p>
 <ul>
 <li>Simple to use for the user. The code will look like it does when using OS threads</li>
@@ -187,14 +175,15 @@
 <p><strong>Cons:</strong></p>
 <ul>
 <li>You need a runtime, and by having that you are duplicating part of the work the OS already does. The runtime will have a cost which in some cases can be substantial.</li>
-<li>Can be difficult to implement in a flexible way to handle a wide set of tasks</li>
+<li>Can be difficult to implement in a flexible way to handle a wide variety of tasks</li>
 </ul>
 <h2><a class="header" href="#3-poll-based-event-loops-supported-by-the-os" id="3-poll-based-event-loops-supported-by-the-os">3. Poll based event loops supported by the OS</a></h2>
-<p>The third way we're covering today is the one that most closely matches our <em>ideal</em> solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. </p>
-<p>The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. The OS let's us know that data is ready for us to read.</p>
+<p>The third way we're covering today is the one that most closely matches an ideal solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. </p>
+<p>The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. </p>
+<p>Now, we still need a way to &quot;suspend&quot; many tasks while waiting, and this is where Nodes &quot;runtime&quot; or Rusts Futures come in to play. </p>
 <p><strong>Pros:</strong></p>
 <ul>
-<li>Very little work is duplicated which makes it very performant</li>
+<li>Close to optimal resource utilization</li>
 <li>It's very efficient</li>
 <li>Gives us the maximum amount of flexibility to decide how to handle the events that occurs</li>
 </ul>
@@ -203,10 +192,12 @@
 <li>Different operating systems have different ways of handle these kind of queues. Some of them are difficult to reconcile with each other. Some operating systems has limitations on what I/O operations support this method.</li>
 <li>Great flexibility comes with a good deal of complexity</li>
 <li>Difficult to write an abstraction layer that accounts for the differences between the operating systems without introducing unwanted costs, and at the same time provide a ergonomic API.</li>
+<li>Only solves part of the problem, the programmer still needs a strategy for suspending tasks that are waiting.</li>
 </ul>
 <h2><a class="header" href="#final-note" id="final-note">Final note</a></h2>
-<p>The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently.</p>
-<p>Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the <em>cons</em> of this method. Most notably the last point.</p>
+<p>The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently. Node uses a callback based approach to suspend
+tasks.</p>
+<p>Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the <em>cons</em> of this method and choosing a way to model how tasks should be suspended. Rusts Futures model a task as a <a href="https://en.wikipedia.org/wiki/Finite-state_machine">State Machine</a> where a suspension point represents a <code>state</code>.</p>
 
                     </main>
 

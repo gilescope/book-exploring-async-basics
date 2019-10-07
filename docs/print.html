@@ -402,7 +402,7 @@ in some sort of reference frame.</p>
 <p>The Operating System might not run your code from start to end at all. It might stop and resume your process many times. The CPU might get interrupted and handle som inputs while you think it's only focused on your task. </p>
 <p>So synchronous execution is only an illusion. But from the perspective of you as a programmer it's not, and that is the important takeaway:</p>
 <p><strong>When we talk about concurrency without providing any other context we are using you as a programmer and your code (your process) as the reference frame. If you start pondering about concurrency
-whithout keeping this in the back of your head it will get confusing very fast.</strong></p>
+without keeping this in the back of your head it will get confusing very fast.</strong></p>
 <p>The reason I spend so much time on this is that once you realize that, you'll start to see that some of the things you hear and learn that might seem contradicting really is not. You'll just have to consider the reference frame first.</p>
 <p>If this still sounds complicated, I understand. Just sitting and reflecting about concurrency is difficult, but if we try to keep these thoughts in the back of our head when we work with async code I promise it will get less and less confusing.</p>
 <h1><a class="header" href="#async-history" id="async-history">Async history</a></h1>
@@ -493,13 +493,11 @@ synchronization primitives like mutexes, atomics and the security of computers
 and operating systems.</p>
 </blockquote>
 <h1><a class="header" href="#the-operating-system" id="the-operating-system">The Operating System</a></h1>
-<p>The operating system stands in the center of everything we do as programmers,
+<p>The operating system stands in the center of everything we do as programmers (well, unless you're <a href="https://os.phil-opp.com/">writing an Operating System</a> or are in the <a href="https://rust-embedded.github.io/book/">Embedded realm</a>),
 so there is no way for us to discuss any kind of fundamentals in programming
 without talking about operating systems in a bit of detail. </p>
 <h2><a class="header" href="#concurrency-from-the-operating-systems-perspective" id="concurrency-from-the-operating-systems-perspective">Concurrency from the operating systems perspective</a></h2>
-<blockquote>
-<p>Operating systems has been &quot;faking&quot; synchronous execution since the 90's.</p>
-</blockquote>
+<div style="color: back;  font-style: italic; font-size: 1.2em">"Operating systems has been "faking" synchronous execution since the 90's."</div>
 <p>This ties into what I talked about in the first chapter when I said that <code>concurrent</code>
 needs to be talked about within a reference frame and I explained that the OS
 might stop and start your process at any time.</p>
@@ -518,48 +516,44 @@ left to run uninterrupted.</p>
 </blockquote>
 <h2><a class="header" href="#teaming-up-with-the-os" id="teaming-up-with-the-os">Teaming up with the OS.</a></h2>
 <p>When programming it's often easy to forget how many moving pieces that need to
-cooperate to reach maximum efficiency. When you make a web request, you're not
+cooperate when we care about efficiency. When you make a web request, you're not
 asking the CPU or the network card to do something for you, you're asking the
 operating system to talk to the network card for you.</p>
 <p>There is no way for you as a programmer to make your system optimally efficient
 without playing to the operating systems strengths. You basically don't have
-access to the hardware directly. This assumes that you're writing code that runs
-on an operating system though. But our focus here is written in the context of
-Linux, Macos and Windows so cooperating with the OS to be as efficient as possible
-is unavoidable.</p>
+access to the hardware directly. </p>
 <p>However this also means that to understand everything from the ground up, you'll
 also need to know how your operating system handles these tasks.</p>
 <p>To be able to work with the operating system, we'll need to know how we can communicate with it and that's exactly what we're going to go through next.</p>
 <h1><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h1>
-<p>In this chapter I want to dive into:</p>
+<p><strong>In this chapter I want to dive into:</strong></p>
 <ul>
-<li>What is a System Call</li>
-<li>Abstractions over syscalls</li>
-<li>Challenges low level cross platform code</li>
+<li>What a System Call is</li>
+<li>Abstractiion levels</li>
+<li>Challenges of writing low-level cross-platform code</li>
 </ul>
-<h2><a class="header" href="#what-is-a-syscall" id="what-is-a-syscall">What is a syscall</a></h2>
+<h2><a class="header" href="#syscall-primer" id="syscall-primer">Syscall primer</a></h2>
 <p>Communication with the operating system is done through <code>System Calls</code> or 
-&quot;syscalls&quot;. This is a public API that the operating system provides and that programs
-can use to communicate with the OS. Most of the time these calls are abstracted away for us as 
+&quot;syscalls&quot; as we'll call them from now on. This is a public API that the operating system provides and that programs we write in &quot;userland&quot; can use to communicate with the OS. </p>
+<p>Most of the time these calls are abstracted away for us as 
 programmers by the language or the runtime we use. A language like Rust makes it 
-trivial to make a syscall though which we'll see below.</p>
-<p>Now syscalls is an example of something that is unique to the kernel you're communicating with, but the UNIX family of kernels has many similarities especially the API exposed by <code>libc</code>.</p>
-<p>Windows on the other hand  uses it's own api, often referred to as WinAPI, and that can be radically different from how the UNIX based systems operate. Most often though there is a way to achieve the same things. In terms of functionality you might not notice a big difference but as we'll see below and especially when we dig into how <code>epoll</code>, <code>kqueue</code> and <code>IOCP</code>, they can differ a lot on how this functionality is implemented.</p>
+trivial to make a <code>syscall</code> though which we'll see below.</p>
+<p>Now, <code>syscalls</code> is an example of something that is unique to the kernel you're communicating with, but the UNIX family of kernels has many similarities. UNIX systems exposes their through <strong><code>libc</code></strong>.</p>
+<p>Windows on the other hand  uses it's own api, often referred to as WinAPI, and that can be radically different from how the UNIX based systems operate. </p>
+<p>Most often though there is a way to achieve the same things. In terms of functionality you might not notice a big difference but as we'll see below and especially when we dig into how <code>epoll</code>, <code>kqueue</code> and <code>IOCP</code>, they can differ a lot in how this functionality is implemented.</p>
 <h2><a class="header" href="#syscall-example" id="syscall-example">Syscall example</a></h2>
-<p>To get a bit more familiar with syscalls we'll implement a very basic one for 
-the three arcitectures: BSD(macos), Linux and Windows. We'll also see how this is implemented in three levels of abstractions.</p>
-<p>The syscall we'll implement is the one used when we write something to <code>stdout</code> since that is such a common operation it's interesting to se how it really works.</p>
+<p>To get a bit more familiar with <code>syscalls</code> we'll implement a very basic one for 
+the three architectures: <code>BSD(macos)</code>, <code>Linux</code> and <code>Windows</code>. We'll also see how this is implemented in three levels of abstractions.</p>
+<p>The <code>syscall</code> we'll implement is the one used when we write something to <code>stdout</code> since that is such a common operation and it's interesting to se how it really works.</p>
 <h3><a class="header" href="#the-lowest-level-of-abstraction" id="the-lowest-level-of-abstraction">The lowest level of abstraction</a></h3>
-<p>For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.</p>
+<p>For this to work we need to write some <a href="https://doc.rust-lang.org/1.0.0/book/inline-assembly.html">inline assembly</a>. We'll start by focusing on the instructions we write to the CPU.</p>
 <blockquote>
 <p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
 </blockquote>
 <p>Now at this level of abstraction, we'll write different code for all three platforms.</p>
-<p>On both Linux and Macos the syscall we want to invole is called <code>write</code>. Both systems operates based on the concept of <code>file descriptors</code> and <code>stdout</code> is one of these alredy present when you start a proccess.</p>
-<p><strong>On Linux a <code>write</code> syscall can look like this</strong></p>
-<blockquote>
-<p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
-</blockquote>
+<p>On Linux and Macos the <code>syscall</code> we want to invoke is called <code>write</code>. Both systems operates based on the concept of <code>file descriptors</code> and <code>stdout</code> is one of these already present when you start a process.</p>
+<p><strong>On Linux a <code>write</code> syscall can look like this</strong> <br />
+(You can run the example by clicking &quot;play&quot; in the right corner)</p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
     let message = String::from(&quot;Hello world from interrupt!\n&quot;);
@@ -587,15 +581,16 @@ fn syscall(message: String) {
 </code></pre></pre>
 <p>The code to initiate the <code>write</code> syscall on Linux is <code>1</code> so when we write <code>$$1</code> we're writing the literal value 1 to the <code>rax</code> register.</p>
 <blockquote>
-<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to parameter so when we write <code>$0</code> we're referring to the first parameter <code>msg_ptr</code>.</p>
+<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to a parameter so when we write <code>$0</code> we're referring to the first parameter called <code>msg_ptr</code>.</p>
 </blockquote>
 <p>Coincidentally, placing the value <code>1</code> in to the <code>rdi</code> register means that we're referring to <code>stdout</code> which is the file descriptor we want to write to. This has nothing to do with the fact that the <code>write</code> syscall also has the code <code>1</code>.</p>
 <p>Secondly we pass in the address of our string buffer and the length of the buffer in the registers <code>rsi</code> and <code>rdx</code> respectively, and call the <code>syscall</code> instruction.</p>
 <blockquote>
-<p>The <code>syscall</code> is a rather new one. On the earlier 32-bit systems in the <code>x86</code> arcitecture, you invoked a syscall by issuing a software interrupt <code>int 0x80</code>. A software interrupt is considered slow at the level we're working at here so later it was added a seperate instruction for it called <code>syscall</code>. he <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a> which is a memory page attached to each process so no context switch is necessary to execute the system call.</p>
+<p>The <code>syscall</code> instruction is a rather new one. On the earlier 32-bit systems in the <code>x86</code> architecture, you invoked a syscall by issuing a software interrupt <code>int 0x80</code>. A software interrupt is considered slow at the level we're working at here so later a seperate instruction for it called <code>syscall</code> was added. The <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a>, which is a memory page attached to each process' memory, so no context switch is necessary to execute the system call.</p>
 </blockquote>
-<p>On Macos, the syscall will look something like this:</p>
-<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
+<p><strong>On Macos, the syscall will look something like this:</strong> <br />
+(since the Rust playground is running Linux, we can't run this example here)</p>
+<pre><pre class="playpen"><code class="language-rust no_run">#![feature(asm)]
 fn main() {
     let message = String::from(&quot;Hello world from interrupt!\n&quot;);
     syscall(message);
@@ -622,15 +617,19 @@ fn syscall(message: String) {
 </code></pre></pre>
 <p>As you see this is not that different from the one we wrote for Linux, with the exception of the fact that syscall <code>write</code> has the code <code>0x2000004</code> instead of <code>1</code>.</p>
 <p><strong>What about Windows?</strong></p>
-<p>It's a good opportunity to explain why writing code like we do above is a bad idea. You see, if you want your code to work for a long time you have to worry about what <code>guarantees</code> the OS gives you. As far as I know, there are no guarantees that <code>$$0x2000004</code> on Macos will always refer to <code>write</code>. I do think Linux has better guarantees, but I know for a fact that Windows makes absolutely zero guarantees about this.</p>
-<p>Windows has changed it's internals about this numerous times and provide no official documentation. The only thing we got is reverse engineered tables like <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>. That means that what was <code>write</code> can be changed to <code>delete</code> the next time you update Windows.</p>
-<p>Even though it would be fun, as a curiosity, to include it I haven't managed to get it to work and have no idea how much code that would be. See <a href="./introduction.html">contributing</a> if you have the answer dear reader, and I'll include it if it's not too much code.</p>
+<p>This is a good opportunity to explain why writing code like we do above is a bad idea. </p>
+<p>You see, if you want your code to work for a long time you have to worry about what <code>guarantees</code> the OS gives you. As far as I know, both Linux and Macos gives
+some guarantees that for example <code>$$0x2000004</code> on Macos will always refer to <code>write</code> (I'm not sure how strong these guarantees are though). Windows gives absolutely zero guarantees when it comes to low level internals like this.</p>
+<p>Windows has changed it's internals numerous times and provides no official documentation. The only thing we got is reverse engineered tables like <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>. That means that what was <code>write</code> can be changed to <code>delete</code> the next time you run Windows update.</p>
 <h2><a class="header" href="#the-next-level-of-abstraction" id="the-next-level-of-abstraction">The next level of abstraction</a></h2>
-<p>The next level of abstraction is to use the API which all three operating systems provide for us. Already we can see that this abstraction helps us remove some code since fortunately for us in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on Windows and therefore use the <code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the Windows syscall we do the opposite.</p>
-<h3><a class="header" href="#using-the-api-in-linux-and-macos" id="using-the-api-in-linux-and-macos">Using the API in Linux and Macos</a></h3>
+<p>The next level of abstraction is to use the API which all three operating systems provide for us.</p>
+<p>Already we can see that this abstraction helps us remove some code since fortunately for us, in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on Windows and therefore use the <code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the Windows syscall we do the opposite.</p>
+<h3><a class="header" href="#using-the-os-provided-api-in-linux-and-macos" id="using-the-os-provided-api-in-linux-and-macos">Using the OS provided API in Linux and Macos</a></h3>
 <p>You can run this code directly here in the window. However, the Rust playground 
 runs on Linux, you'll need to copy the code over to a Windows machine if you 
 want to try it out the code for Windows further down.</p>
+<p><strong>Our syscall will now look like this</strong> <br />
+(You can run this code here. It will work for both Linux and Macos)</p>
 <pre><pre class="playpen"><code class="language-rust">use std::io;
 
 fn main() {
@@ -660,17 +659,23 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 </code></pre></pre>
 <p>I'll explain what we just did here. I assume that the <code>main</code> method needs no 
 comment.</p>
-<pre><code class="language-rust no_run noplaypen">#[link(name = &quot;c&quot;)]
-</code></pre>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+#[link(name = &quot;c&quot;)]
+#}</code></pre></pre>
 <p>Every Linux installation comes with a version of <code>libc</code> which a C-library for 
 communicating with the operating system. Having a <code>libc</code> with a consistent API 
 means they can change the underlying implementation without braking everyones 
 code. This flag tells the compiler to link to the &quot;c&quot; library on the system we'
 re compiling for.</p>
-<pre><code class="language-rust no_run noplaypen">extern &quot;C&quot; {
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+extern &quot;C&quot; {
     fn write(fd: u32, buf: *const u8, count: usize);
 }
-</code></pre>
+#}</code></pre></pre>
 <p><code>extern &quot;C&quot;</code> or only <code>extern</code> (C is assumed if nothing is specified) means we're 
 linking to specific functions in the &quot;c&quot; library using the &quot;C&quot; calling 
 convention. As you'll see on Windows we'll need to change this since it uses a 
@@ -680,27 +685,34 @@ different calling convention than the UNIX family.</p>
 the right order and it's good practice to name them the same as in the library 
 you're linking to.</p>
 <p>The write function takes a <code>file descriptor</code> which in this case is a handle to 
-<code>stdout</code>, a pointer to a array of <code>u8</code> values, and a count of how many values we 
-want to read from the buffer.</p>
-<pre><code class="language-rust no_run noplaypen">#[cfg(not(target_os = &quot;windows&quot;))]
+<code>stdout</code>. In addition it expects us to provide a pointer to a array of <code>u8</code> values and the length of the buffer.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+#[cfg(not(target_os = &quot;windows&quot;))]
 fn syscall_libc(message: String) {
     let msg_ptr = message.as_ptr();
     let len = message.len();
     unsafe { write(1, msg_ptr, len) };
 }
-</code></pre>
+#}</code></pre></pre>
 <p>The first thing we do is to get the pointer to the underlying buffer for our 
-string. That will be a pointer of type <code>*const u8</code> which matches our <code>buf</code> 
-argument. The length of the message corresponds to the <code>count</code> argument.</p>
+string. This will be a pointer of type <code>*const u8</code> which matches our <code>buf</code> 
+argument. The <code>len</code> of the buffer corresponds to the <code>count</code> argument.</p>
 <p>You might ask how we know that <code>1</code> is the file handle to <code>stdout</code> and where we 
-found that value. You'll notice this a lot when writing syscalls from Rust. 
-Usually constants are defined in the C header files which we can't link to, so 
-we need to search them up. 1 is always the file descriptor for <code>stdout</code> on UNIX 
-systems.</p>
+found that value. </p>
+<p>You'll notice this a lot when writing syscalls from Rust. Usually constants are defined in the C header files which we can't link to, so we need to search them up. 1 is always the file descriptor for <code>stdout</code> on UNIX systems.</p>
+<blockquote>
+<p>Wrapping the <code>libc</code> functions and providing these constants is exactly what the
+crate <a href="https://github.com/rust-lang/libc">libc</a> provides for us and why you'll see that used instead of writing
+the type of code we do here.</p>
+</blockquote>
 <p>A call to a FFI function is always unsafe so we need to use the <code>unsafe</code> keyword 
 here.</p>
 <h3><a class="header" href="#using-the-api-on-windows" id="using-the-api-on-windows">Using the API on Windows</a></h3>
-<pre><code class="language-rust no_run noplaypen">use std::io;
+<p><strong>This syscall will look like this on Windows:</strong> <br />
+(You'll need to copy this code over to a Windows machine to try this out)</p>
+<pre><pre class="playpen"><code class="language-rust no_run">use std::io;
 
 fn main() {
     let sys_message = String::from(&quot;Hello world from syscall!\n&quot;);
@@ -746,12 +758,7 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
     assert_eq!(output as usize, len);
     Ok(())
 }
-</code></pre>
-<pre><code>The Rust playground, which we use to run our code, is a Linux machine. I 
-disabled the possibility to run the windows code here (since it will 
-essentially just be skipped on compilation). However, if you have a Windows 
-machine, copy the code above and try for yourself.
-</code></pre>
+</code></pre></pre>
 <p>Now, just by looking at the code above you see it starts to get a bit more 
 complex, but let's spend som time to go through line by line what we do here as 
 well.</p>
@@ -763,7 +770,10 @@ well.</p>
 <p>The second line is a linker directive, telling the linker we want to link to the 
 library <code>kernel32</code> (if you ever see an example that links to <code>user32</code> that will 
 also work).</p>
-<pre><code class="language-rust no_run noplaypen">extern &quot;stdcall&quot; {
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+extern &quot;stdcall&quot; {
     /// https://docs.microsoft.com/en-us/windows/console/getstdhandle
     fn GetStdHandle(nStdHandle: i32) -&gt; i32;
     /// https://docs.microsoft.com/en-us/windows/console/writeconsole
@@ -775,20 +785,20 @@ also work).</p>
         lpReserved: *const std::ffi::c_void,
     ) -&gt; i32;
 }
-</code></pre>
+#}</code></pre></pre>
 <p>First of all, <code>extern &quot;stdcall&quot;</code>, tells the compiler that we won't use the <code>C</code> 
 calling convention but use Windows calling convention called <code>stdcall</code>.</p>
 <p>The next part is the functions we want to link to. On Windows, we need to link 
-to two functions to get this to work: <code>GetStdHandle</code> and <code>WriteConsoleA</code>. 
+to two functions to get this to work: <code>GetStdHandle</code> and <code>WriteConsoleW</code>. 
 <code>GetStdHandle</code> retrieves a reference to a standard device like <code>stdout</code>.</p>
-<p>WriteConsole comes in two flavors, <code>WriteConsoleW</code> that takes in Unicode text 
+<p><code>WriteConsole</code> comes in two flavors, <code>WriteConsoleW</code> that takes in Unicode text 
 and <code>WriteConsoleA</code> that takes ANSI encoded text. </p>
 <p>Now, ANSI encoded text works fine if you only write English text, but as soon as 
 you write text in other languages you might need to use special characters that 
-are not possible to represent in <code>ANSI</code> but is possible in <code>utf-8</code> and our code 
+are not possible to represent in <code>ANSI</code> but is possible in <code>utf-8</code> and our program
 will break.</p>
 <p>That's why we'll convert our <code>utf-8</code> encoded text to <code>utf-16</code> encoded Unicode 
-text that can represent these characters and use the <code>WriteConsoleW</code> function.</p>
+codepoints that can represent these characters and use the <code>WriteConsoleW</code> function.</p>
 <pre><code class="language-rust no_run noplaypen">#[cfg(target_os = &quot;windows&quot;)]
 fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 
@@ -816,14 +826,14 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 }
 </code></pre>
 <p>The first thing we do is to convert the text to utf-16 encoded text which 
-Windows uses. Fortunately Rust has a built in function to encode our <code>utf-8</code>
+Windows uses. Fortunately Rust has a built in function to convert our <code>utf-8</code>
 encoded text to <code>utf-16</code> code points. <code>encode_utf16</code> returns an iterator over 
 <code>u16</code> code points that we can collect to a <code>Vec</code>.</p>
 <pre><code class="language-rust no_run noplaypen">let msg: Vec&lt;u16&gt; = message.encode_utf16().collect();
 let msg_ptr = msg.as_ptr();
 let len = msg.len() as u32;
 </code></pre>
-<p>We then get the pointer to the underlaying buffer of our <code>Vec</code> and calculate the 
+<p>Next we get the pointer to the underlaying buffer of our <code>Vec</code> and get the 
 length.</p>
 <pre><code class="language-rust no_run noplaypen">let handle = unsafe { GetStdHandle(-11) };
    if handle  == -1 {
@@ -833,41 +843,33 @@ length.</p>
 <p>The next is a call to <code>GetStdHandle</code>. We pass in the value <code>-11</code>. The values we 
 need to pass in for the different standard devices is actually documented 
 together with the <code>GetStdHandle</code> documentation:</p>
-<ul>
-<li>Stdin: -10</li>
-<li>Stdout: -11</li>
-<li>StdErr: -12</li>
-</ul>
+<table><thead><tr><th>Handle</th><th>Value</th></tr></thead><tbody>
+<tr><td>Stdin</td><td>-10</td></tr>
+<tr><td>Stdout</td><td>-11</td></tr>
+<tr><td>StdErr</td><td>-12</td></tr>
+</tbody></table>
 <p>Now, we're lucky here, it's not that common that we find this information 
-together with the documentation function we call but it's very convenient when 
-we do.</p>
-<p>What return codes to expect is also documented thoroughly so we handle potential 
-errors here in the same way as we did for the Linux/Macos syscalls.</p>
-<pre><code class="language-rust no_run noplaypen">let res = unsafe { 
+together with the documentation for the function we call but it's very convenient when we do.</p>
+<p>The return codes to expect is also documented thoroughly for all functions so we handle potential errors here in the same way as we did for the Linux/Macos syscalls.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let res = unsafe { 
     WriteConsoleW(handle, msg_ptr, len, &amp;mut output, std::ptr::null()) 
     };
 
 if res  == 0 {
     return Err(io::Error::last_os_error());
 }
-</code></pre>
-<p>Next up is the call to the <code>WriteConsoleW</code> function. Now that we have explained 
-everything else there is nothing too fancy about this.</p>
+#}</code></pre></pre>
+<p>Next up is the call to the <code>WriteConsoleW</code> function. There is nothing too fancy about this.</p>
 <h2><a class="header" href="#the-highest-level-of-abstraction" id="the-highest-level-of-abstraction">The highest level of abstraction</a></h2>
-<p>This is simple, most standard libraies provide this abstraction for you. In rust that would simple be:</p>
+<p>This is simple, most standard libraries provide this abstraction for you. In rust that would simply be:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 println!(&quot;Hello world from Stdlib&quot;);
 #}</code></pre></pre>
-<h2><a class="header" href="#a-note-about-complexity" id="a-note-about-complexity">A note about complexity</a></h2>
-<p>There is a lot of &quot;hidden&quot; complexity when writing cross platform code at this 
-level. One hurdle is to get something working, which can prove to be quite a 
-challenge. Getting it to work <strong>correctly</strong> and <strong>safely</strong> while covering edge 
-cases is an additional challenge. </p>
-<p>Are we 100% sure that all valid <code>utf-8</code> code points which we use in Rust is valid 
-<code>utf-16</code> encoded Unicode that Windows will display correctly?</p>
-<p>I think so, but being 100 % sure about <a href="https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings">this might not be as easy as one might think</a>.</p>
 <h1><a class="header" href="#our-finished-cross-platform-syscall" id="our-finished-cross-platform-syscall">Our finished cross platform syscall</a></h1>
 <pre><pre class="playpen"><code class="language-rust">use std::io;
 
@@ -937,21 +939,22 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 }
 </code></pre></pre>
 <h1><a class="header" href="#about-writing-cross-platform-abstractions" id="about-writing-cross-platform-abstractions">About writing cross platform abstractions</a></h1>
-<p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you want to make a cross platform variant, the amount of code explodes. This is a problem when writing about this stuff in general, but we need some basic understanding on how the different operating systems work under the covers. </p>
+<p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you want to make a cross platform variant, the amount of code explodes. </p>
+<p>This is a recurring problem when we're curious about how this works on three different platforms, but we need some basic understanding on how the different operating systems work under the covers.</p>
 <p>My experience in general is that Linux and Macos have simpler API requiring fewer lines of code, and often (but not always) the exact same call works for both systems.</p>
-<p>Windows on the other hand is mor complex, requires more &quot;magic&quot; constant numbers, requires you to set up more structures to pass in, and way more lines of code. What Windows does have though are very good documentation so even though it's more work you'll also find the official documentation very good.</p>
+<p>Windows on the other hand is more complex, requires you to set up more structures to pass information (instead of using primitives), and often way more lines of code. What Windows does have is very good documentation so even though it's more work you'll also find the official documentation very helpful.</p>
 <p>This complexity why the Rust community (other languages often has something similar) gathers around crates like <a href="https://github.com/rust-lang/libc">libc</a> which already have defined most methods and constants you need.</p>
-<h2><a class="header" href="#" id=""></a></h2>
-<h1><a class="header" href="#does-the-cpu-and-the-os-cooperate" id="does-the-cpu-and-the-os-cooperate">Does the CPU and the OS cooperate?</a></h1>
-<p>If you would have asked me this question a year ago I would most likely answer
-no. The OS operates on top of the CPU and is the &quot;gateway&quot; all other application
-uses. Now, first of all, I wouldn't have thought this through, but unless you
-learn how this work from the bottom up, it's not easy to know for sure.</p>
-<p>What started to make me think I was very wrong was some code looking like this:</p>
-<blockquote>
-<p>We'll write instructions directly to the CPU so there know there are no 
-abstractions, syscalls or runtime of some sort that might do some magic for us</p>
-</blockquote>
+<h2><a class="header" href="#a-note-about-hidden-complexity" id="a-note-about-hidden-complexity">A note about &quot;hidden&quot; complexity</a></h2>
+<p>There is a lot of &quot;hidden&quot; complexity when writing cross platform code at this
+level. One hurdle is to get something working, which can prove to be quite a
+challenge. Getting it to work <strong>correctly</strong> and <strong>safely</strong> while covering all
+edge cases is an additional challenge. </p>
+<p><strong>Are we 100% sure that all valid <code>utf-8</code> code points which we use in Rust is valid 
+<code>utf-16</code> encoded Unicode that Windows will display correctly?</strong></p>
+<p>I think so, but being 100 % sure about <a href="https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings">this is not as easy as one might think</a>.</p>
+<h1><a class="header" href="#does-the-cpu-cooperate-with-the-operating-system" id="does-the-cpu-cooperate-with-the-operating-system">Does the CPU cooperate with the Operating System?</a></h1>
+<p>If you had asked me this question when I first thought I understood how programs work, I would most likely answer no. We run programs on the CPU and we can do whatever we want if we know how to do it. Now, first of all, I wouldn't have thought this through, but unless you learn how this work from the bottom up, it's not easy to know for sure.</p>
+<p><strong>What started to make me think I was very wrong was some code looking like this:</strong></p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
     let t = 100;
@@ -969,10 +972,11 @@ fn dereference(ptr: *const usize) -&gt; usize {
     res
 }
 </code></pre></pre>
+<blockquote>
 <p>Here we write a <code>dereference</code> function using assembly instructions. We know there
 is no way the OS is involved here.</p>
-<p>As you see, this code will output <code>100</code> as expected. But let's now instead create a 
-pointer with the address <code>99999999999999</code> which we know is invalid and see what 
+</blockquote>
+<p>As you see, this code will output <code>100</code> as expected. But let's now instead create a pointer with the address <code>99999999999999</code> which we know is invalid and see what 
 happens when we pass that into the same function:</p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
@@ -993,18 +997,16 @@ fn main() {
 <p>Now we get a segmentation fault. Not surprising really, but how does the CPU
 know that we're not allowed to dereference this memory?</p>
 <ul>
-<li>Does the CPU ask the OS if this process is allowed to access this memory location?</li>
+<li>Does the CPU ask the OS if this process is allowed to access this memory location every time we dereference something?</li>
 <li>Won't that be very slow? </li>
-<li>How does the CPU know that it has an OS running on top of it at all? D</li>
-<li>Does all CPUs know what a segmentation fault is? </li>
-<li>Does the CPU have any concept of memory segmentation at all? </li>
+<li>How does the CPU know that it has an OS running on top of it at all?</li>
+<li>Do all CPUs know what a segmentation fault is? </li>
 <li>Why do we get an error message at all and not just a crash?</li>
 </ul>
 <h2><a class="header" href="#down-the-rabbit-hole" id="down-the-rabbit-hole">Down the rabbit hole</a></h2>
 <p>Yes, this is a small rabbit hole. It turns out that there
-os some kind of corporation, but maybe not the way you naively would think.</p>
-<p>Many modern CPUs provide some infrastructure that Operating Systems need to 
-implement and give us the security and stability we expect. Actually, most 
+is a great deal of corporation between the OS and the CPU, but maybe not the way you naively would think.</p>
+<p>Many modern CPUs provide some basic infrastructure that Operating Systems use. This infrastructure give us the security and stability we expect. Actually, most 
 advanced CPUs provide a lot more options than operating systems like Linux, BSD and
 Windows actually uses.</p>
 <p>There is especially two that I want to address here:</p>
@@ -1012,14 +1014,14 @@ Windows actually uses.</p>
 <li>How the CPU prevents us from accessing memory we're not supposed to access</li>
 <li>How the CPU handles asynchronous events like I/O</li>
 </ol>
+<p><em>We'll cover the first one here and the second in the next chapter.</em></p>
 <blockquote>
 <p>If you want to know more about how this works in detail I will absolutely
 recommend that you give <a href="https://os.phil-opp.com/">Philipp Oppermann excelent series</a>
 a read. It's extremely well written and will answer all these questions and many more.</p>
 </blockquote>
 <h2><a class="header" href="#how-does-the-cpu-prevent-us-from-accessing-memory-were-not-supposed-to" id="how-does-the-cpu-prevent-us-from-accessing-memory-were-not-supposed-to">How does the CPU prevent us from accessing memory we're not supposed to?</a></h2>
-<p>As I mentioned, modern CPUs have already some definition of basic concepts. Some
-concepts the CPU is aware of are (there are more but we can't cover everything here):</p>
+<p>As I mentioned, modern CPUs have already some definition of basic concepts. Some examples of this is:</p>
 <ul>
 <li>Virtual memory </li>
 <li>Page table</li>
@@ -1035,18 +1037,17 @@ the virtual address we use in our programs, to a physical address.</p>
 <p>When the OS starts a process (like our program) it sets up a page table for our
 process, and makes sure a special register on the CPU points to this page table.</p>
 <p>Now, when we try to dereference <code>t_ptr</code> in the code above, the address is at some point
-sent to the MMU for translation, which looks it up in the page table which translates
-it to the physical address.</p>
-<p>In this case it will point to a memory address on our stack that holds the value <code>100</code>.</p>
+sent to the MMU for translation, which looks it up in the page table to translate
+it to a physical address in memory where it can fetch the data.</p>
+<p>In the first case it will point to a memory address on our stack that holds the value <code>100</code>.</p>
 <p>When we pass in <code>99999999999999</code> and ask it to fetch what's stored at that address 
-(which is what dereferencing does) it looks for the translation in the page table but
-can't find it.</p>
-<p>The CPU then treats this as a <code>page fault</code>. </p>
-<p>At boot, the OS at provided the CPU with a Interrupt Descriptor Table. This table
-has a predefined format where the OS has to provide handlers for the predefined 
+(which is what dereferencing does) it looks for the translation in the page table but can't find it.</p>
+<p>The CPU then treats this as a <code>page fault</code>.</p>
+<p>At boot, the OS provided the CPU with an Interrupt Descriptor Table. This table
+has a predefined format where the OS provides handlers for the predefined 
 exceptions the CPU can encounter.</p>
-<p>Since the OS provided ha pointer to a function that handles <code>Page Fault</code> the CPU 
-jumps to that function and thereby hands over control to the Operating System. </p>
+<p>Since the OS provided a pointer to a function that handles <code>Page Fault</code> the CPU 
+jumps to that function when we try to dereference <code>99999999999999</code> and thereby hands over control to the Operating System. </p>
 <p>The OS then prints a nice message for us letting us know that we encountered 
 what it calls a <code>segmentation fault</code>. This message will therefore wary depending on the OS you 
 run the code on.</p>
@@ -1054,9 +1055,9 @@ run the code on.</p>
 <p>Now this is where <code>Privelege Level</code> comes in. Most modern operating systems operate with two <code>Ring Levels</code>. Ring 0, the kernel space, and Ring 3, user space.</p>
 <p><img src="./images/priv_rings.png" alt="Privelege rings" /></p>
 <p>Most CPUs has a concept of more rings that what most modern operating systems use. This has historical reasons, which is also why <code>Ring 0</code> and <code>Ring 3</code> are used (and not 1, 2).</p>
-<p>Now every entry in the page table has additional information about it, amongst that information is the information about what ring it belongs to. This is set up when your OS boots up,</p>
+<p>Now every entry in the page table has additional information about it, amongst that information is the information about what ring it belongs to. This information is set up when your OS boots up.</p>
 <p>Code executed in <code>Ring 0</code> has almost unrestricted access to external devices, memory and is free to change registers that provide security at the hardware level.</p>
-<p>Now, the code you write in <code>Ring 3</code> will typically have extremely restricted access to I/O and certain CPU registers (and instructions). Trying to issue an instruction or setting a register from <code>Ring 3</code> to change the <code>page table</code> will be prevented already at the CPU level, which then treats this as an exception and jumps to the handler provided by the OS.</p>
+<p>Now, the code you write in <code>Ring 3</code> will typically have extremely restricted access to I/O and certain CPU registers (and instructions). Trying to issue an instruction or setting a register from <code>Ring 3</code> to change the <code>page table</code> will be prevented already at the CPU. The CPU will then then treat this as an exception and jump to the handler for that exception provided by the OS.</p>
 <p>This is also the reason why you have no other choice than to cooperate with the OS and handle I/O tasks through syscalls. The system wouldn't be very secure if this wasn't the case.</p>
 <h1><a class="header" href="#interrupts-firmware-and-io" id="interrupts-firmware-and-io">Interrupts, Firmware and I/O</a></h1>
 <p>We're nearing an end of the general CS subjects in the book, and we'll start
@@ -1067,35 +1068,40 @@ as a system to handle I/O and concurrency. </p>
 <h2><a class="header" href="#a-simplified-overview" id="a-simplified-overview">A simplified overview</a></h2>
 <p>Let's go through some of the steps where we imagine that we read from a
 network card:</p>
+<a href="./images/AsyncBasicsSimplified.png" target="_blank">
 <p><img src="./images/AsyncBasicsSimplified.png" alt="Simplified Overview" /></p>
+</a>
+<p style="font-style: italic; text-align: center;">click the image to open a larger view</p>
 <blockquote>
 <p><strong>Disclaimer</strong>
 We're making things simple here. This is a rather complex operation but we'll
-choose the operations that interest us and skip some along the way.</p>
+focus on what interest us most and skip a few steps along the way.</p>
 </blockquote>
 <h2><a class="header" href="#1-our-code" id="1-our-code">1. Our code</a></h2>
 <p>We register a socket. This happens by issuing a <code>syscall</code> to the OS. Depending
 on the OS we either get a  <code>file descriptor</code> (Macos/Linux) or a <code>socket</code> (Windows).</p>
 <p>The next step is that we register our interest in <code>read</code> events on that socket.</p>
-<h2><a class="header" href="#2-we-register-events-with-the-os" id="2-we-register-events-with-the-os">2. We register events with the OS</a></h2>
-<p>The operating systems we focus on handles this in one of three ways:</p>
+<h2><a class="header" href="#2-registering-events-with-the-os" id="2-registering-events-with-the-os">2. Registering events with the OS</a></h2>
+<p><strong>This is handled in one of three ways:</strong></p>
 <ol>
-<li>We tell the operating system that we're interested in <code>Read</code> events but we want
+<li>
+<p>We tell the operating system that we're interested in <code>Read</code> events but we want
 to wait for it to happen by <code>yielding</code> control over our thread to the OS. The OS
 then suspends our thread by storing the register state and switch to some other 
-thread. </li>
-</ol>
-<p>From our perspective this will be blocking our thread until we have data to read.</p>
-<ol start="2">
+thread. </p>
+<p><em>From our perspective this will be blocking our thread until we have data to read.</em></p>
+</li>
 <li>
 <p>We tell the operating system that we're interested in <code>Read</code> events but we
 just want a handle to a the task which we can <code>poll</code> to check if the event is
-ready or not. The OS will not suspend our thread.</p>
+ready or not. </p>
+<p><em>The OS will not suspend our thread, so this will not block our code</em></p>
 </li>
 <li>
 <p>We tell the operating system that we are probably going to be interested in 
 many events, but we want to subscribe to one event queue. When we <code>poll</code> this
-queue it will block until one or more event occurs.</p>
+queue it will block until one or more event occurs. </p>
+<p><em>This will block our thread while we <code>wait</code> for events to occur</em></p>
 </li>
 </ol>
 <blockquote>
@@ -1113,24 +1119,23 @@ specialized firmware. We can imagine that this microcontroller is polling in a
 busy loop checking if any data is incoming. </p>
 <blockquote>
 <p>The exact way the Network Card handles it internals can be different from this
-(and most likely are). The important part is that there is a simple CPU running
-on the network card doing work to check if there is incoming events.</p>
+(and most likely are). The important part is that there is a very simple but specialized CPU running
+on the network card doing <strong>work</strong> to check if there is incoming events.</p>
 </blockquote>
 <p>Once the firmware registers incoming data it issues a Hardware Interrupt.</p>
 <h2><a class="header" href="#4-hardware-interrupt" id="4-hardware-interrupt">4. Hardware Interrupt</a></h2>
 <blockquote>
 <p>This is a very simplified explanation. If you're interested in knowing more
-about how this works I can't recommend Robert Mustacchi's excellent article
-<a href="https://www.joyent.com/blog/virtualizing-nics">Turtles on the wire: understanding how the OS uses the modern NIC</a> enough.</p>
+about how this works I can recommend Robert Mustacchi's excellent article
+<a href="https://www.joyent.com/blog/virtualizing-nics">Turtles on the wire: understanding how the OS uses the modern NIC</a>.</p>
 </blockquote>
 <p>Modern CPUs have a set of <code>Interrupt Request Lines</code> for it to handle events that occur from
 external devices. A CPU has a fixed set of interrupt lines.</p>
 <p>A hardware interrupt is an electrical signal that can occur at <em>any time</em>. The 
 CPU immediately <strong>interrupts</strong> its normal workflow to handle the interrupt by
-saving the state of it's registers and look up the interrupt handler to run in
-the Interrupt Descriptor Table</p>
+saving the state of it's registers and look up the interrupt handler. The interrupt handlers is defined in the Interrupt Descriptor Table.</p>
 <h2><a class="header" href="#5-interrupt-handler" id="5-interrupt-handler">5. Interrupt Handler</a></h2>
-<p>The <a href="https://en.wikipedia.org/wiki/Interrupt_descriptor_table">Interrupt Descriptor Table</a> is a table that in essence points to a handler function for a specific interrupt. The handler function for a Network Card would typically be registered and handled by a <code>driver</code> for that card.</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Interrupt_descriptor_table">Interrupt Descriptor Table (IDT)</a> is a table where the OS (or a driver) registers handlers for different interrupts that may occur. Each entry points to a handler function for a specific interrupt. The handler function for a Network Card would typically be registered and handled by a <code>driver</code> for that card.</p>
 <blockquote>
 <p>The IDT is not stored on the CPU as it might seem in the diagram. It's located
 in a fixed and know location in main memory. The CPU only holds a pointer to the
@@ -1138,17 +1143,18 @@ table in one of it's registers.</p>
 </blockquote>
 <h2><a class="header" href="#6-writing-the-data" id="6-writing-the-data">6. Writing the data</a></h2>
 <p>This is a step that might vary a lot depending on the CPU and the firmware on the
-network card. If the Network Card and the CPU supports <a href="https://en.wikipedia.org/wiki/Direct_memory_access">Direct Memory Access</a> (which should be the standard on all modern systems today) the Network Card will write data directly to a set of buffers the OS already has set up in main memory. In such a system the <code>firmware</code> on the Network Card might issue an <code>Interrupt</code> when the data is written to memory. <code>DMA</code> is very efficient
+network card. If the Network Card and the CPU supports <a href="https://en.wikipedia.org/wiki/Direct_memory_access">Direct Memory Access</a> (which should be the standard on all modern systems today) the Network Card will write data directly to a set of buffers the OS already has set up in main memory. </p>
+<p>In such a system the <code>firmware</code> on the Network Card might issue an <code>Interrupt</code> when the data is <strong>written</strong> to memory. <code>DMA</code> is very efficient
 since the CPU is only notified when the data is already in memory. On older systems the
-CPU needed to devote often substantial time to handle the data transfer from the
+CPU needed to devote resources to handle the data transfer from the
 network card.</p>
-<p>The DMAC (Direct Memory Access Controller) is just added since in such a system,
-it would control the access to memory. It's not part of the CPU per se as in the
-diagram above. It's we're deep enough in the rabbit hole now and this is not really important for us right now so let's move on.</p>
+<p><em>The DMAC (Direct Memory Access Controller) is just added since in such a system,
+it would control the access to memory. It's not part of the CPU as in the
+diagram above. We're deep enough in the rabbit hole now and this is not really important for us right now so let's move on.</em></p>
 <h2><a class="header" href="#7-the-driver" id="7-the-driver">7. The driver</a></h2>
 <p>The <code>driver</code> would normally handle the communication between the OS and the Network Card.
 At <em>some point</em> the buffers are filled, and the network card issues an <code>Interrupt</code>. The CPU then jumps to the handler of that interrupt. The interrupt handler for this exact type
-of interrupt is registered by the driver, so it's actually the driver that handles this event and in turn informs the kernel that the data is ready to be read. </p>
+of interrupt is registered by the driver, so it's actually the driver that handles this event and in turn informs the kernel that the data is ready to be read.</p>
 <h2><a class="header" href="#8-reading-the-data" id="8-reading-the-data">8. Reading the data</a></h2>
 <p>Depending on whether we chose alternative A, B or C the OS will:</p>
 <ol>
@@ -1164,29 +1170,17 @@ of interrupt is registered by the driver, so it's actually the driver that handl
 </ol>
 <p>They are very different in nature.</p>
 <h3><a class="header" href="#hardware-interrupts" id="hardware-interrupts">Hardware Interrupts</a></h3>
-<p>Hardware interrupts are created by sending an electrical signal through an <a href="https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)#x86_IRQs">Interrupt Request Line (IRQ)</a>. These are hardware lines signaling the CPU directly. </p>
+<p>Hardware interrupts are created by sending an electrical signal through an <a href="https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)#x86_IRQs">Interrupt Request Line (IRQ)</a>. These hardware lines signals the CPU directly. </p>
 <h3><a class="header" href="#software-interrupts" id="software-interrupts">Software Interrupts</a></h3>
 <p>This is interrupts issued from software instead of hardware. As in the case of a hardware interrupt the CPU jumps to the Interrupt Descriptor Table and runs the handler for the specified interrupt.</p>
 <h3><a class="header" href="#firmware" id="firmware">Firmware</a></h3>
 <p>Firmware doesn't get much attention from most of us, however, they're a crucial part of the world we live in. They run on all kinds of hardware, and has all kinds of strange and peculiar ways to make the computer we program on work.</p>
 <p>When I think about firmware, I think about the scenes from Star Wars where they walk into a bar with all kinds of strange and obscure creatures. I imagine the world of firmware is much like this, few us of know what they do or how they work on a particular system.</p>
 <p>Now, firmware needs a microcontroller or similar to be able to work. Even the CPU has firmware which makes it work. That means there are many more small &quot;CPUs&quot; on our system than the cores we program against.</p>
-<p>Why is this important? Well, you remember that concurrency is all about efficiency right? We'll since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.</p>
+<p>Why is this important? Well, you remember that concurrency is all about efficiency right? Well, since we have many CPU's already doing work for us on our system, one of our concerns is to not replicate or duplicate that work when we write code.</p>
 <p>If a network card has firmware that continually checks if new data has arrived, it's pretty wasteful if we duplicate that by letting our CPU continually check if new data arrives as well. It's much better if we either check once in a while or even better, gets notified when data has arrived for us.</p>
 <h1><a class="header" href="#strategies-for-handling-io" id="strategies-for-handling-io">Strategies for handling I/O</a></h1>
 <p>Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency. Now, just note that I'm covering I/O in general here, but I use network communication as the main example. Different strategies can have different strengths depending on what type of I/O we're talking about.</p>
-<h2><a class="header" href="#the-perfect-solution" id="the-perfect-solution">The perfect solution</a></h2>
-<p>Let's start off by picturing a perfect world, and how the most efficient way of handling I/O in a concurrent manner could look like.</p>
-<p>If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?</p>
-<p><img src="./images/AsyncBasicsSimplified.png" alt="overview" /></p>
-<p>The best way would be the following:</p>
-<ol>
-<li>We give the Network Card a message that we want to be notified <strong>immediately</strong> when new data has arrived for us.</li>
-<li>The network card is hyper optimized in the way it checks for data, it's firmware makes sure of that.</li>
-<li>As soon as some data has arrived for us the Network Card let's us know</li>
-<li>We either finish what we're doing or handle that data immediately</li>
-</ol>
-<p>This is super simplified, and probably not realistic. The idea here is that the logic that is closest to the &quot;problem&quot; and has the best hardware support to handle it does the work. Also, we only get notified when we are expecting something, not on every event that might occur. These assumptions are not very realistic.</p>
 <h2><a class="header" href="#1-using-os-threads" id="1-using-os-threads">1. Using OS threads</a></h2>
 <p>Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.</p>
 <p><strong>Pros:</strong></p>
@@ -1199,12 +1193,12 @@ of interrupt is registered by the driver, so it's actually the driver that handl
 <p><strong>Cons:</strong></p>
 <ul>
 <li>OS level threads come with a rather large stack. If you have many tasks happening simultaneously (like in a webserver under heavy load) you'll run out of memory pretty soon.</li>
-<li>There are a lot of syscalls involved this can be pretty costly</li>
+<li>There are a lot of syscalls involved. This can be pretty costly when the number of tasks is high.</li>
 <li>The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish</li>
 <li>The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.</li>
 </ul>
 <h2><a class="header" href="#2-green-threads" id="2-green-threads">2. Green threads</a></h2>
-<p>Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
+<p>Another common way of handling this is green threads. Languages like Go uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.</p>
 <p><strong>Pros:</strong></p>
 <ul>
 <li>Simple to use for the user. The code will look like it does when using OS threads</li>
@@ -1215,14 +1209,15 @@ of interrupt is registered by the driver, so it's actually the driver that handl
 <p><strong>Cons:</strong></p>
 <ul>
 <li>You need a runtime, and by having that you are duplicating part of the work the OS already does. The runtime will have a cost which in some cases can be substantial.</li>
-<li>Can be difficult to implement in a flexible way to handle a wide set of tasks</li>
+<li>Can be difficult to implement in a flexible way to handle a wide variety of tasks</li>
 </ul>
 <h2><a class="header" href="#3-poll-based-event-loops-supported-by-the-os" id="3-poll-based-event-loops-supported-by-the-os">3. Poll based event loops supported by the OS</a></h2>
-<p>The third way we're covering today is the one that most closely matches our <em>ideal</em> solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. </p>
-<p>The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. The OS let's us know that data is ready for us to read.</p>
+<p>The third way we're covering today is the one that most closely matches an ideal solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. </p>
+<p>The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. </p>
+<p>Now, we still need a way to &quot;suspend&quot; many tasks while waiting, and this is where Nodes &quot;runtime&quot; or Rusts Futures come in to play. </p>
 <p><strong>Pros:</strong></p>
 <ul>
-<li>Very little work is duplicated which makes it very performant</li>
+<li>Close to optimal resource utilization</li>
 <li>It's very efficient</li>
 <li>Gives us the maximum amount of flexibility to decide how to handle the events that occurs</li>
 </ul>
@@ -1231,10 +1226,12 @@ of interrupt is registered by the driver, so it's actually the driver that handl
 <li>Different operating systems have different ways of handle these kind of queues. Some of them are difficult to reconcile with each other. Some operating systems has limitations on what I/O operations support this method.</li>
 <li>Great flexibility comes with a good deal of complexity</li>
 <li>Difficult to write an abstraction layer that accounts for the differences between the operating systems without introducing unwanted costs, and at the same time provide a ergonomic API.</li>
+<li>Only solves part of the problem, the programmer still needs a strategy for suspending tasks that are waiting.</li>
 </ul>
 <h2><a class="header" href="#final-note" id="final-note">Final note</a></h2>
-<p>The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently.</p>
-<p>Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the <em>cons</em> of this method. Most notably the last point.</p>
+<p>The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently. Node uses a callback based approach to suspend
+tasks.</p>
+<p>Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the <em>cons</em> of this method and choosing a way to model how tasks should be suspended. Rusts Futures model a task as a <a href="https://en.wikipedia.org/wiki/Finite-state_machine">State Machine</a> where a suspension point represents a <code>state</code>.</p>
 <h1><a class="header" href="#implementing-the-node-eventloop" id="implementing-the-node-eventloop">Implementing the Node Eventloop</a></h1>
 <p>Now we've finally come to the part of this book where we will write som more code.</p>
 <p>The Node event loop is a complex piece of software developed over many years. We

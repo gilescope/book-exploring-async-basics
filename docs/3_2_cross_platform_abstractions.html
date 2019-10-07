@@ -146,10 +146,19 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#about-writing-cross-platform-abstractions" id="about-writing-cross-platform-abstractions">About writing cross platform abstractions</a></h1>
-<p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you want to make a cross platform variant, the amount of code explodes. This is a problem when writing about this stuff in general, but we need some basic understanding on how the different operating systems work under the covers. </p>
+<p>If you isolate the code needed only for Linux and Macos you'll see that it's not many lines of code to write. But once you want to make a cross platform variant, the amount of code explodes. </p>
+<p>This is a recurring problem when we're curious about how this works on three different platforms, but we need some basic understanding on how the different operating systems work under the covers.</p>
 <p>My experience in general is that Linux and Macos have simpler API requiring fewer lines of code, and often (but not always) the exact same call works for both systems.</p>
-<p>Windows on the other hand is mor complex, requires more &quot;magic&quot; constant numbers, requires you to set up more structures to pass in, and way more lines of code. What Windows does have though are very good documentation so even though it's more work you'll also find the official documentation very good.</p>
+<p>Windows on the other hand is more complex, requires you to set up more structures to pass information (instead of using primitives), and often way more lines of code. What Windows does have is very good documentation so even though it's more work you'll also find the official documentation very helpful.</p>
 <p>This complexity why the Rust community (other languages often has something similar) gathers around crates like <a href="https://github.com/rust-lang/libc">libc</a> which already have defined most methods and constants you need.</p>
+<h2><a class="header" href="#a-note-about-hidden-complexity" id="a-note-about-hidden-complexity">A note about &quot;hidden&quot; complexity</a></h2>
+<p>There is a lot of &quot;hidden&quot; complexity when writing cross platform code at this
+level. One hurdle is to get something working, which can prove to be quite a
+challenge. Getting it to work <strong>correctly</strong> and <strong>safely</strong> while covering all
+edge cases is an additional challenge. </p>
+<p><strong>Are we 100% sure that all valid <code>utf-8</code> code points which we use in Rust is valid 
+<code>utf-16</code> encoded Unicode that Windows will display correctly?</strong></p>
+<p>I think so, but being 100 % sure about <a href="https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings">this is not as easy as one might think</a>.</p>
 
                     </main>
 

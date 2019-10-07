@@ -146,13 +146,11 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#the-operating-system" id="the-operating-system">The Operating System</a></h1>
-<p>The operating system stands in the center of everything we do as programmers,
+<p>The operating system stands in the center of everything we do as programmers (well, unless you're <a href="https://os.phil-opp.com/">writing an Operating System</a> or are in the <a href="https://rust-embedded.github.io/book/">Embedded realm</a>),
 so there is no way for us to discuss any kind of fundamentals in programming
 without talking about operating systems in a bit of detail. </p>
 <h2><a class="header" href="#concurrency-from-the-operating-systems-perspective" id="concurrency-from-the-operating-systems-perspective">Concurrency from the operating systems perspective</a></h2>
-<blockquote>
-<p>Operating systems has been &quot;faking&quot; synchronous execution since the 90's.</p>
-</blockquote>
+<div style="color: back;  font-style: italic; font-size: 1.2em">"Operating systems has been "faking" synchronous execution since the 90's."</div>
 <p>This ties into what I talked about in the first chapter when I said that <code>concurrent</code>
 needs to be talked about within a reference frame and I explained that the OS
 might stop and start your process at any time.</p>
@@ -171,15 +169,12 @@ left to run uninterrupted.</p>
 </blockquote>
 <h2><a class="header" href="#teaming-up-with-the-os" id="teaming-up-with-the-os">Teaming up with the OS.</a></h2>
 <p>When programming it's often easy to forget how many moving pieces that need to
-cooperate to reach maximum efficiency. When you make a web request, you're not
+cooperate when we care about efficiency. When you make a web request, you're not
 asking the CPU or the network card to do something for you, you're asking the
 operating system to talk to the network card for you.</p>
 <p>There is no way for you as a programmer to make your system optimally efficient
 without playing to the operating systems strengths. You basically don't have
-access to the hardware directly. This assumes that you're writing code that runs
-on an operating system though. But our focus here is written in the context of
-Linux, Macos and Windows so cooperating with the OS to be as efficient as possible
-is unavoidable.</p>
+access to the hardware directly. </p>
 <p>However this also means that to understand everything from the ground up, you'll
 also need to know how your operating system handles these tasks.</p>
 <p>To be able to work with the operating system, we'll need to know how we can communicate with it and that's exactly what we're going to go through next.</p>

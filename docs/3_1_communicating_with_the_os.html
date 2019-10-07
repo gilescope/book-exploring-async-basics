@@ -146,35 +146,34 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#communicating-with-the-operating-system" id="communicating-with-the-operating-system">Communicating with the operating system</a></h1>
-<p>In this chapter I want to dive into:</p>
+<p><strong>In this chapter I want to dive into:</strong></p>
 <ul>
-<li>What is a System Call</li>
-<li>Abstractions over syscalls</li>
-<li>Challenges low level cross platform code</li>
+<li>What a System Call is</li>
+<li>Abstractiion levels</li>
+<li>Challenges of writing low-level cross-platform code</li>
 </ul>
-<h2><a class="header" href="#what-is-a-syscall" id="what-is-a-syscall">What is a syscall</a></h2>
+<h2><a class="header" href="#syscall-primer" id="syscall-primer">Syscall primer</a></h2>
 <p>Communication with the operating system is done through <code>System Calls</code> or 
-&quot;syscalls&quot;. This is a public API that the operating system provides and that programs
-can use to communicate with the OS. Most of the time these calls are abstracted away for us as 
+&quot;syscalls&quot; as we'll call them from now on. This is a public API that the operating system provides and that programs we write in &quot;userland&quot; can use to communicate with the OS. </p>
+<p>Most of the time these calls are abstracted away for us as 
 programmers by the language or the runtime we use. A language like Rust makes it 
-trivial to make a syscall though which we'll see below.</p>
-<p>Now syscalls is an example of something that is unique to the kernel you're communicating with, but the UNIX family of kernels has many similarities especially the API exposed by <code>libc</code>.</p>
-<p>Windows on the other hand  uses it's own api, often referred to as WinAPI, and that can be radically different from how the UNIX based systems operate. Most often though there is a way to achieve the same things. In terms of functionality you might not notice a big difference but as we'll see below and especially when we dig into how <code>epoll</code>, <code>kqueue</code> and <code>IOCP</code>, they can differ a lot on how this functionality is implemented.</p>
+trivial to make a <code>syscall</code> though which we'll see below.</p>
+<p>Now, <code>syscalls</code> is an example of something that is unique to the kernel you're communicating with, but the UNIX family of kernels has many similarities. UNIX systems exposes their through <strong><code>libc</code></strong>.</p>
+<p>Windows on the other hand  uses it's own api, often referred to as WinAPI, and that can be radically different from how the UNIX based systems operate. </p>
+<p>Most often though there is a way to achieve the same things. In terms of functionality you might not notice a big difference but as we'll see below and especially when we dig into how <code>epoll</code>, <code>kqueue</code> and <code>IOCP</code>, they can differ a lot in how this functionality is implemented.</p>
 <h2><a class="header" href="#syscall-example" id="syscall-example">Syscall example</a></h2>
-<p>To get a bit more familiar with syscalls we'll implement a very basic one for 
-the three arcitectures: BSD(macos), Linux and Windows. We'll also see how this is implemented in three levels of abstractions.</p>
-<p>The syscall we'll implement is the one used when we write something to <code>stdout</code> since that is such a common operation it's interesting to se how it really works.</p>
+<p>To get a bit more familiar with <code>syscalls</code> we'll implement a very basic one for 
+the three architectures: <code>BSD(macos)</code>, <code>Linux</code> and <code>Windows</code>. We'll also see how this is implemented in three levels of abstractions.</p>
+<p>The <code>syscall</code> we'll implement is the one used when we write something to <code>stdout</code> since that is such a common operation and it's interesting to se how it really works.</p>
 <h3><a class="header" href="#the-lowest-level-of-abstraction" id="the-lowest-level-of-abstraction">The lowest level of abstraction</a></h3>
-<p>For this to work we need to write some inline assembly again. I'll skip the main function since that should be easy to understand now, and focus on the instructions we write to the CPU.</p>
+<p>For this to work we need to write some <a href="https://doc.rust-lang.org/1.0.0/book/inline-assembly.html">inline assembly</a>. We'll start by focusing on the instructions we write to the CPU.</p>
 <blockquote>
 <p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
 </blockquote>
 <p>Now at this level of abstraction, we'll write different code for all three platforms.</p>
-<p>On both Linux and Macos the syscall we want to invole is called <code>write</code>. Both systems operates based on the concept of <code>file descriptors</code> and <code>stdout</code> is one of these alredy present when you start a proccess.</p>
-<p><strong>On Linux a <code>write</code> syscall can look like this</strong></p>
-<blockquote>
-<p>If you want a more torough introduction to inline assembly I can refer you to the <a href="https://cfsamson.gitbook.io/green-threads-explained-in-200-lines-of-rust/an-example-we-can-build-upon">relevant chapter in my previous book</a> if you haven't read it already.</p>
-</blockquote>
+<p>On Linux and Macos the <code>syscall</code> we want to invoke is called <code>write</code>. Both systems operates based on the concept of <code>file descriptors</code> and <code>stdout</code> is one of these already present when you start a process.</p>
+<p><strong>On Linux a <code>write</code> syscall can look like this</strong> <br />
+(You can run the example by clicking &quot;play&quot; in the right corner)</p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
     let message = String::from(&quot;Hello world from interrupt!\n&quot;);
@@ -202,15 +201,16 @@ fn syscall(message: String) {
 </code></pre></pre>
 <p>The code to initiate the <code>write</code> syscall on Linux is <code>1</code> so when we write <code>$$1</code> we're writing the literal value 1 to the <code>rax</code> register.</p>
 <blockquote>
-<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to parameter so when we write <code>$0</code> we're referring to the first parameter <code>msg_ptr</code>.</p>
+<p><code>$$</code> in inline assembly using the AT&amp;T syntax is how you write a literal value. A single <code>$</code> means you're referring to a parameter so when we write <code>$0</code> we're referring to the first parameter called <code>msg_ptr</code>.</p>
 </blockquote>
 <p>Coincidentally, placing the value <code>1</code> in to the <code>rdi</code> register means that we're referring to <code>stdout</code> which is the file descriptor we want to write to. This has nothing to do with the fact that the <code>write</code> syscall also has the code <code>1</code>.</p>
 <p>Secondly we pass in the address of our string buffer and the length of the buffer in the registers <code>rsi</code> and <code>rdx</code> respectively, and call the <code>syscall</code> instruction.</p>
 <blockquote>
-<p>The <code>syscall</code> is a rather new one. On the earlier 32-bit systems in the <code>x86</code> arcitecture, you invoked a syscall by issuing a software interrupt <code>int 0x80</code>. A software interrupt is considered slow at the level we're working at here so later it was added a seperate instruction for it called <code>syscall</code>. he <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a> which is a memory page attached to each process so no context switch is necessary to execute the system call.</p>
+<p>The <code>syscall</code> instruction is a rather new one. On the earlier 32-bit systems in the <code>x86</code> architecture, you invoked a syscall by issuing a software interrupt <code>int 0x80</code>. A software interrupt is considered slow at the level we're working at here so later a seperate instruction for it called <code>syscall</code> was added. The <code>syscall</code> instruction uses <a href="http://articles.manugarg.com/systemcallinlinux2_6.html">VDSO</a>, which is a memory page attached to each process' memory, so no context switch is necessary to execute the system call.</p>
 </blockquote>
-<p>On Macos, the syscall will look something like this:</p>
-<pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
+<p><strong>On Macos, the syscall will look something like this:</strong> <br />
+(since the Rust playground is running Linux, we can't run this example here)</p>
+<pre><pre class="playpen"><code class="language-rust no_run">#![feature(asm)]
 fn main() {
     let message = String::from(&quot;Hello world from interrupt!\n&quot;);
     syscall(message);
@@ -237,15 +237,19 @@ fn syscall(message: String) {
 </code></pre></pre>
 <p>As you see this is not that different from the one we wrote for Linux, with the exception of the fact that syscall <code>write</code> has the code <code>0x2000004</code> instead of <code>1</code>.</p>
 <p><strong>What about Windows?</strong></p>
-<p>It's a good opportunity to explain why writing code like we do above is a bad idea. You see, if you want your code to work for a long time you have to worry about what <code>guarantees</code> the OS gives you. As far as I know, there are no guarantees that <code>$$0x2000004</code> on Macos will always refer to <code>write</code>. I do think Linux has better guarantees, but I know for a fact that Windows makes absolutely zero guarantees about this.</p>
-<p>Windows has changed it's internals about this numerous times and provide no official documentation. The only thing we got is reverse engineered tables like <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>. That means that what was <code>write</code> can be changed to <code>delete</code> the next time you update Windows.</p>
-<p>Even though it would be fun, as a curiosity, to include it I haven't managed to get it to work and have no idea how much code that would be. See <a href="./introduction.html">contributing</a> if you have the answer dear reader, and I'll include it if it's not too much code.</p>
+<p>This is a good opportunity to explain why writing code like we do above is a bad idea. </p>
+<p>You see, if you want your code to work for a long time you have to worry about what <code>guarantees</code> the OS gives you. As far as I know, both Linux and Macos gives
+some guarantees that for example <code>$$0x2000004</code> on Macos will always refer to <code>write</code> (I'm not sure how strong these guarantees are though). Windows gives absolutely zero guarantees when it comes to low level internals like this.</p>
+<p>Windows has changed it's internals numerous times and provides no official documentation. The only thing we got is reverse engineered tables like <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>. That means that what was <code>write</code> can be changed to <code>delete</code> the next time you run Windows update.</p>
 <h2><a class="header" href="#the-next-level-of-abstraction" id="the-next-level-of-abstraction">The next level of abstraction</a></h2>
-<p>The next level of abstraction is to use the API which all three operating systems provide for us. Already we can see that this abstraction helps us remove some code since fortunately for us in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on Windows and therefore use the <code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the Windows syscall we do the opposite.</p>
-<h3><a class="header" href="#using-the-api-in-linux-and-macos" id="using-the-api-in-linux-and-macos">Using the API in Linux and Macos</a></h3>
+<p>The next level of abstraction is to use the API which all three operating systems provide for us.</p>
+<p>Already we can see that this abstraction helps us remove some code since fortunately for us, in this specific example, the syscall is the same on Linux and on Macos so we only need to worry if we're on Windows and therefore use the <code>#[cfg(not(target_os = &quot;windows&quot;))]</code> conditional compilation flag. For the Windows syscall we do the opposite.</p>
+<h3><a class="header" href="#using-the-os-provided-api-in-linux-and-macos" id="using-the-os-provided-api-in-linux-and-macos">Using the OS provided API in Linux and Macos</a></h3>
 <p>You can run this code directly here in the window. However, the Rust playground 
 runs on Linux, you'll need to copy the code over to a Windows machine if you 
 want to try it out the code for Windows further down.</p>
+<p><strong>Our syscall will now look like this</strong> <br />
+(You can run this code here. It will work for both Linux and Macos)</p>
 <pre><pre class="playpen"><code class="language-rust">use std::io;
 
 fn main() {
@@ -275,17 +279,23 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 </code></pre></pre>
 <p>I'll explain what we just did here. I assume that the <code>main</code> method needs no 
 comment.</p>
-<pre><code class="language-rust no_run noplaypen">#[link(name = &quot;c&quot;)]
-</code></pre>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+#[link(name = &quot;c&quot;)]
+#}</code></pre></pre>
 <p>Every Linux installation comes with a version of <code>libc</code> which a C-library for 
 communicating with the operating system. Having a <code>libc</code> with a consistent API 
 means they can change the underlying implementation without braking everyones 
 code. This flag tells the compiler to link to the &quot;c&quot; library on the system we'
 re compiling for.</p>
-<pre><code class="language-rust no_run noplaypen">extern &quot;C&quot; {
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+extern &quot;C&quot; {
     fn write(fd: u32, buf: *const u8, count: usize);
 }
-</code></pre>
+#}</code></pre></pre>
 <p><code>extern &quot;C&quot;</code> or only <code>extern</code> (C is assumed if nothing is specified) means we're 
 linking to specific functions in the &quot;c&quot; library using the &quot;C&quot; calling 
 convention. As you'll see on Windows we'll need to change this since it uses a 
@@ -295,27 +305,34 @@ different calling convention than the UNIX family.</p>
 the right order and it's good practice to name them the same as in the library 
 you're linking to.</p>
 <p>The write function takes a <code>file descriptor</code> which in this case is a handle to 
-<code>stdout</code>, a pointer to a array of <code>u8</code> values, and a count of how many values we 
-want to read from the buffer.</p>
-<pre><code class="language-rust no_run noplaypen">#[cfg(not(target_os = &quot;windows&quot;))]
+<code>stdout</code>. In addition it expects us to provide a pointer to a array of <code>u8</code> values and the length of the buffer.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+#[cfg(not(target_os = &quot;windows&quot;))]
 fn syscall_libc(message: String) {
     let msg_ptr = message.as_ptr();
     let len = message.len();
     unsafe { write(1, msg_ptr, len) };
 }
-</code></pre>
+#}</code></pre></pre>
 <p>The first thing we do is to get the pointer to the underlying buffer for our 
-string. That will be a pointer of type <code>*const u8</code> which matches our <code>buf</code> 
-argument. The length of the message corresponds to the <code>count</code> argument.</p>
+string. This will be a pointer of type <code>*const u8</code> which matches our <code>buf</code> 
+argument. The <code>len</code> of the buffer corresponds to the <code>count</code> argument.</p>
 <p>You might ask how we know that <code>1</code> is the file handle to <code>stdout</code> and where we 
-found that value. You'll notice this a lot when writing syscalls from Rust. 
-Usually constants are defined in the C header files which we can't link to, so 
-we need to search them up. 1 is always the file descriptor for <code>stdout</code> on UNIX 
-systems.</p>
+found that value. </p>
+<p>You'll notice this a lot when writing syscalls from Rust. Usually constants are defined in the C header files which we can't link to, so we need to search them up. 1 is always the file descriptor for <code>stdout</code> on UNIX systems.</p>
+<blockquote>
+<p>Wrapping the <code>libc</code> functions and providing these constants is exactly what the
+crate <a href="https://github.com/rust-lang/libc">libc</a> provides for us and why you'll see that used instead of writing
+the type of code we do here.</p>
+</blockquote>
 <p>A call to a FFI function is always unsafe so we need to use the <code>unsafe</code> keyword 
 here.</p>
 <h3><a class="header" href="#using-the-api-on-windows" id="using-the-api-on-windows">Using the API on Windows</a></h3>
-<pre><code class="language-rust no_run noplaypen">use std::io;
+<p><strong>This syscall will look like this on Windows:</strong> <br />
+(You'll need to copy this code over to a Windows machine to try this out)</p>
+<pre><pre class="playpen"><code class="language-rust no_run">use std::io;
 
 fn main() {
     let sys_message = String::from(&quot;Hello world from syscall!\n&quot;);
@@ -361,12 +378,7 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
     assert_eq!(output as usize, len);
     Ok(())
 }
-</code></pre>
-<pre><code>The Rust playground, which we use to run our code, is a Linux machine. I 
-disabled the possibility to run the windows code here (since it will 
-essentially just be skipped on compilation). However, if you have a Windows 
-machine, copy the code above and try for yourself.
-</code></pre>
+</code></pre></pre>
 <p>Now, just by looking at the code above you see it starts to get a bit more 
 complex, but let's spend som time to go through line by line what we do here as 
 well.</p>
@@ -378,7 +390,10 @@ well.</p>
 <p>The second line is a linker directive, telling the linker we want to link to the 
 library <code>kernel32</code> (if you ever see an example that links to <code>user32</code> that will 
 also work).</p>
-<pre><code class="language-rust no_run noplaypen">extern &quot;stdcall&quot; {
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+extern &quot;stdcall&quot; {
     /// https://docs.microsoft.com/en-us/windows/console/getstdhandle
     fn GetStdHandle(nStdHandle: i32) -&gt; i32;
     /// https://docs.microsoft.com/en-us/windows/console/writeconsole
@@ -390,20 +405,20 @@ also work).</p>
         lpReserved: *const std::ffi::c_void,
     ) -&gt; i32;
 }
-</code></pre>
+#}</code></pre></pre>
 <p>First of all, <code>extern &quot;stdcall&quot;</code>, tells the compiler that we won't use the <code>C</code> 
 calling convention but use Windows calling convention called <code>stdcall</code>.</p>
 <p>The next part is the functions we want to link to. On Windows, we need to link 
-to two functions to get this to work: <code>GetStdHandle</code> and <code>WriteConsoleA</code>. 
+to two functions to get this to work: <code>GetStdHandle</code> and <code>WriteConsoleW</code>. 
 <code>GetStdHandle</code> retrieves a reference to a standard device like <code>stdout</code>.</p>
-<p>WriteConsole comes in two flavors, <code>WriteConsoleW</code> that takes in Unicode text 
+<p><code>WriteConsole</code> comes in two flavors, <code>WriteConsoleW</code> that takes in Unicode text 
 and <code>WriteConsoleA</code> that takes ANSI encoded text. </p>
 <p>Now, ANSI encoded text works fine if you only write English text, but as soon as 
 you write text in other languages you might need to use special characters that 
-are not possible to represent in <code>ANSI</code> but is possible in <code>utf-8</code> and our code 
+are not possible to represent in <code>ANSI</code> but is possible in <code>utf-8</code> and our program
 will break.</p>
 <p>That's why we'll convert our <code>utf-8</code> encoded text to <code>utf-16</code> encoded Unicode 
-text that can represent these characters and use the <code>WriteConsoleW</code> function.</p>
+codepoints that can represent these characters and use the <code>WriteConsoleW</code> function.</p>
 <pre><code class="language-rust no_run noplaypen">#[cfg(target_os = &quot;windows&quot;)]
 fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 
@@ -431,14 +446,14 @@ fn syscall(message: String) -&gt; io::Result&lt;()&gt; {
 }
 </code></pre>
 <p>The first thing we do is to convert the text to utf-16 encoded text which 
-Windows uses. Fortunately Rust has a built in function to encode our <code>utf-8</code>
+Windows uses. Fortunately Rust has a built in function to convert our <code>utf-8</code>
 encoded text to <code>utf-16</code> code points. <code>encode_utf16</code> returns an iterator over 
 <code>u16</code> code points that we can collect to a <code>Vec</code>.</p>
 <pre><code class="language-rust no_run noplaypen">let msg: Vec&lt;u16&gt; = message.encode_utf16().collect();
 let msg_ptr = msg.as_ptr();
 let len = msg.len() as u32;
 </code></pre>
-<p>We then get the pointer to the underlaying buffer of our <code>Vec</code> and calculate the 
+<p>Next we get the pointer to the underlaying buffer of our <code>Vec</code> and get the 
 length.</p>
 <pre><code class="language-rust no_run noplaypen">let handle = unsafe { GetStdHandle(-11) };
    if handle  == -1 {
@@ -448,41 +463,33 @@ length.</p>
 <p>The next is a call to <code>GetStdHandle</code>. We pass in the value <code>-11</code>. The values we 
 need to pass in for the different standard devices is actually documented 
 together with the <code>GetStdHandle</code> documentation:</p>
-<ul>
-<li>Stdin: -10</li>
-<li>Stdout: -11</li>
-<li>StdErr: -12</li>
-</ul>
+<table><thead><tr><th>Handle</th><th>Value</th></tr></thead><tbody>
+<tr><td>Stdin</td><td>-10</td></tr>
+<tr><td>Stdout</td><td>-11</td></tr>
+<tr><td>StdErr</td><td>-12</td></tr>
+</tbody></table>
 <p>Now, we're lucky here, it's not that common that we find this information 
-together with the documentation function we call but it's very convenient when 
-we do.</p>
-<p>What return codes to expect is also documented thoroughly so we handle potential 
-errors here in the same way as we did for the Linux/Macos syscalls.</p>
-<pre><code class="language-rust no_run noplaypen">let res = unsafe { 
+together with the documentation for the function we call but it's very convenient when we do.</p>
+<p>The return codes to expect is also documented thoroughly for all functions so we handle potential errors here in the same way as we did for the Linux/Macos syscalls.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let res = unsafe { 
     WriteConsoleW(handle, msg_ptr, len, &amp;mut output, std::ptr::null()) 
     };
 
 if res  == 0 {
     return Err(io::Error::last_os_error());
 }
-</code></pre>
-<p>Next up is the call to the <code>WriteConsoleW</code> function. Now that we have explained 
-everything else there is nothing too fancy about this.</p>
+#}</code></pre></pre>
+<p>Next up is the call to the <code>WriteConsoleW</code> function. There is nothing too fancy about this.</p>
 <h2><a class="header" href="#the-highest-level-of-abstraction" id="the-highest-level-of-abstraction">The highest level of abstraction</a></h2>
-<p>This is simple, most standard libraies provide this abstraction for you. In rust that would simple be:</p>
+<p>This is simple, most standard libraries provide this abstraction for you. In rust that would simply be:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
 println!(&quot;Hello world from Stdlib&quot;);
 #}</code></pre></pre>
-<h2><a class="header" href="#a-note-about-complexity" id="a-note-about-complexity">A note about complexity</a></h2>
-<p>There is a lot of &quot;hidden&quot; complexity when writing cross platform code at this 
-level. One hurdle is to get something working, which can prove to be quite a 
-challenge. Getting it to work <strong>correctly</strong> and <strong>safely</strong> while covering edge 
-cases is an additional challenge. </p>
-<p>Are we 100% sure that all valid <code>utf-8</code> code points which we use in Rust is valid 
-<code>utf-16</code> encoded Unicode that Windows will display correctly?</p>
-<p>I think so, but being 100 % sure about <a href="https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings">this might not be as easy as one might think</a>.</p>
 <h1><a class="header" href="#our-finished-cross-platform-syscall" id="our-finished-cross-platform-syscall">Our finished cross platform syscall</a></h1>
 <pre><pre class="playpen"><code class="language-rust">use std::io;
 

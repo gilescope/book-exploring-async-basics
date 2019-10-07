@@ -2,24 +2,6 @@
 
 Before we dive into Writing some code we'll finish off this part of the book talking a bit about different strategies of handling I/O and concurrency. Now, just note that I'm covering I/O in general here, but I use network communication as the main example. Different strategies can have different strengths depending on what type of I/O we're talking about.
 
-
-## The perfect solution
-
-Let's start off by picturing a perfect world, and how the most efficient way of handling I/O in a concurrent manner could look like.
-
-If we go back to this model and think it through based on the knowledge we now have. If we want to use every CPU cycle the best way possible how would we design this?
-
-![overview](./images/AsyncBasicsSimplified.png)
-
-The best way would be the following:
-
-1. We give the Network Card a message that we want to be notified **immediately** when new data has arrived for us.
-2. The network card is hyper optimized in the way it checks for data, it's firmware makes sure of that.
-3. As soon as some data has arrived for us the Network Card let's us know
-4. We either finish what we're doing or handle that data immediately
-
-This is super simplified, and probably not realistic. The idea here is that the logic that is closest to the "problem" and has the best hardware support to handle it does the work. Also, we only get notified when we are expecting something, not on every event that might occur. These assumptions are not very realistic.
-
 ## 1. Using OS threads
 
 Now one way of accomplishing this is letting the OS take care of everything for us. We do this by simply spawning a new OS thread for each task we want to accomplish and write code like we normally would.
@@ -34,14 +16,14 @@ Now one way of accomplishing this is letting the OS take care of everything for 
 **Cons:**
 
 - OS level threads come with a rather large stack. If you have many tasks happening simultaneously (like in a webserver under heavy load) you'll run out of memory pretty soon.
-- There are a lot of syscalls involved this can be pretty costly
+- There are a lot of syscalls involved. This can be pretty costly when the number of tasks is high.
 - The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish
 - The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.
 
 
 ## 2. Green threads
 
-Another common way of handling this is green threads. Languages like GO uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.
+Another common way of handling this is green threads. Languages like Go uses this to great success. In many ways this is similar to what the OS does but the runtime can be better adjusted and suited to your specific needs.
 
 **Pros:**
 
@@ -53,18 +35,20 @@ Another common way of handling this is green threads. Languages like GO uses thi
 **Cons:**
 
 - You need a runtime, and by having that you are duplicating part of the work the OS already does. The runtime will have a cost which in some cases can be substantial.
-- Can be difficult to implement in a flexible way to handle a wide set of tasks
+- Can be difficult to implement in a flexible way to handle a wide variety of tasks
 
 
 ## 3. Poll based event loops supported by the OS
 
-The third way we're covering today is the one that most closely matches our _ideal_ solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. 
+The third way we're covering today is the one that most closely matches an ideal solution. In this solution the we register an interest in an event, and then let the OS tell us when it's ready. 
 
-The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. The OS let's us know that data is ready for us to read.
+The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. 
+
+Now, we still need a way to "suspend" many tasks while waiting, and this is where Nodes "runtime" or Rusts Futures come in to play. 
 
 **Pros:**
 
-- Very little work is duplicated which makes it very performant
+- Close to optimal resource utilization
 - It's very efficient
 - Gives us the maximum amount of flexibility to decide how to handle the events that occurs
 
@@ -73,10 +57,12 @@ The way this works is that we tell the OS that we're interested in knowing when 
 - Different operating systems have different ways of handle these kind of queues. Some of them are difficult to reconcile with each other. Some operating systems has limitations on what I/O operations support this method.
 - Great flexibility comes with a good deal of complexity
 - Difficult to write an abstraction layer that accounts for the differences between the operating systems without introducing unwanted costs, and at the same time provide a ergonomic API.
+- Only solves part of the problem, the programmer still needs a strategy for suspending tasks that are waiting.
 
 
 ## Final note
 
-The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently.
+The Node runtime uses a combination of both 1 and 3, but tries to force all I/O to use alternative 3. This is also part of the reason why Node is so good at handle many connections concurrently. Node uses a callback based approach to suspend
+tasks.
 
-Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the _cons_ of this method. Most notably the last point.
+Rusts async story is modeled around option 3, and some of the reason it has taken a long time is related to the _cons_ of this method and choosing a way to model how tasks should be suspended. Rusts Futures model a task as a [State Machine](https://en.wikipedia.org/wiki/Finite-state_machine) where a suspension point represents a `state`.

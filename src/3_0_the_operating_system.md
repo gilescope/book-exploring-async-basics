@@ -1,12 +1,12 @@
 # The Operating System
 
-The operating system stands in the center of everything we do as programmers,
+The operating system stands in the center of everything we do as programmers (well, unless you're [writing an Operating System](https://os.phil-opp.com/) or are in the [Embedded realm](https://rust-embedded.github.io/book/)),
 so there is no way for us to discuss any kind of fundamentals in programming
 without talking about operating systems in a bit of detail. 
 
 ## Concurrency from the operating systems perspective
 
-> Operating systems has been "faking" synchronous execution since the 90's.
+<div style="color: back;  font-style: italic; font-size: 1.2em">"Operating systems has been "faking" synchronous execution since the 90's."</div>
 
 This ties into what I talked about in the first chapter when I said that `concurrent`
 needs to be talked about within a reference frame and I explained that the OS
@@ -31,16 +31,13 @@ The operating system will make sure that all important processes gets some time 
 ## Teaming up with the OS.
 
 When programming it's often easy to forget how many moving pieces that need to
-cooperate to reach maximum efficiency. When you make a web request, you're not
+cooperate when we care about efficiency. When you make a web request, you're not
 asking the CPU or the network card to do something for you, you're asking the
 operating system to talk to the network card for you.
 
 There is no way for you as a programmer to make your system optimally efficient
 without playing to the operating systems strengths. You basically don't have
-access to the hardware directly. This assumes that you're writing code that runs
-on an operating system though. But our focus here is written in the context of
-Linux, Macos and Windows so cooperating with the OS to be as efficient as possible
-is unavoidable.
+access to the hardware directly. 
 
 However this also means that to understand everything from the ground up, you'll
 also need to know how your operating system handles these tasks.

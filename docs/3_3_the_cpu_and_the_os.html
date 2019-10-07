@@ -145,17 +145,9 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h2><a class="header" href="#" id=""></a></h2>
-<h1><a class="header" href="#does-the-cpu-and-the-os-cooperate" id="does-the-cpu-and-the-os-cooperate">Does the CPU and the OS cooperate?</a></h1>
-<p>If you would have asked me this question a year ago I would most likely answer
-no. The OS operates on top of the CPU and is the &quot;gateway&quot; all other application
-uses. Now, first of all, I wouldn't have thought this through, but unless you
-learn how this work from the bottom up, it's not easy to know for sure.</p>
-<p>What started to make me think I was very wrong was some code looking like this:</p>
-<blockquote>
-<p>We'll write instructions directly to the CPU so there know there are no 
-abstractions, syscalls or runtime of some sort that might do some magic for us</p>
-</blockquote>
+                        <h1><a class="header" href="#does-the-cpu-cooperate-with-the-operating-system" id="does-the-cpu-cooperate-with-the-operating-system">Does the CPU cooperate with the Operating System?</a></h1>
+<p>If you had asked me this question when I first thought I understood how programs work, I would most likely answer no. We run programs on the CPU and we can do whatever we want if we know how to do it. Now, first of all, I wouldn't have thought this through, but unless you learn how this work from the bottom up, it's not easy to know for sure.</p>
+<p><strong>What started to make me think I was very wrong was some code looking like this:</strong></p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
     let t = 100;
@@ -173,10 +165,11 @@ fn dereference(ptr: *const usize) -&gt; usize {
     res
 }
 </code></pre></pre>
+<blockquote>
 <p>Here we write a <code>dereference</code> function using assembly instructions. We know there
 is no way the OS is involved here.</p>
-<p>As you see, this code will output <code>100</code> as expected. But let's now instead create a 
-pointer with the address <code>99999999999999</code> which we know is invalid and see what 
+</blockquote>
+<p>As you see, this code will output <code>100</code> as expected. But let's now instead create a pointer with the address <code>99999999999999</code> which we know is invalid and see what 
 happens when we pass that into the same function:</p>
 <pre><pre class="playpen"><code class="language-rust">#![feature(asm)]
 fn main() {
@@ -197,18 +190,16 @@ fn main() {
 <p>Now we get a segmentation fault. Not surprising really, but how does the CPU
 know that we're not allowed to dereference this memory?</p>
 <ul>
-<li>Does the CPU ask the OS if this process is allowed to access this memory location?</li>
+<li>Does the CPU ask the OS if this process is allowed to access this memory location every time we dereference something?</li>
 <li>Won't that be very slow? </li>
-<li>How does the CPU know that it has an OS running on top of it at all? D</li>
-<li>Does all CPUs know what a segmentation fault is? </li>
-<li>Does the CPU have any concept of memory segmentation at all? </li>
+<li>How does the CPU know that it has an OS running on top of it at all?</li>
+<li>Do all CPUs know what a segmentation fault is? </li>
 <li>Why do we get an error message at all and not just a crash?</li>
 </ul>
 <h2><a class="header" href="#down-the-rabbit-hole" id="down-the-rabbit-hole">Down the rabbit hole</a></h2>
 <p>Yes, this is a small rabbit hole. It turns out that there
-os some kind of corporation, but maybe not the way you naively would think.</p>
-<p>Many modern CPUs provide some infrastructure that Operating Systems need to 
-implement and give us the security and stability we expect. Actually, most 
+is a great deal of corporation between the OS and the CPU, but maybe not the way you naively would think.</p>
+<p>Many modern CPUs provide some basic infrastructure that Operating Systems use. This infrastructure give us the security and stability we expect. Actually, most 
 advanced CPUs provide a lot more options than operating systems like Linux, BSD and
 Windows actually uses.</p>
 <p>There is especially two that I want to address here:</p>
@@ -216,14 +207,14 @@ Windows actually uses.</p>
 <li>How the CPU prevents us from accessing memory we're not supposed to access</li>
 <li>How the CPU handles asynchronous events like I/O</li>
 </ol>
+<p><em>We'll cover the first one here and the second in the next chapter.</em></p>
 <blockquote>
 <p>If you want to know more about how this works in detail I will absolutely
 recommend that you give <a href="https://os.phil-opp.com/">Philipp Oppermann excelent series</a>
 a read. It's extremely well written and will answer all these questions and many more.</p>
 </blockquote>
 <h2><a class="header" href="#how-does-the-cpu-prevent-us-from-accessing-memory-were-not-supposed-to" id="how-does-the-cpu-prevent-us-from-accessing-memory-were-not-supposed-to">How does the CPU prevent us from accessing memory we're not supposed to?</a></h2>
-<p>As I mentioned, modern CPUs have already some definition of basic concepts. Some
-concepts the CPU is aware of are (there are more but we can't cover everything here):</p>
+<p>As I mentioned, modern CPUs have already some definition of basic concepts. Some examples of this is:</p>
 <ul>
 <li>Virtual memory </li>
 <li>Page table</li>
@@ -239,18 +230,17 @@ the virtual address we use in our programs, to a physical address.</p>
 <p>When the OS starts a process (like our program) it sets up a page table for our
 process, and makes sure a special register on the CPU points to this page table.</p>
 <p>Now, when we try to dereference <code>t_ptr</code> in the code above, the address is at some point
-sent to the MMU for translation, which looks it up in the page table which translates
-it to the physical address.</p>
-<p>In this case it will point to a memory address on our stack that holds the value <code>100</code>.</p>
+sent to the MMU for translation, which looks it up in the page table to translate
+it to a physical address in memory where it can fetch the data.</p>
+<p>In the first case it will point to a memory address on our stack that holds the value <code>100</code>.</p>
 <p>When we pass in <code>99999999999999</code> and ask it to fetch what's stored at that address 
-(which is what dereferencing does) it looks for the translation in the page table but
-can't find it.</p>
-<p>The CPU then treats this as a <code>page fault</code>. </p>
-<p>At boot, the OS at provided the CPU with a Interrupt Descriptor Table. This table
-has a predefined format where the OS has to provide handlers for the predefined 
+(which is what dereferencing does) it looks for the translation in the page table but can't find it.</p>
+<p>The CPU then treats this as a <code>page fault</code>.</p>
+<p>At boot, the OS provided the CPU with an Interrupt Descriptor Table. This table
+has a predefined format where the OS provides handlers for the predefined 
 exceptions the CPU can encounter.</p>
-<p>Since the OS provided ha pointer to a function that handles <code>Page Fault</code> the CPU 
-jumps to that function and thereby hands over control to the Operating System. </p>
+<p>Since the OS provided a pointer to a function that handles <code>Page Fault</code> the CPU 
+jumps to that function when we try to dereference <code>99999999999999</code> and thereby hands over control to the Operating System. </p>
 <p>The OS then prints a nice message for us letting us know that we encountered 
 what it calls a <code>segmentation fault</code>. This message will therefore wary depending on the OS you 
 run the code on.</p>
@@ -258,9 +248,9 @@ run the code on.</p>
 <p>Now this is where <code>Privelege Level</code> comes in. Most modern operating systems operate with two <code>Ring Levels</code>. Ring 0, the kernel space, and Ring 3, user space.</p>
 <p><img src="./images/priv_rings.png" alt="Privelege rings" /></p>
 <p>Most CPUs has a concept of more rings that what most modern operating systems use. This has historical reasons, which is also why <code>Ring 0</code> and <code>Ring 3</code> are used (and not 1, 2).</p>
-<p>Now every entry in the page table has additional information about it, amongst that information is the information about what ring it belongs to. This is set up when your OS boots up,</p>
+<p>Now every entry in the page table has additional information about it, amongst that information is the information about what ring it belongs to. This information is set up when your OS boots up.</p>
 <p>Code executed in <code>Ring 0</code> has almost unrestricted access to external devices, memory and is free to change registers that provide security at the hardware level.</p>
-<p>Now, the code you write in <code>Ring 3</code> will typically have extremely restricted access to I/O and certain CPU registers (and instructions). Trying to issue an instruction or setting a register from <code>Ring 3</code> to change the <code>page table</code> will be prevented already at the CPU level, which then treats this as an exception and jumps to the handler provided by the OS.</p>
+<p>Now, the code you write in <code>Ring 3</code> will typically have extremely restricted access to I/O and certain CPU registers (and instructions). Trying to issue an instruction or setting a register from <code>Ring 3</code> to change the <code>page table</code> will be prevented already at the CPU. The CPU will then then treat this as an exception and jump to the handler for that exception provided by the OS.</p>
 <p>This is also the reason why you have no other choice than to cooperate with the OS and handle I/O tasks through syscalls. The system wouldn't be very secure if this wasn't the case.</p>
 
                     </main>
