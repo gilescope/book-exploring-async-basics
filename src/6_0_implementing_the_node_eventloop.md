@@ -115,71 +115,72 @@ that would be the text representation of the file we read.
 
 When we run this code we'll get something looking like this:
 
+![example_run](./images/example_run.mp4)
+
+And here is what our output will look like:
 ```
-Thread: main     First call to read test.txt
-Thread: main     Registering immediate timeout 1
-Thread: pool3    recived a task of type: File read
-Thread: main     Registered timer event id: 2
-Thread: main     Registering immediate timeout 2
-Thread: main     Registered timer event id: 3
-Thread: main     Second call to read test.txt
-Thread: main     Registering a 3000 and a 500 ms timeout
-Thread: pool2    recived a task of type: File read
-Thread: main     Registered timer event id: 5
-Thread: main     Registering a 1000 ms timeout
-Thread: main     Registered timer event id: 6
-Thread: main     Registering http get request to google.com
-Thread: main     Event with id: 7 registered.
-Thread: main     ===== TICK 1 =====
-Thread: main     Immediate1 timed out
-Thread: main     Immediate2 timed out
-Thread: pool2    finished running a task of type: File read.
-Thread: pool3    finished running a task of type: File read.
-Thread: main     Second count: 39 characters.
-Thread: main     Third call to read test.txt
-Thread: main     ===== TICK 2 =====
-Thread: pool2    recived a task of type: File read
-Thread: main     SETTIMEOUT
-Thread: main     First count: 39 characters.
-Thread: main     I want to create a "magic" number based on the text.
-Thread: main     ===== TICK 3 =====
-Thread: pool3    recived a task of type: Encrypt
-Thread: pool3    finished running a task of type: Encrypt.
-Thread: main     "Encrypted" number is: 63245986
-Thread: main     ===== TICK 4 =====
-Thread: pool2    finished running a task of type: File read.
+Thread: main	 First call to read test.txt
+Thread: main	 Registering immediate timeout 1
+Thread: main	 Registered timer event id: 2
+Thread: main	 Registering immediate timeout 2
+Thread: main	 Registered timer event id: 3
+Thread: main	 Second call to read test.txt
+Thread: main	 Registering a 3000 and a 500 ms timeout
+Thread: main	 Registered timer event id: 5
+Thread: main	 Registering a 1000 ms timeout
+Thread: main	 Registered timer event id: 6
+Thread: main	 Registering http get request to google.com
+Thread: pool3	 recived a task of type: File read
+Thread: pool2	 recived a task of type: File read
+Thread: main	 Event with id: 7 registered.
+Thread: main	 ===== TICK 1 =====
+Thread: main	 Immediate1 timed out
+Thread: main	 Immediate2 timed out
+Thread: pool3	 finished running a task of type: File read.
+Thread: pool2	 finished running a task of type: File read.
+Thread: main	 First count: 39 characters.
+Thread: main	 I want to create a "magic" number based on the text.
+Thread: pool3	 recived a task of type: Encrypt
+Thread: main	 ===== TICK 2 =====
+Thread: main	 SETTIMEOUT
+Thread: main	 Second count: 39 characters.
+Thread: main	 Third call to read test.txt
+Thread: main	 ===== TICK 3 =====
+Thread: pool2	 recived a task of type: File read
+Thread: pool3	 finished running a task of type: Encrypt.
+Thread: main	 "Encrypted" number is: 63245986
+Thread: main	 ===== TICK 4 =====
+Thread: pool2	 finished running a task of type: File read.
 
 ===== THREAD main START CONTENT - FILE READ =====
 Hello world! This is a text to encrypt!
+... [Note: Abbreviated for display] ...
 ===== END CONTENT =====
 
-Thread: main     ===== TICK 5 =====
-Thread: epoll    epoll event 7 is ready
+Thread: main	 ===== TICK 5 =====
+Thread: epoll	 epoll event 7 is ready
 
 ===== THREAD main START CONTENT - WEB CALL =====
 HTTP/1.1 302 Found
-Server: CowbHTTP/1.1 302 Found
-Server: CowbHTTP/1.1 302 Found
 Server: Cowboy
+Location: http://http/www.google.com
 ... [Note: Abbreviated for display] ...
-
-
 ===== END CONTENT =====
 
-Thread: main     ===== TICK 6 =====
-Thread: epoll    epoll event timeout is ready
-Thread: main     ===== TICK 7 =====
-Thread: main     3000ms timer timed out
-Thread: main     Registered timer event id: 10
-Thread: epoll    epoll event timeout is ready
-Thread: main     ===== TICK 8 =====
-Thread: main     500ms timer(nested) timed out
-Thread: pool0    recived a task of type: Close
-Thread: pool1    recived a task of type: Close
-Thread: pool2    recived a task of type: Close
-Thread: pool3    recived a task of type: Close
-Thread: epoll    recieved event of type: Close
-Thread: main     FINISHED
+Thread: main	 ===== TICK 6 =====
+Thread: epoll	 epoll event timeout is ready
+Thread: main	 ===== TICK 7 =====
+Thread: main	 3000ms timer timed out
+Thread: main	 Registered timer event id: 10
+Thread: epoll	 epoll event timeout is ready
+Thread: main	 ===== TICK 8 =====
+Thread: main	 500ms timer(nested) timed out
+Thread: pool0	 recived a task of type: Close
+Thread: pool1	 recived a task of type: Close
+Thread: pool2	 recived a task of type: Close
+Thread: pool3	 recived a task of type: Close
+Thread: epoll	 recieved event of type: Close
+Thread: main	 FINISHED
 ```
 
 Don't worry, we'll explain everything, but I just wanted to start off by
