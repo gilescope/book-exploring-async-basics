@@ -1333,70 +1333,70 @@ since we use a typed language we have created a type called <code>Js</code>.</p>
 we invoke the callback and pass in any arguments we might have. In the case of <code>Fs::read</code>
 that would be the text representation of the file we read.</p>
 <p>When we run this code we'll get something looking like this:</p>
-<pre><code>Thread: main     First call to read test.txt
-Thread: main     Registering immediate timeout 1
-Thread: pool3    recived a task of type: File read
-Thread: main     Registered timer event id: 2
-Thread: main     Registering immediate timeout 2
-Thread: main     Registered timer event id: 3
-Thread: main     Second call to read test.txt
-Thread: main     Registering a 3000 and a 500 ms timeout
-Thread: pool2    recived a task of type: File read
-Thread: main     Registered timer event id: 5
-Thread: main     Registering a 1000 ms timeout
-Thread: main     Registered timer event id: 6
-Thread: main     Registering http get request to google.com
-Thread: main     Event with id: 7 registered.
-Thread: main     ===== TICK 1 =====
-Thread: main     Immediate1 timed out
-Thread: main     Immediate2 timed out
-Thread: pool2    finished running a task of type: File read.
-Thread: pool3    finished running a task of type: File read.
-Thread: main     Second count: 39 characters.
-Thread: main     Third call to read test.txt
-Thread: main     ===== TICK 2 =====
-Thread: pool2    recived a task of type: File read
-Thread: main     SETTIMEOUT
-Thread: main     First count: 39 characters.
-Thread: main     I want to create a &quot;magic&quot; number based on the text.
-Thread: main     ===== TICK 3 =====
-Thread: pool3    recived a task of type: Encrypt
-Thread: pool3    finished running a task of type: Encrypt.
-Thread: main     &quot;Encrypted&quot; number is: 63245986
-Thread: main     ===== TICK 4 =====
-Thread: pool2    finished running a task of type: File read.
+<p><img src="./images/example_run.mp4" alt="example_run" /></p>
+<p>And here is what our output will look like:</p>
+<pre><code>Thread: main	 First call to read test.txt
+Thread: main	 Registering immediate timeout 1
+Thread: main	 Registered timer event id: 2
+Thread: main	 Registering immediate timeout 2
+Thread: main	 Registered timer event id: 3
+Thread: main	 Second call to read test.txt
+Thread: main	 Registering a 3000 and a 500 ms timeout
+Thread: main	 Registered timer event id: 5
+Thread: main	 Registering a 1000 ms timeout
+Thread: main	 Registered timer event id: 6
+Thread: main	 Registering http get request to google.com
+Thread: pool3	 recived a task of type: File read
+Thread: pool2	 recived a task of type: File read
+Thread: main	 Event with id: 7 registered.
+Thread: main	 ===== TICK 1 =====
+Thread: main	 Immediate1 timed out
+Thread: main	 Immediate2 timed out
+Thread: pool3	 finished running a task of type: File read.
+Thread: pool2	 finished running a task of type: File read.
+Thread: main	 First count: 39 characters.
+Thread: main	 I want to create a &quot;magic&quot; number based on the text.
+Thread: pool3	 recived a task of type: Encrypt
+Thread: main	 ===== TICK 2 =====
+Thread: main	 SETTIMEOUT
+Thread: main	 Second count: 39 characters.
+Thread: main	 Third call to read test.txt
+Thread: main	 ===== TICK 3 =====
+Thread: pool2	 recived a task of type: File read
+Thread: pool3	 finished running a task of type: Encrypt.
+Thread: main	 &quot;Encrypted&quot; number is: 63245986
+Thread: main	 ===== TICK 4 =====
+Thread: pool2	 finished running a task of type: File read.
 
 ===== THREAD main START CONTENT - FILE READ =====
 Hello world! This is a text to encrypt!
+... [Note: Abbreviated for display] ...
 ===== END CONTENT =====
 
-Thread: main     ===== TICK 5 =====
-Thread: epoll    epoll event 7 is ready
+Thread: main	 ===== TICK 5 =====
+Thread: epoll	 epoll event 7 is ready
 
 ===== THREAD main START CONTENT - WEB CALL =====
 HTTP/1.1 302 Found
-Server: CowbHTTP/1.1 302 Found
-Server: CowbHTTP/1.1 302 Found
 Server: Cowboy
+Location: http://http/www.google.com
 ... [Note: Abbreviated for display] ...
-
-
 ===== END CONTENT =====
 
-Thread: main     ===== TICK 6 =====
-Thread: epoll    epoll event timeout is ready
-Thread: main     ===== TICK 7 =====
-Thread: main     3000ms timer timed out
-Thread: main     Registered timer event id: 10
-Thread: epoll    epoll event timeout is ready
-Thread: main     ===== TICK 8 =====
-Thread: main     500ms timer(nested) timed out
-Thread: pool0    recived a task of type: Close
-Thread: pool1    recived a task of type: Close
-Thread: pool2    recived a task of type: Close
-Thread: pool3    recived a task of type: Close
-Thread: epoll    recieved event of type: Close
-Thread: main     FINISHED
+Thread: main	 ===== TICK 6 =====
+Thread: epoll	 epoll event timeout is ready
+Thread: main	 ===== TICK 7 =====
+Thread: main	 3000ms timer timed out
+Thread: main	 Registered timer event id: 10
+Thread: epoll	 epoll event timeout is ready
+Thread: main	 ===== TICK 8 =====
+Thread: main	 500ms timer(nested) timed out
+Thread: pool0	 recived a task of type: Close
+Thread: pool1	 recived a task of type: Close
+Thread: pool2	 recived a task of type: Close
+Thread: pool3	 recived a task of type: Close
+Thread: epoll	 recieved event of type: Close
+Thread: main	 FINISHED
 </code></pre>
 <p>Don't worry, we'll explain everything, but I just wanted to start off by
 explaining where we want to end up.</p>
@@ -3361,31 +3361,31 @@ use minimio;
 
 static mut RUNTIME: *mut Runtime = std::ptr::null_mut();
 
-struct Event {
+struct Task {
     task: Box&lt;dyn Fn() -&gt; Js + Send + 'static&gt;,
     callback_id: usize,
-    kind: ThreadPoolEventKind,
+    kind: ThreadPoolTaskKind,
 }
 
-impl Event {
+impl Task {
     fn close() -&gt; Self {
-        Event {
+        Task {
             task: Box::new(|| Js::Undefined),
             callback_id: 0,
-            kind: ThreadPoolEventKind::Close,
+            kind: ThreadPoolTaskKind::Close,
         }
     }
 }
 
-pub enum ThreadPoolEventKind {
+pub enum ThreadPoolTaskKind {
     FileRead,
     Encrypt,
     Close,
 }
 
-impl fmt::Display for ThreadPoolEventKind {
+impl fmt::Display for ThreadPoolTaskKind {
     fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
-        use ThreadPoolEventKind::*;
+        use ThreadPoolTaskKind::*;
         match self {
             FileRead =&gt; write!(f, &quot;File read&quot;),
             Encrypt =&gt; write!(f, &quot;Encrypt&quot;),
@@ -3425,7 +3425,7 @@ impl Js {
 #[derive(Debug)]
 struct NodeThread {
     pub(crate) handle: JoinHandle&lt;()&gt;,
-    sender: Sender&lt;Event&gt;,
+    sender: Sender&lt;Task&gt;,
 }
 
 pub struct Runtime {
@@ -3435,8 +3435,6 @@ pub struct Runtime {
     callbacks_to_run: Vec&lt;(usize, Js)&gt;,
     /// All registered callbacks
     callback_queue: HashMap&lt;usize, Box&lt;dyn FnOnce(Js)&gt;&gt;,
-    /// Maps an epoll event to a callback
-    epoll_event_cb_map: HashMap&lt;i64, usize&gt;,
     /// Number of pending epoll events, only used by us to print for this example
     epoll_pending_events: usize,
     /// Our event registrator which registers interest in events with the OS
@@ -3480,24 +3478,24 @@ impl Runtime {
         let mut threads = Vec::with_capacity(4);
 
         for i in 0..4 {
-            let (evt_sender, evt_reciever) = channel::&lt;Event&gt;();
+            let (evt_sender, evt_reciever) = channel::&lt;Task&gt;();
             let event_sender = event_sender.clone();
 
             let handle = thread::Builder::new()
                 .name(format!(&quot;pool{}&quot;, i))
                 .spawn(move || {
 
-                    while let Ok(event) = evt_reciever.recv() {
-                        print(format!(&quot;recived a task of type: {}&quot;, event.kind));
+                    while let Ok(task) = evt_reciever.recv() {
+                        print(format!(&quot;recived a task of type: {}&quot;, task.kind));
                         
-                        if let ThreadPoolEventKind::Close = event.kind {
+                        if let ThreadPoolTaskKind::Close = task.kind {
                             break;
                         };
 
-                        let res = (event.task)();
-                        print(format!(&quot;finished running a task of type: {}.&quot;, event.kind));
+                        let res = (task.task)();
+                        print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
 
-                        let event = PollEvent::Threadpool((i, event.callback_id, res));
+                        let event = PollEvent::Threadpool((i, task.callback_id, res));
                         event_sender.send(event).expect(&quot;threadpool&quot;);
                     }
                 })
@@ -3546,7 +3544,7 @@ impl Runtime {
                             break;
                         }
                         Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
-                        _ =&gt; (),
+                        _ =&gt; unreachable!(),
                     }
                 }
             })
@@ -3556,7 +3554,6 @@ impl Runtime {
             available_threads: (0..4).collect(),
             callbacks_to_run: vec![],
             callback_queue: HashMap::new(),
-            epoll_event_cb_map: HashMap::new(),
             epoll_pending_events: 0,
             epoll_registrator: registrator,
             epoll_thread,
@@ -3617,7 +3614,6 @@ impl Runtime {
             // set the timeout of our epoll wait to the same as the timeout
             // for the next timer. If there is none, we set it to infinite (None)
             let next_timeout = self.get_next_timer();
-            println!(&quot;NEXT_TIMEOUT: {:?}&quot;, next_timeout);
 
             let mut epoll_timeout_lock = self.epoll_timeout.lock().unwrap();
             *epoll_timeout_lock = next_timeout;
@@ -3651,7 +3647,7 @@ impl Runtime {
 
         // We clean up our resources, makes sure all destructors runs.
         for thread in self.thread_pool.into_iter() {
-            thread.sender.send(Event::close()).expect(&quot;threadpool cleanup&quot;);
+            thread.sender.send(Task::close()).expect(&quot;threadpool cleanup&quot;);
             thread.handle.join().unwrap();
         }
 
@@ -3696,16 +3692,7 @@ impl Runtime {
     }
 
     fn process_epoll_events(&amp;mut self, event_id: usize) {
-        let event_id = event_id as i64;
-
-        let callback_id = *self
-            .epoll_event_cb_map
-            .get(&amp;event_id)
-            .expect(&quot;Event not in event map.&quot;);
-
-        self.epoll_event_cb_map.remove(&amp;event_id);
-
-        self.callbacks_to_run.push((callback_id, Js::Undefined));
+        self.callbacks_to_run.push((event_id, Js::Undefined));
         self.epoll_pending_events -= 1;
     }
 
@@ -3754,26 +3741,24 @@ impl Runtime {
         self.callback_queue.insert(ident, boxed_cb);
     }
 
-    pub fn register_io(&amp;mut self, token: usize, cb: impl FnOnce(Js) + 'static) {
+    pub fn register_event_epoll(&amp;mut self, token: usize, cb: impl FnOnce(Js) + 'static) {
         self.add_callback(token, cb);
 
         print(format!(&quot;Event with id: {} registered.&quot;, token));
-        self.epoll_event_cb_map.insert(token as i64, token);
-
         self.pending_events += 1;
         self.epoll_pending_events += 1;
     }
 
-    pub fn register_work(
+    pub fn register_event_threadpool(
         &amp;mut self,
         task: impl Fn() -&gt; Js + Send + 'static,
-        kind: ThreadPoolEventKind,
+        kind: ThreadPoolTaskKind,
         cb: impl FnOnce(Js) + 'static,
     ) {
         let callback_id = self.generate_cb_identity();
         self.add_callback(callback_id, cb);
 
-        let event = Event {
+        let event = Task {
             task: Box::new(task),
             callback_id,
             kind,
@@ -3827,7 +3812,7 @@ impl Crypto {
         };
 
         let rt = unsafe { &amp;mut *RUNTIME };
-        rt.register_work(work, ThreadPoolEventKind::Encrypt, cb);
+        rt.register_event_threadpool(work, ThreadPoolTaskKind::Encrypt, cb);
     }
 }
 
@@ -3846,7 +3831,7 @@ impl Fs {
             Js::String(buffer)
         };
         let rt = unsafe { &amp;mut *RUNTIME };
-        rt.register_work(work, ThreadPoolEventKind::FileRead, cb);
+        rt.register_event_threadpool(work, ThreadPoolTaskKind::FileRead, cb);
     }
 }
 
@@ -3888,7 +3873,7 @@ impl Http {
             cb(Js::String(buffer));
         };
 
-        rt.register_io(token, wrapped);
+        rt.register_event_epoll(token, wrapped);
     }
 }
 
