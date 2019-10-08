@@ -10,6 +10,10 @@ The rendered version can be found here: [The Node Experiment - Exploring Async B
 
 The issue tracker can be used for all kinds of feedback and/or discussions.
 
+## Code example
+
+The example code used in this book is found in this repository: [examples-node-eventloop](https://github.com/cfsamson/examples-node-eventloop)
+
 ## Building
 You'll need to install [mdbook](https://github.com/rust-lang-nursery/mdBook) to build this book for yourself. 
 
