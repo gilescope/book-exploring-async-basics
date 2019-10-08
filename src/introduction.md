@@ -10,21 +10,22 @@ understand how it works on a fundamental level.
 **Me too.**
 
 So I spent a couple of hundred hours to try to fix that for myself. I wrote
-this story as a result of that and now I invite you to join me on that journey.
+this book as a result of that reserch, and now I invite you to join me as we try
+to unvail the secrets of async programming.
 
 This book aims to take a look at the **why** and **how** of concurrent programming. First we build
-a good foundation of basic knowledge, before we use that knowledge to implement a toy version of the
-Node.js runtime.
+a good foundation of basic knowledge, before we use that knowledge to investigate how Node.js works
+by building a Node-inspired runtime.
 
 > This book is developed in the open and has [it's repository here](https://github.com/cfsamson/book-investigating-async-basics).
-> The book and the accomanying code is MIT licensed so feel free to clone away
+> The book and the [accomanying code](https://github.com/cfsamson/examples-node-eventloop) is MIT licensed so feel free to clone away
 > and play with it.
 
 I warn you though, we need to venture from philosophical heights where we try to
 formally define a "task" all the way down to the deep waters where firmware and
 other strange creatures rule (I believe some of the more wicked creatures there
 are tasked with naming low level OS syscalls and structures on Windows. However, I
-have yet to confirm this.).
+have yet to confirm this).
 
 > Everything in this book will cover the topics for the three major Operating Systems
 > Linux, Macos and Windows. We'll also only cover the details on how this works
@@ -108,20 +109,19 @@ Substantial contributions will be credited here.
 
 ## Contributing
 
-I have no other interest in this than to share knowledge that might be hard to
-come by with others, making it easier for them to acquire it. If you want to
+I have no other interest in this than to share knowledge that can be hard to
+come by and make it easier for the next curious person to understand. If you want to
 contribute to make this better there are two places to go:
 
 1. [The base repo for this book](https://github.com/cfsamson/book-investigating-async-basics) for all feedback and content changes
 2. [The base repo for the code example we use](https://github.com/cfsamson/examples-node-eventloop) for all improvements to the example code
 
-Everything from spelling mistakes to errors or inaccuracies are greatly appreciated. It will only make this book better for the next person readin it.
+Everything from spelling mistakes to correcting errors or inaccuracies are greatly appreciated. It will only make this book better for the next person reading it.
 
-## Why I wrote this and companion books
+## Why I wrote this and its companion books
 
-This started as a wish to write an article about Rusts Futures 3.0, but has now
-expanded into 3 books about concurrency in general and hopefully, at
-some point a fourth about Rusts Futures exclusively.
+This started as a wish to write an article about Rusts Futures 3.0. The result so far is
+3 books about concurrency in general and hopefully, at some point a fourth about Rusts Futures exclusively.
 
 This process has also made me realize why I have vague memories from my childhood
 of threats being made about stopping the car and letting me off if I didn't stop

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Introduction - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        <title>Introduction - The Node Experiment - Exploring Async Basics With Rust</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -110,11 +110,15 @@
                             
                         </div>
 
-                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+                        <h1 class="menu-title">The Node Experiment - Exploring Async Basics With Rust</h1>
 
                         <div class="right-buttons">
                             <a href="print.html" title="Print this book" aria-label="Print this book">
                                 <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                            <a href="https://github.com/cfsamson/book-investigating-async-basics" title="Git repository" aria-label="Git repository">
+                                <i id="git-repository-button" class="fa fa-github"></i>
                             </a>
                             
                         </div>
@@ -153,20 +157,21 @@ only to find yourself confused a moment later. Especially when you want to
 understand how it works on a fundamental level.</p>
 <p><strong>Me too.</strong></p>
 <p>So I spent a couple of hundred hours to try to fix that for myself. I wrote
-this story as a result of that and now I invite you to join me on that journey.</p>
+this book as a result of that reserch, and now I invite you to join me as we try
+to unvail the secrets of async programming.</p>
 <p>This book aims to take a look at the <strong>why</strong> and <strong>how</strong> of concurrent programming. First we build
-a good foundation of basic knowledge, before we use that knowledge to implement a toy version of the
-Node.js runtime.</p>
+a good foundation of basic knowledge, before we use that knowledge to investigate how Node.js works
+by building a Node-inspired runtime.</p>
 <blockquote>
 <p>This book is developed in the open and has <a href="https://github.com/cfsamson/book-investigating-async-basics">it's repository here</a>.
-The book and the accomanying code is MIT licensed so feel free to clone away
+The book and the <a href="https://github.com/cfsamson/examples-node-eventloop">accomanying code</a> is MIT licensed so feel free to clone away
 and play with it.</p>
 </blockquote>
 <p>I warn you though, we need to venture from philosophical heights where we try to
 formally define a &quot;task&quot; all the way down to the deep waters where firmware and
 other strange creatures rule (I believe some of the more wicked creatures there
 are tasked with naming low level OS syscalls and structures on Windows. However, I
-have yet to confirm this.).</p>
+have yet to confirm this).</p>
 <blockquote>
 <p>Everything in this book will cover the topics for the three major Operating Systems
 Linux, Macos and Windows. We'll also only cover the details on how this works
@@ -252,18 +257,17 @@ thoroughness and respect they deserve. </p>
 <h2><a class="header" href="#credits" id="credits">Credits</a></h2>
 <p>Substantial contributions will be credited here.</p>
 <h2><a class="header" href="#contributing" id="contributing">Contributing</a></h2>
-<p>I have no other interest in this than to share knowledge that might be hard to
-come by with others, making it easier for them to acquire it. If you want to
+<p>I have no other interest in this than to share knowledge that can be hard to
+come by and make it easier for the next curious person to understand. If you want to
 contribute to make this better there are two places to go:</p>
 <ol>
 <li><a href="https://github.com/cfsamson/book-investigating-async-basics">The base repo for this book</a> for all feedback and content changes</li>
 <li><a href="https://github.com/cfsamson/examples-node-eventloop">The base repo for the code example we use</a> for all improvements to the example code</li>
 </ol>
-<p>Everything from spelling mistakes to errors or inaccuracies are greatly appreciated. It will only make this book better for the next person readin it.</p>
-<h2><a class="header" href="#why-i-wrote-this-and-companion-books" id="why-i-wrote-this-and-companion-books">Why I wrote this and companion books</a></h2>
-<p>This started as a wish to write an article about Rusts Futures 3.0, but has now
-expanded into 3 books about concurrency in general and hopefully, at
-some point a fourth about Rusts Futures exclusively.</p>
+<p>Everything from spelling mistakes to correcting errors or inaccuracies are greatly appreciated. It will only make this book better for the next person reading it.</p>
+<h2><a class="header" href="#why-i-wrote-this-and-its-companion-books" id="why-i-wrote-this-and-its-companion-books">Why I wrote this and its companion books</a></h2>
+<p>This started as a wish to write an article about Rusts Futures 3.0. The result so far is
+3 books about concurrency in general and hopefully, at some point a fourth about Rusts Futures exclusively.</p>
 <p>This process has also made me realize why I have vague memories from my childhood
 of threats being made about stopping the car and letting me off if I didn't stop
 asking &quot;why?&quot; to everything.</p>
@@ -315,6 +319,23 @@ reading the RFC's and discussions about Rusts async story: </p>
 
         
 
+        
+        <!-- Google Analytics Tag -->
+        <script type="text/javascript">
+            var localAddrs = ["localhost", "127.0.0.1", ""];
+
+            // make sure we don't activate google analytics if the developer is
+            // inspecting the book locally...
+            if (localAddrs.indexOf(document.location.hostname) === -1) {
+                (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                ga('create', '142049002', 'auto');
+                ga('send', 'pageview');
+            }
+        </script>
         
 
         
