@@ -22,7 +22,7 @@ simplified version of of an event queue. I called it `minimio` since it's greatl
 
 However, we'll give each of them a brief introduction here so you know the basics.
 
-## Why and OS backed event queue
+## Why use an OS backed event queue?
 
 If you remember my previous chapters you know that we need to cooperate closely
 with the OS to make I/O operations as efficient as possible. Operating systems like
@@ -39,7 +39,7 @@ Epoll/kqueue/IOCP is a way to combine the flexibility of a non-blocking method w
 > here](https://people.eecs.berkeley.edu/~sangjin/2012/12/21/epoll-vs-kqueue.html)
 > if you want to learn a bit about these methods and how they differ from `epoll`.
 
-## Readiness based event queue
+## Readiness based event queues
 
 Epoll and Kqueue are what we call readiness based event queues. They're called
 that since they let you know when an action is ready to be performed. For example
@@ -54,7 +54,7 @@ when a socket is ready to be read from.
 5. When the event is ready, our thread is unblocked (resumed) and we return from our call to "wait" with data about what event occurred.
 6. We call `read` on the socket we created in 2.
 
-## Completion based event queue
+## Completion based event queues
 
 IOCP stands for I/O Completion Ports, and in this type of queue you get a
 notification when events are completed. For example data is read to a buffer.
@@ -98,4 +98,3 @@ return.
 > models to behave like the `completion based` model is easier than the other
 > way around. This means get IOCP to work first and then fit `epoll` and `kqueue`
 > into that design.
-

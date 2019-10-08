@@ -1258,7 +1258,7 @@ curious</a>. This book will also briefly cover
 <code>wepoll</code> which is used as an optimization instead of IOCP in both <code>mio</code> and <code>libuv</code>. </p>
 </blockquote>
 <p>However, we'll give each of them a brief introduction here so you know the basics.</p>
-<h2><a class="header" href="#why-and-os-backed-event-queue" id="why-and-os-backed-event-queue">Why and OS backed event queue</a></h2>
+<h2><a class="header" href="#why-use-an-os-backed-event-queue" id="why-use-an-os-backed-event-queue">Why use an OS backed event queue?</a></h2>
 <p>If you remember my previous chapters you know that we need to cooperate closely
 with the OS to make I/O operations as efficient as possible. Operating systems like
 Linux, Macos and Windows provides several ways of performing I/O, both blocking and
@@ -1271,7 +1271,7 @@ non-blocking.</p>
 here</a>
 if you want to learn a bit about these methods and how they differ from <code>epoll</code>.</p>
 </blockquote>
-<h2><a class="header" href="#readiness-based-event-queue" id="readiness-based-event-queue">Readiness based event queue</a></h2>
+<h2><a class="header" href="#readiness-based-event-queues" id="readiness-based-event-queues">Readiness based event queues</a></h2>
 <p>Epoll and Kqueue are what we call readiness based event queues. They're called
 that since they let you know when an action is ready to be performed. For example
 when a socket is ready to be read from.</p>
@@ -1284,7 +1284,7 @@ when a socket is ready to be read from.</p>
 <li>When the event is ready, our thread is unblocked (resumed) and we return from our call to &quot;wait&quot; with data about what event occurred.</li>
 <li>We call <code>read</code> on the socket we created in 2.</li>
 </ol>
-<h2><a class="header" href="#completion-based-event-queue" id="completion-based-event-queue">Completion based event queue</a></h2>
+<h2><a class="header" href="#completion-based-event-queues" id="completion-based-event-queues">Completion based event queues</a></h2>
 <p>IOCP stands for I/O Completion Ports, and in this type of queue you get a
 notification when events are completed. For example data is read to a buffer.</p>
 <p>This is the basics of what happens in an even queue:</p>
