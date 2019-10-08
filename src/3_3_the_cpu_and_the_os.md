@@ -115,7 +115,7 @@ Since the OS provided a pointer to a function that handles `Page Fault` the CPU
 jumps to that function when we try to dereference `99999999999999` and thereby hands over control to the Operating System. 
 
 The OS then prints a nice message for us letting us know that we encountered 
-what it calls a `segmentation fault`. This message will therefore wary depending on the OS you 
+what it calls a `segmentation fault`. This message will therefore vary depending on the OS you 
 run the code on.
 
 ## But can't we just change the page table in the CPU?

@@ -246,7 +246,7 @@ exceptions the CPU can encounter.</p>
 <p>Since the OS provided a pointer to a function that handles <code>Page Fault</code> the CPU 
 jumps to that function when we try to dereference <code>99999999999999</code> and thereby hands over control to the Operating System. </p>
 <p>The OS then prints a nice message for us letting us know that we encountered 
-what it calls a <code>segmentation fault</code>. This message will therefore wary depending on the OS you 
+what it calls a <code>segmentation fault</code>. This message will therefore vary depending on the OS you 
 run the code on.</p>
 <h2><a class="header" href="#but-cant-we-just-change-the-page-table-in-the-cpu" id="but-cant-we-just-change-the-page-table-in-the-cpu">But can't we just change the page table in the CPU?</a></h2>
 <p>Now this is where <code>Privelege Level</code> comes in. Most modern operating systems operate with two <code>Ring Levels</code>. Ring 0, the kernel space, and Ring 3, user space.</p>
