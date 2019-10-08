@@ -2,9 +2,9 @@
 
 This book aims to take a look at the **why** and **how** of concurrent programming. First we build
 a good foundation of basic knowledge, before we use that knowledge to investigate how Node.js works
-by building a Node-inspired runtime.
+by building a Node-inspired runtime. 
 
-This is the repo for the book: [The Node Experiment - Exploring Async Basics with Rust](https://cfsamson.github.io/book-investigating-async-basics/). The goal of this book is to create a good Async primer that will also demystify what the eventloop in Node is all about.
+The rendered version can be found here: [The Node Experiment - Exploring Async Basics with Rust](https://cfsamson.github.io/book-investigating-async-basics/). 
 
 ## Feedback and discussion
 
