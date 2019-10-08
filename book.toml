@@ -8,4 +8,4 @@ title = "The Node Experiment - Exploring Async Basics with Rust"
 [output.html]
 theme = "src/theme"
 git-repository-url = "https://github.com/cfsamson/book-investigating-async-basics"
-google-analytics = "142049002"
+google-analytics = "UA-149686420-1"
