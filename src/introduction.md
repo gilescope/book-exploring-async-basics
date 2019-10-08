@@ -132,7 +132,7 @@ reading the RFC's and discussions about Rusts async story:
 
 - [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
 
-- [Exploring Async Basics by Implementing the Node Event Loop in Rust](https://cfsamson.github.io/book-investigating-async-basics/) (this book)
+- [The Node Experiment - Exploring Async Basics with Rust](https://cfsamson.github.io/book-investigating-async-basics/) (this book)
 
 - [Exploring Epoll, Kqueue and IOCP with Rust](https://github.com/cfsamson/book-exploring-epoll-kqueue-iocp) a companion book to the "Async Basics" book
 
