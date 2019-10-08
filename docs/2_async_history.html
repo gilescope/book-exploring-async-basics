@@ -148,15 +148,16 @@
                         <h1><a class="header" href="#async-history" id="async-history">Async history</a></h1>
 <p>In the start computers had one CPU and it executed a set of instructions written
 by a programmer one by one. No scheduling, no threads, no multitasking. This was
-how computers worked for a long time. We're talking back when the days where a
-program looked like this:</p>
+how computers worked for a long time. We're talking back when the days where a program
+looked like a deck of these:</p>
 <p><img src="./images/punched_card_deck.jpg" alt="Image" /></p>
-<p>There were operating systems being researched though and when personal computing
-started to grow in the 80's we had operating systems like DOS. </p>
-<p>They usually yielded control of the entire CPU to the program currently executing and it was
+<p>There were operating systems being researched even very early and when personal computing
+started to grow in the 80's operating systems like DOS was the standard on most consumer
+PCs.</p>
+<p>These operating systems usually yielded control of the entire CPU to the program currently executing and it was
 up to the programmer to make things work and implement any kind of multitasking
 for their program. This worked fine, but as interactive UIs using a mouse and
-windowed operating systems became the norm, this simply couldn't work anymore.</p>
+windowed operating systems became the norm, this model simply couldn't work anymore.</p>
 <h2><a class="header" href="#non-preemptive-multitasking" id="non-preemptive-multitasking">Non-preemptive multitasking</a></h2>
 <p>The first method used to be able to keep a UI interactive (and running background
 processes), was accomplished by what we call <code>non-preemtive multitasking</code>. </p>
@@ -172,12 +173,14 @@ to the operating system.</p>
 </blockquote>
 <h2><a class="header" href="#preemtive-multitasking" id="preemtive-multitasking">Preemtive multitasking</a></h2>
 <p>While non-preemtive multitasking sounded like a good idea, it turned out to
-create serious problems as well. Letting every program and programmer out there be responsible for having a responsive UI in an operating system can ultimately lead to a bad user experience if.</p>
+create serious problems as well. Letting every program and programmer out there be responsible for having a responsive UI in an operating system can ultimately lead to a bad user experience if since every bug out there could halt the entire system.</p>
 <p>The solution was to place the responsibility of scheduling the CPU resources
 between the programs that requested it (including to OS itself) in the hands of
 the OS. The OS can stop execution of a process, do something else, and switch back.</p>
 <p>On a single core machine you can visualize this as running a program you wrote,
-the OS stops your program to update the mouse position, switches back to your program to continue and then so forth...</p>
+the OS has to stop your program to update the mouse position before it switches back to your
+program to continue. This happens so frequently that we don't observe any difference wether the CPU
+has a lot of work or is idle.</p>
 <p>The OS is then responsible for scheduling tasks and does this by switching contexts on the CPU. This process can happen many times each second, not only to keep the UI responsive but it can also give some time to other background tasks and IO events.</p>
 <p>This is now the prevailing way to design an operating system.</p>
 <blockquote>
@@ -192,7 +195,7 @@ simultaneously as it's running the code on thread &quot;1&quot;. It does this by
 number of smart tricks (like the one with the ALU).</p>
 <p>Now, having hypertreading, we could actually offload some work on one thread while keeping the UI
 interactive by responding to events in the second thread even though we only
-had one CPU core.</p>
+had one CPU core thereby utilizing our hardware better.</p>
 <blockquote>
 <p>You might wonder about the performance of Hyper Threading? </p>
 <p>It turns out that Hyperthreading has been continuously improved since the 90's.
@@ -209,7 +212,7 @@ and working on the processing pipelines of the processors, but the gains seems t
 be diminishing.</p>
 <p>On the other hand, new processors are so small they allow us to have many on the
 same chip instead. Now most CPUs have many cores, and most often each core will also have the ability to perform hyperthreading.</p>
-<h2><a class="header" href="#so-how-synchronous-is-the-code-you-write-really-" id="so-how-synchronous-is-the-code-you-write-really-">So how synchronous is the code you write, really ?</a></h2>
+<h2><a class="header" href="#so-how-synchronous-is-the-code-you-write-really" id="so-how-synchronous-is-the-code-you-write-really">So how synchronous is the code you write, really?</a></h2>
 <p>As many things this depends on your perspective. From the perspective of your process and the code you write for it, everything will normally happen in the order you write it.</p>
 <p>From the OS perspective it might, or might not, interrupt your code, pause it
 and run some other code in the meantime before resuming your process.</p>
@@ -228,8 +231,8 @@ instructions to load next. </p>
 <p>The CPU offloads some work to separate &quot;coprocessors&quot; like the FPU for for floating point calculations leaving the main CPU ready to do other tasks et cetera.</p>
 <p>As a high level overview, it's OK to model the CPU as operating in a synchronous
 manner, but lets for now just make a mental note that this is a model with some
-caveats that becomes especially important when talking about parallelism and
-synchronization primitives like mutexes, atomics and the security of computers
+caveats that becomes especially important when talking about parallelism,
+synchronization primitives (like mutexes and atomics) and the security of computers
 and operating systems.</p>
 </blockquote>
 
