@@ -1,18 +1,20 @@
 # Async history
+
 In the start computers had one CPU and it executed a set of instructions written
 by a programmer one by one. No scheduling, no threads, no multitasking. This was
-how computers worked for a long time. We're talking back when the days where a
-program looked like this:
+how computers worked for a long time. We're talking back when the days where a program
+looked like a deck of these:
 
 ![Image](./images/punched_card_deck.jpg)
 
-There were operating systems being researched though and when personal computing
-started to grow in the 80's we had operating systems like DOS. 
+There were operating systems being researched even very early and when personal computing
+started to grow in the 80's operating systems like DOS was the standard on most consumer
+PCs.
 
-They usually yielded control of the entire CPU to the program currently executing and it was
+These operating systems usually yielded control of the entire CPU to the program currently executing and it was
 up to the programmer to make things work and implement any kind of multitasking
 for their program. This worked fine, but as interactive UIs using a mouse and
-windowed operating systems became the norm, this simply couldn't work anymore.
+windowed operating systems became the norm, this model simply couldn't work anymore.
 
 ## Non-preemptive multitasking
 
@@ -35,14 +37,16 @@ to the operating system.
 ## Preemtive multitasking
 
 While non-preemtive multitasking sounded like a good idea, it turned out to
-create serious problems as well. Letting every program and programmer out there be responsible for having a responsive UI in an operating system can ultimately lead to a bad user experience if.
+create serious problems as well. Letting every program and programmer out there be responsible for having a responsive UI in an operating system can ultimately lead to a bad user experience if since every bug out there could halt the entire system.
 
 The solution was to place the responsibility of scheduling the CPU resources
 between the programs that requested it (including to OS itself) in the hands of
 the OS. The OS can stop execution of a process, do something else, and switch back.
 
 On a single core machine you can visualize this as running a program you wrote,
-the OS stops your program to update the mouse position, switches back to your program to continue and then so forth...
+the OS has to stop your program to update the mouse position before it switches back to your
+program to continue. This happens so frequently that we don't observe any difference wether the CPU
+has a lot of work or is idle.
 
 The OS is then responsible for scheduling tasks and does this by switching contexts on the CPU. This process can happen many times each second, not only to keep the UI responsive but it can also give some time to other background tasks and IO events.
 
@@ -62,7 +66,7 @@ number of smart tricks (like the one with the ALU).
 
 Now, having hypertreading, we could actually offload some work on one thread while keeping the UI
 interactive by responding to events in the second thread even though we only
-had one CPU core.
+had one CPU core thereby utilizing our hardware better.
 
 > You might wonder about the performance of Hyper Threading? 
 > 
@@ -83,7 +87,7 @@ be diminishing.
 On the other hand, new processors are so small they allow us to have many on the
 same chip instead. Now most CPUs have many cores, and most often each core will also have the ability to perform hyperthreading.
 
-## So how synchronous is the code you write, really ?
+## So how synchronous is the code you write, really?
 
 As many things this depends on your perspective. From the perspective of your process and the code you write for it, everything will normally happen in the order you write it.
 
@@ -109,6 +113,6 @@ the CPU handles concurrency.
 >
 > As a high level overview, it's OK to model the CPU as operating in a synchronous
 > manner, but lets for now just make a mental note that this is a model with some
-> caveats that becomes especially important when talking about parallelism and
-> synchronization primitives like mutexes, atomics and the security of computers
+> caveats that becomes especially important when talking about parallelism,
+> synchronization primitives (like mutexes and atomics) and the security of computers
 > and operating systems.
