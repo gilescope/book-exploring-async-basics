@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Conclusion - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        <title>Crypto module - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.</strong> Epoll, Kqueue and IOCP</a></li><li><a href="7_0_introducing_our_main_example.html"><strong aria-hidden="true">7.</strong> Introducing our main example</a></li><li><ol class="section"><li><a href="7_1_what_is_node.html"><strong aria-hidden="true">7.1.</strong> What is Node?</a></li><li><a href="7_2_whats_our_plan.html"><strong aria-hidden="true">7.2.</strong> What's our plan</a></li></ol></li><li><a href="8_0_implementing_our_own_runtime.html"><strong aria-hidden="true">8.</strong> Implementing our own Runtime</a></li><li><ol class="section"><li><a href="8_1_the_main_loop.html"><strong aria-hidden="true">8.1.</strong> Running our runtime - the main loop</a></li><li><a href="8_2_setting_up_runtime.html"><strong aria-hidden="true">8.2.</strong> Setting up our runtime</a></li><li><a href="8_3_timers.html"><strong aria-hidden="true">8.3.</strong> Timers</a></li><li><a href="8_4_callbacks.html"><strong aria-hidden="true">8.4.</strong> Callbacks</a></li><li><a href="8_5_threadpool.html"><strong aria-hidden="true">8.5.</strong> Threadpool</a></li><li><a href="8_6_io_eventqueue.html"><strong aria-hidden="true">8.6.</strong> I/O eventqueue</a></li><li><a href="8_8_cleaning_up.html"><strong aria-hidden="true">8.7.</strong> Cleaning up</a></li><li><a href="8_9_infrastructure.html"><strong aria-hidden="true">8.8.</strong> Infrastructure</a></li></ol></li><li><a href="9_0_modules.html"><strong aria-hidden="true">9.</strong> Modules</a></li><li><ol class="section"><li><a href="9_1_file_module.html"><strong aria-hidden="true">9.1.</strong> File module</a></li><li><a href="9_2_crypto_module.html"><strong aria-hidden="true">9.2.</strong> Crypto module</a></li><li><a href="9_3_http_module.html"><strong aria-hidden="true">9.3.</strong> Http module</a></li></ol></li><li><a href="10_putting_pieces_together.html"><strong aria-hidden="true">10.</strong> Putting the pieces together</a></li><li><a href="11_final_code.html"><strong aria-hidden="true">11.</strong> Final code</a></li><li><a href="12_shortcuts_and_improvements.html"><strong aria-hidden="true">12.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html" class="active">Conclusion</a></li></ol>
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.</strong> Epoll, Kqueue and IOCP</a></li><li><a href="7_0_introducing_our_main_example.html"><strong aria-hidden="true">7.</strong> Introducing our main example</a></li><li><ol class="section"><li><a href="7_1_what_is_node.html"><strong aria-hidden="true">7.1.</strong> What is Node?</a></li><li><a href="7_2_whats_our_plan.html"><strong aria-hidden="true">7.2.</strong> What's our plan</a></li></ol></li><li><a href="8_0_implementing_our_own_runtime.html"><strong aria-hidden="true">8.</strong> Implementing our own Runtime</a></li><li><ol class="section"><li><a href="8_1_the_main_loop.html"><strong aria-hidden="true">8.1.</strong> Running our runtime - the main loop</a></li><li><a href="8_2_setting_up_runtime.html"><strong aria-hidden="true">8.2.</strong> Setting up our runtime</a></li><li><a href="8_3_timers.html"><strong aria-hidden="true">8.3.</strong> Timers</a></li><li><a href="8_4_callbacks.html"><strong aria-hidden="true">8.4.</strong> Callbacks</a></li><li><a href="8_5_threadpool.html"><strong aria-hidden="true">8.5.</strong> Threadpool</a></li><li><a href="8_6_io_eventqueue.html"><strong aria-hidden="true">8.6.</strong> I/O eventqueue</a></li><li><a href="8_8_cleaning_up.html"><strong aria-hidden="true">8.7.</strong> Cleaning up</a></li><li><a href="8_9_infrastructure.html"><strong aria-hidden="true">8.8.</strong> Infrastructure</a></li></ol></li><li><a href="9_0_modules.html"><strong aria-hidden="true">9.</strong> Modules</a></li><li><ol class="section"><li><a href="9_1_file_module.html"><strong aria-hidden="true">9.1.</strong> File module</a></li><li><a href="9_2_crypto_module.html" class="active"><strong aria-hidden="true">9.2.</strong> Crypto module</a></li><li><a href="9_3_http_module.html"><strong aria-hidden="true">9.3.</strong> Http module</a></li></ol></li><li><a href="10_putting_pieces_together.html"><strong aria-hidden="true">10.</strong> Putting the pieces together</a></li><li><a href="11_final_code.html"><strong aria-hidden="true">11.</strong> Final code</a></li><li><a href="12_shortcuts_and_improvements.html"><strong aria-hidden="true">12.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,29 +145,59 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#conclusion" id="conclusion">Conclusion</a></h1>
-<p>Congratulations!!</p>
-<p>What a ride, huh? We're finished, take a break and get som fresh air. You've deserved
-it.</p>
-<p>We did cover a lot in this book in a fairly condensed manner. I hope I kept my
-initial promise of what we were going to learn and that you also got something
-useful out of this.</p>
-<p>Anyway, I want to thank you for reading all the way to the end, and I really do hope you enjoyed it.</p>
-<p>Feel free to visit the <a href="https://github.com/cfsamson/book-investigating-async-basics">repository of this book</a> or the <a href="https://github.com/cfsamson/examples-node-eventloop">repository for our example code</a>. I would love to hear from you
-if you think there is improvements I could make or if you just found it a good read.</p>
-<p>Until next time!</p>
-<p>Carl Fredrik Samson</p>
+                        <h1><a class="header" href="#crypto-module" id="crypto-module">Crypto module</a></h1>
+<p>As you'll soon understand, we won't actually cover cryptography here, but we'll
+simulate a CPU intensive operation that would block if not run on the threadpool.</p>
+<p>Without further ado: The Glorious Crypto Module</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+struct Crypto;
+impl Crypto {
+    fn encrypt(n: usize, cb: impl Fn(Js) + 'static + Clone) {
+        let work = move || {
+            fn fibonacchi(n: usize) -&gt; usize {
+                match n {
+                    0 =&gt; 0,
+                    1 =&gt; 1,
+                    _ =&gt; fibonacchi(n - 1) + fibonacchi(n - 2),
+                }
+            }
+
+            let fib = fibonacchi(n);
+            Js::Int(fib)
+        };
+
+        let rt = unsafe { &amp;mut *RUNTIME };
+        rt.register_work(work, ThreadPoolEventKind::Encrypt, cb);
+    }
+}
+#}</code></pre></pre>
+<p>Well, um, this is disappointing if you're into crypto. I'm sorry. The logic here is not very interesting, we take a number <code>n</code> as argument and calculate
+the n'th fibonacchi number recursively. A famous and inefficient way of putting your
+CPU to work.</p>
+<p>The overall function will be familiar and look very similar to what we do in our <code>Fs</code> module since this
+module also sends work to the <code>threadpool</code>.</p>
+<p>We create a closure (remember that none of the code in the closure will be
+run here, but it will get called in one of our worker threads).</p>
+<p>Once that is finished we return the result as <code>Js::Int(fib)</code>.</p>
+<p>Lastly we dereference our <code>RUNTIME</code> and we call <code>rt.register_work(work, ThreadPoolEventKind::Encrypt, cb)</code> to register our task with the <code>threadpool</code>.</p>
+<p>Let's move on, we're very soon at the finish line.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="12_shortcuts_and_improvements.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="9_1_file_module.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
+                        
+                            <a rel="next" href="9_3_http_module.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -177,11 +207,15 @@ if you think there is improvements I could make or if you just found it a good r
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="12_shortcuts_and_improvements.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="9_1_file_module.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
+                
+                    <a href="9_3_http_module.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 

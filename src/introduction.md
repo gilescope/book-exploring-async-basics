@@ -69,6 +69,8 @@ platform syscalls in this book which is not a good fit for the Rust playground.
 My best recommendation is to create a project on your local
 computer and follow along by copying the code over and run it locally.
 
+[You can also clone or download the example code from the git repository](https://github.com/cfsamson/examples-node-eventloop)
+
 ## Prerequisites
 
 You don't have to be a Rust programmer to follow along. This book will have numerous chapters where
@@ -111,7 +113,7 @@ come by with others, making it easier for them to acquire it. If you want to
 contribute to make this better there are two places to go:
 
 1. [The base repo for this book](https://github.com/cfsamson/book-investigating-async-basics) for all feedback and content changes
-2. [The base repo for the code example we use](https://github.com/cfsamson/examples-io-eventloop) for all improvements to the example code
+2. [The base repo for the code example we use](https://github.com/cfsamson/examples-node-eventloop) for all improvements to the example code
 
 Everything from spelling mistakes to errors or inaccuracies are greatly appreciated. It will only make this book better for the next person readin it.
 

@@ -1,0 +1,397 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Http module - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.</strong> Epoll, Kqueue and IOCP</a></li><li><a href="7_0_introducing_our_main_example.html"><strong aria-hidden="true">7.</strong> Introducing our main example</a></li><li><ol class="section"><li><a href="7_1_what_is_node.html"><strong aria-hidden="true">7.1.</strong> What is Node?</a></li><li><a href="7_2_whats_our_plan.html"><strong aria-hidden="true">7.2.</strong> What's our plan</a></li></ol></li><li><a href="8_0_implementing_our_own_runtime.html"><strong aria-hidden="true">8.</strong> Implementing our own Runtime</a></li><li><ol class="section"><li><a href="8_1_the_main_loop.html"><strong aria-hidden="true">8.1.</strong> Running our runtime - the main loop</a></li><li><a href="8_2_setting_up_runtime.html"><strong aria-hidden="true">8.2.</strong> Setting up our runtime</a></li><li><a href="8_3_timers.html"><strong aria-hidden="true">8.3.</strong> Timers</a></li><li><a href="8_4_callbacks.html"><strong aria-hidden="true">8.4.</strong> Callbacks</a></li><li><a href="8_5_threadpool.html"><strong aria-hidden="true">8.5.</strong> Threadpool</a></li><li><a href="8_6_io_eventqueue.html"><strong aria-hidden="true">8.6.</strong> I/O eventqueue</a></li><li><a href="8_8_cleaning_up.html"><strong aria-hidden="true">8.7.</strong> Cleaning up</a></li><li><a href="8_9_infrastructure.html"><strong aria-hidden="true">8.8.</strong> Infrastructure</a></li></ol></li><li><a href="9_0_modules.html"><strong aria-hidden="true">9.</strong> Modules</a></li><li><ol class="section"><li><a href="9_1_file_module.html"><strong aria-hidden="true">9.1.</strong> File module</a></li><li><a href="9_2_crypto_module.html"><strong aria-hidden="true">9.2.</strong> Crypto module</a></li><li><a href="9_3_http_module.html" class="active"><strong aria-hidden="true">9.3.</strong> Http module</a></li></ol></li><li><a href="10_putting_pieces_together.html"><strong aria-hidden="true">10.</strong> Putting the pieces together</a></li><li><a href="11_final_code.html"><strong aria-hidden="true">11.</strong> Final code</a></li><li><a href="12_shortcuts_and_improvements.html"><strong aria-hidden="true">12.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#http-module" id="http-module">Http module</a></h1>
+<p>The <code>Http</code> module is probably the one I personally find interesting. There is
+two reasons for this:</p>
+<ol>
+<li>We create a Http GET request from scratch and wait for the response</li>
+<li>The method <code>epoll_registrator.register()</code> is the result of a huge amount of research and work to get working. Look forward to the next book where we dive into that.</li>
+</ol>
+<p>Let's look at the code first and then step through it:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+struct Http;
+impl Http {
+    pub fn http_get_slow(url: &amp;str, delay_ms: u32, cb: impl Fn(Js) + 'static + Clone) {
+        let rt: &amp;mut Runtime = unsafe { &amp;mut *RUNTIME };
+        // Don't worry, http://slowwly.robertomurray.co.uk is a site for simulating a delayed
+        // response from a server. Perfect for our use case.
+        let adr = &quot;slowwly.robertomurray.co.uk:80&quot;;
+        let mut stream = minimio::TcpStream::connect(adr).unwrap();
+            
+        let request = format!(
+            &quot;GET /delay/{}/url/http://{} HTTP/1.1\r\n\
+             Host: slowwly.robertomurray.co.uk\r\n\
+             Connection: close\r\n\
+             \r\n&quot;,
+            delay_ms, url
+        );
+
+        stream
+            .write_all(request.as_bytes())
+            .expect(&quot;Error writing to stream&quot;);
+
+        let token = rt.generate_cb_identity();
+        rt.epoll_registrator
+            .register(&amp;mut stream, token, minimio::Interests::readable())
+            .unwrap();
+
+        let wrapped = move |_n| {
+            let mut stream = stream;
+            let mut buffer = String::new();
+            stream
+                .read_to_string(&amp;mut buffer)
+                .expect(&quot;Stream read error&quot;);
+            cb(Js::String(buffer));
+        };
+
+        rt.register_event_epoll(token, wrapped);
+    }
+}
+#}</code></pre></pre>
+<p>First we call the method <code>http_get_slow</code> since we're simulating a slow response, again
+this is for us to see and control how the events will occur since we're trying to learn.</p>
+<p>In the function body, the first thing we do is dereference our runtime. We need to use a bit of its functionality here so we do this right away.</p>
+<p>The next step is to create a <code>minimio::TcpStream</code>. </p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let adr = &quot;slowwly.robertomurray.co.uk:80&quot;;
+let mut stream = minimio::TcpStream::connect(adr).unwrap();
+#}</code></pre></pre>
+<blockquote>
+<p><strong>Now why not the regular <code>TcpStream</code> from the standard library?</strong></p>
+<p>Well, you do remember that <code>kqueue</code> and <code>epoll</code> are readiness based and <code>IOCP</code> is
+completion based right? </p>
+<p>Well, to have single ergonomic API for all platforms
+we need to abstract over something and we (like <code>mio</code>) choose to abstract over <code>TcpStream</code>. </p>
+<p>While <code>kqueue</code> and <code>epoll</code> can just read when a <code>Read</code> event is ready, we need the <code>TcpStream</code> to create a buffer that it hands over to the OS on Windows. So when we call <code>TcpStream</code> read, we read from this buffer on Windows.</p>
+</blockquote>
+<p>We connect to <code>slowwly.robertomurray.co.uk:80</code> which is just a site <a href="https://github.com/rob-murray">Robert Murray</a> has created
+to simulate slow responses. He's kind enough to let us all use it. We can choose the delay we want on
+each request.</p>
+<p>Next we construct a http <code>GET</code> request. The line breaks, and spacing is important here
+as is the two blank lines at the bottom.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let request = format!(
+            &quot;GET /delay/{}/url/http://{} HTTP/1.1\r\n\
+             Host: slowwly.robertomurray.co.uk\r\n\
+             Connection: close\r\n\
+             \r\n&quot;,
+            delay_ms, url
+        );
+#}</code></pre></pre>
+<p>You might wonder why we use <code>\r\n\</code> as line breaks here instead of the standard <code>\n</code>?</p>
+<p>This is because a http <code>GET</code> request expects <code>CRLF</code> and not just <code>LF</code>, using only <code>\n</code> will
+not result in a valid <code>GET</code> request.</p>
+<p>We construct the request by passing in the delay we want and the address we
+want to be redirected to.</p>
+<p>Next we write this request to our <code>TcpStream</code>. In a real implementation this would
+have been done by issuing the write in an async manner and then register an event
+when the write has happened.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+stream
+    .write_all(request.as_bytes())
+    .expect(&quot;Error writing to stream&quot;);
+#}</code></pre></pre>
+<blockquote>
+<p>We write it blocking here since by implementing both <code>read</code> and <code>write</code> we'll have
+to create much more code, and the <strong>understanding</strong> of how this works will not really
+benefit that much (the understanding of how a web server works would though but thats
+beyond our scope today)</p>
+</blockquote>
+<p>Now we get to the exiting part.</p>
+<p>First we need to generate a <code>token</code>. This token will follow our <code>event</code> and be passed
+on to the OS. When the OS returns it also returns this token so we know what event
+occurred.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let token = rt.generate_cb_identity();
+#}</code></pre></pre>
+<p>For convenience we use the same token as our <code>callback_id</code> since it will be unique, and
+events &lt;-&gt; callbacks will map 1:1 the way we have designed this.</p>
+<p>Our next call actually issues a syscall to the underlying OS and registers our
+interest in an event of type <code>Readable</code>.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+rt.epoll_registrator
+            .register(&amp;mut stream, token, minimio::Interests::readable())
+            .unwrap();
+#}</code></pre></pre>
+<p>The reason we need <code>&amp;mut stream</code> here is Windows and <code>IOCP</code>. Our stream holds a
+buffer that we'll pass on to Windows. <strong>This buffer must not be touched</strong> while
+the OS lends it exclusively. This way we leverage Rusts borrowchecker to help us
+make sure of that.</p>
+<blockquote>
+<p>However, this has a drawback. We don't really need it to be <code>&amp;mut</code> on <code>linux</code> and <code>macos</code>
+so on these systems we might get a compiler warning letting us know it doesn't need
+to be <code>&amp;mut</code>. There are ways around this though, but in the interest of actually finishing
+both books I had to stop somewhere and this is not the worlds end.</p>
+</blockquote>
+<p>The main point here is that we register an interest to read in a non-blocking manner.</p>
+<p>I'll repeat this part of the code so you have it right in front of you while i
+explain:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+    let wrapped = move |_n| {
+            let mut stream = stream;
+            let mut buffer = String::new();
+            stream
+                .read_to_string(&amp;mut buffer)
+                .expect(&quot;Stream read error&quot;);
+            cb(Js::String(buffer));
+        };
+#}</code></pre></pre>
+<p>Since our callback expects a <code>Js::String</code> we can't actually pass the buffer. We need
+to wrap our callback so we first read out the data to a <code>String</code> which we then
+can pass to our code.</p>
+<p>Lastly we register the I/O event with our runtime</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+rt.register_event_epoll(token, wrapped);
+#}</code></pre></pre>
+<h2><a class="header" href="#bonus-section" id="bonus-section">Bonus section</a></h2>
+<p>Now in a better implementation, we would not issue a blocking call like <code>read_to_string</code>
+because it might be that at some point this will block if not all the data we need
+is present at once. </p>
+<p>The right thing to do then would be to read parts of the
+data into a buffer while calling <code>stream.read(..)</code> in a loop, and at some point
+this might return an <code>Err::WouldBlock</code> at which we re-wrap our callback and re-register
+our read event to read the rest.</p>
+<blockquote>
+<p>Another reason this might block is that threads might get what is called a &quot;spurious&quot; wakeup.</p>
+<p>What is that? Well, the OS might wake up the thread, without there being any data there. The
+reason for this is kind of hard to get confirmed, but as far as I understand, this can happen if
+the OS is in doubt if an event occurred or not. It does apparently happen that some interrupts
+might get issued without the OS getting notified. This can be caused by unfortunate timing since
+there are some bits of code that needs to be executed &quot;uninterrupted&quot; and there is a way for the
+OS to instruct the CPU to filter some interrupts for short periods. The OS can't be &quot;optimistic&quot; in the
+sense that it assumes the event didn't happen since that would cause the process to wait indefinitely
+if the event did occur. So instead it might just wake up the thread.</p>
+<p>Also, there are performance optimizations
+in operating systems that might cause them to choose to wake up waiting threads in a process for unknown
+reasons. Therefore, accounting for spurious wakeups is part of the &quot;contract&quot; between the programmer
+and the OS.</p>
+<p>Either way, the OS assumes we have logic in place to account for this and just re-register our event
+if it was a spurious wakeup.</p>
+</blockquote>
+<p>In our implementation, whether the data is not fully available or if it was a spurious wakeup, we'll end
+up blocking. It's fine, we're just trying to understand. We're not re-implementing <code>libuv</code> anyway.</p>
+<p>The last part is registering this event with our <code>epoll_thread</code>.</p>
+<p>Now, we're practically at the finish line. All the interesting parts are covered, we just
+need a few more small things to get it all up and running.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="9_2_crypto_module.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="10_putting_pieces_together.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="9_2_crypto_module.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="10_putting_pieces_together.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

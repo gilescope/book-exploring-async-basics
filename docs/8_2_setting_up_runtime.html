@@ -1,0 +1,670 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Setting up our runtime - Investigating Async Basics - Implementing the Node.js Eventloop in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="introduction.html">Introduction</a></li><li><a href="1_concurrent_vs_parallel.html"><strong aria-hidden="true">1.</strong> Concurrent vs Parallel</a></li><li><a href="2_async_history.html"><strong aria-hidden="true">2.</strong> Async history</a></li><li><a href="3_0_the_operating_system.html"><strong aria-hidden="true">3.</strong> The Operating System and CPU</a></li><li><ol class="section"><li><a href="3_1_communicating_with_the_os.html"><strong aria-hidden="true">3.1.</strong> Communicating with the OS</a></li><li><a href="3_2_cross_platform_abstractions.html"><strong aria-hidden="true">3.2.</strong> Writing Cross Platform Abstractions</a></li><li><a href="3_3_the_cpu_and_the_os.html"><strong aria-hidden="true">3.3.</strong> The CPU and the OS</a></li></ol></li><li><a href="4_interrupts_firmware_io.html"><strong aria-hidden="true">4.</strong> Interrupts, Firmware and I/O</a></li><li><a href="5_strategies_for_handling_io.html"><strong aria-hidden="true">5.</strong> Strategies for handling I/O</a></li><li><a href="6_epoll_kqueue_iocp.html"><strong aria-hidden="true">6.</strong> Epoll, Kqueue and IOCP</a></li><li><a href="7_0_introducing_our_main_example.html"><strong aria-hidden="true">7.</strong> Introducing our main example</a></li><li><ol class="section"><li><a href="7_1_what_is_node.html"><strong aria-hidden="true">7.1.</strong> What is Node?</a></li><li><a href="7_2_whats_our_plan.html"><strong aria-hidden="true">7.2.</strong> What's our plan</a></li></ol></li><li><a href="8_0_implementing_our_own_runtime.html"><strong aria-hidden="true">8.</strong> Implementing our own Runtime</a></li><li><ol class="section"><li><a href="8_1_the_main_loop.html"><strong aria-hidden="true">8.1.</strong> Running our runtime - the main loop</a></li><li><a href="8_2_setting_up_runtime.html" class="active"><strong aria-hidden="true">8.2.</strong> Setting up our runtime</a></li><li><a href="8_3_timers.html"><strong aria-hidden="true">8.3.</strong> Timers</a></li><li><a href="8_4_callbacks.html"><strong aria-hidden="true">8.4.</strong> Callbacks</a></li><li><a href="8_5_threadpool.html"><strong aria-hidden="true">8.5.</strong> Threadpool</a></li><li><a href="8_6_io_eventqueue.html"><strong aria-hidden="true">8.6.</strong> I/O eventqueue</a></li><li><a href="8_8_cleaning_up.html"><strong aria-hidden="true">8.7.</strong> Cleaning up</a></li><li><a href="8_9_infrastructure.html"><strong aria-hidden="true">8.8.</strong> Infrastructure</a></li></ol></li><li><a href="9_0_modules.html"><strong aria-hidden="true">9.</strong> Modules</a></li><li><ol class="section"><li><a href="9_1_file_module.html"><strong aria-hidden="true">9.1.</strong> File module</a></li><li><a href="9_2_crypto_module.html"><strong aria-hidden="true">9.2.</strong> Crypto module</a></li><li><a href="9_3_http_module.html"><strong aria-hidden="true">9.3.</strong> Http module</a></li></ol></li><li><a href="10_putting_pieces_together.html"><strong aria-hidden="true">10.</strong> Putting the pieces together</a></li><li><a href="11_final_code.html"><strong aria-hidden="true">11.</strong> Final code</a></li><li><a href="12_shortcuts_and_improvements.html"><strong aria-hidden="true">12.</strong> Shortcuts and improvements</a></li><li class="affix"><a href="conclusion.html">Conclusion</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Investigating Async Basics - Implementing the Node.js Eventloop in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#setting-up-our-runtime" id="setting-up-our-runtime">Setting up our runtime</a></h1>
+<h2><a class="header" href="#the-threadpool" id="the-threadpool">The Threadpool</a></h2>
+<p>We still don't have a threadpool or a I/O eventloop running
+so the next step is to set this up.</p>
+<h3><a class="header" href="#lets-take-this-step-by-step" id="lets-take-this-step-by-step">Let's take this step by step</a></h3>
+<p>Are you ready? Let's go!</p>
+<p>The first thing we do is to add a <code>new</code> method that returns an instance of our
+<code>Runtime</code>:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+impl Runtime {
+    pub fn new() -&gt; Self {
+#}</code></pre></pre>
+<p>First up is our thread pool. The first thing we do is
+to set up a channel which our threads can use to send messages to our main thread.</p>
+<p>The channel will take a tuple <code>(usize, usize, Js)</code> which will be <code>thread_id</code>,
+<code>callback_id</code> and the data returned when we run our <code>Task</code>.</p>
+<p>The <code>Receiver</code> part will be stored in our <code>Runtime</code>, and the <code>Sender</code> part will
+be cloned to each of our threads.</p>
+<p>Node defaults to 4 threads which we will copy. This is configurable in <code>Node</code> 
+but we will take a shortcut and hard code it:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let (event_sender, event_reciever) = channel::&lt;PollEvent&gt;();
+let mut threads = Vec::with_capacity(4);
+
+for i in 0..4 {
+    let (evt_sender, evt_reciever) = channel::&lt;Task&gt;();
+    let event_sender = event_sender.clone();
+
+    let handle = thread::Builder::new()
+        .name(format!(&quot;pool{}&quot;, i))
+        .spawn(move || {
+
+            while let Ok(task) = evt_reciever.recv() {
+                print(format!(&quot;recived a task of type: {}&quot;, task.kind));
+                
+                if let ThreadPoolTaskKind::Close = task.kind {
+                    break;
+                };
+
+                let res = (task.task)();
+                print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
+
+                let event = PollEvent::Threadpool((i, task.callback_id, res));
+                event_sender.send(event).expect(&quot;threadpool&quot;);
+            }
+        })
+        .expect(&quot;Couldn't initialize thread pool.&quot;);
+
+    let node_thread = NodeThread {
+        handle,
+        sender: evt_sender,
+    };
+
+    threads.push(node_thread);
+}
+
+#}</code></pre></pre>
+<p>Next up is actually creating our threads. <code>for i in 0..4</code> is an iterator over the
+values 0, 1, 2 and 3. Since we push each thread to a <code>Vec</code> these values will be
+treated as both the Id of the thread and the index it has in our <code>Vec</code>.</p>
+<p>Next up we create a new channel which we will use to send messages <strong>to</strong> our
+threads. Each thread keeps their <code>Receiver</code>, and we'll store the <code>Send</code> part
+in the struct <code>NodeThread</code> which will represent a thread in our threadpool.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let (evt_sender, evt_reciever) = channel::&lt;Event&gt;();
+let threadp_sender = threadp_sender.clone();
+#}</code></pre></pre>
+<p>As you see here, we also clone the <code>Sender</code> part which we'll pass on to each thread
+so they can send messages to our <code>main</code> thread.</p>
+<p>After that's done we build our thread. We'll use <code>thread::Builder::new()</code> instead
+of use <code>thread::spawn</code> since we want to give each thread a name. We'll only use this
+name when we <code>print</code> from our event since it will be clear from which thread
+we printed the message. </p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let handle = thread::Builder::new()
+        .name(format!(&quot;pool{}&quot;, i))
+        .spawn(move || {
+#}</code></pre></pre>
+<p>You'll also see here that we <code>spawn</code> our thread finally and create a closure.</p>
+<blockquote>
+<p>Why do we need the <code>move</code> keyword in this closure?</p>
+<p>The reason is that this closure is spawned from the main thread, so any environment
+we close over needs to be owned, since it can't reference any values on the stack
+of the <code>main</code> thread. I'll leave you with a relevant quote from <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/closures.html#closures">chapter about
+<code>closures</code> in TRPL</a></p>
+<p><strong>...they give a closure its own stack frame. Without move, a closure may be
+tied to the stack frame that created it, while a move closure is self-contained.</strong></p>
+</blockquote>
+<p>The body of our new threads are really simple, most of the lines are about printing
+out information for us to see:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+while let Ok(task) = evt_reciever.recv() {
+        print(format!(&quot;recived a task of type: {}&quot;, task.kind));
+        
+        if let ThreadPoolTaskKind::Close = task.kind {
+            break;
+        };
+
+        let res = (task.task)();
+        print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
+
+        let event = PollEvent::Threadpool((i, task.callback_id, res));
+        event_sender.send(event).expect(&quot;threadpool&quot;);
+    }
+})
+#}</code></pre></pre>
+<p>The first thing we do is to listen on our <code>Recieve</code> part of the channel (remember,
+we gave the <code>Send</code> part to our <code>main</code> thread). This function will actually
+<code>park</code> our thread until we receive a message so it consumes no resources while
+waiting.</p>
+<p>When we get a <code>task</code> we first print out what kind of task we got. </p>
+<p>The next thing we do is to check if this was a <code>Close</code> task, if thats true
+we break out of our loop which in turn will close the thread.</p>
+<p>If it wasn't a <code>Close</code> task we run our task <code>let res = (task.task)();</code>. This is where the work will
+actually be done. We know from the signature of this task that it returns a <code>Js</code>
+object once it's finished.</p>
+<p>The nest thing we do is to print out that we finished running a task, before we
+send a <code>PollEvent::Threadpool</code> event with <code>thread_id</code>, the <code>callback_id</code> and the data returned as a <code>Js</code> object back
+to our main thread.</p>
+<p>Back in our <code>main</code> thread again we'll finally we store the <code>JoinHandle</code>, and the
+<code>Send</code> part of the channel in our <code>NodeThread</code> struct and push it to our
+collection of threads (which now represents our threadpool).</p>
+<h2><a class="header" href="#the-epoll-thread" id="the-epoll-thread">The Epoll Thread</a></h2>
+<p>This will handle our Epoll/Kqueue/IOCP thread. This thread will only wait for
+incoming events reported by the OS, and once that's done it will send the Id of
+the event to our main thread which in turn will actually handle the event and call
+the callback.</p>
+<p>The code here is a bit more involved, but we'll take it step by step below.</p>
+<p>The code looks like this:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+let registrator = poll.registrator();
+let epoll_timeout = Arc::new(Mutex::new(None));
+let epoll_timeout_clone = epoll_timeout.clone();
+
+let epoll_thread = thread::Builder::new()
+    .name(&quot;epoll&quot;.to_string())
+    .spawn(move || {
+        let mut events = minimio::Events::with_capacity(1024);
+        
+        loop {
+            let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+            let timeout = *epoll_timeout_handle;
+            drop(epoll_timeout_handle);
+
+            match poll.poll(&amp;mut events, timeout) {
+                Ok(v) if v &gt; 0 =&gt; {
+                    for i in 0..v {
+                        let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+                        print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+                        
+                        let event = PollEvent::Epoll(event.id().value() as usize);
+                        event_sender.send(event).expect(&quot;epoll event&quot;);
+                    }
+                }
+                Ok(v) if v == 0 =&gt; {
+                    print(&quot;epoll event timeout is ready&quot;);
+                    event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+                    print(&quot;recieved event of type: Close&quot;);
+                    break;
+                }
+                Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+                _ =&gt; (),
+            }
+        }
+    })
+    .expect(&quot;Error creating epoll thread&quot;);
+#}</code></pre></pre>
+<p>Lets start by initializing some variables:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+let registrator = poll.registrator();
+let epoll_timeout = Arc::new(Mutex::new(None));
+let epoll_timeout_clone = epoll_timeout.clone();
+#}</code></pre></pre>
+<p>The first thing we do is to instantiate a new <code>minimio::Poll</code>. This is the main
+entry point into our <code>kqueue/epoll/iocp</code> event queue.</p>
+<blockquote>
+<p><code>minimio::Poll</code> does several things under the hood. It sets up a structure for
+us to store some information about the state of the event queue, and most
+importantly makes a syscall to the underlying OS and asks it for a handle to 
+either an <code>epoll</code> instance, a <code>kqueue</code> or to an <code>Completion Port</code>. We won't
+register anything here yet, but we need this handle to later make sure we register
+interest with the queue we're polling.</p>
+</blockquote>
+<p>Next up is also part of <code>minimio</code> we get a <code>Registrator</code>. This struct is &quot;detached&quot;
+from the <code>Poll</code> struct, but it holds a cpoy of the same handle to the event queue.</p>
+<p>This way we kan store the <code>Registrator</code> in our main thread and send off the <code>Poll</code>
+instance to our <code>epoll</code> thread. Our registrator can only register events to the
+queue and that's it.</p>
+<blockquote>
+<p>How can <code>Registrator</code> know that the <code>epoll</code> thread hasn't stopped?</p>
+<p>We'll cover this in detail in the next book, but both <code>Poll</code> and <code>Registrator</code>
+holds a reference to an <code>AtomicBool</code> which only job is to indicate if the queue
+is &quot;alive&quot; or not. In the <code>Drop</code> implemenation of <code>Poll</code> we set this flag to
+false in which case a coll to register an event will return an <code>Err</code>.</p>
+</blockquote>
+<p><code>epoll_timeout</code> is the time to the next timeout. If there is no more timeouts the
+value is <code>None</code>. We wrap this in a <code>Arc&lt;Mutex&lt;&gt;&gt;</code>, since we'll be writing to
+this from the main thread, and reading from it in the <code>epoll</code> thread.</p>
+<p><code>epoll_timeout_clone</code> is just increasing the ref-count on our <code>Arc</code> so that
+we can send this to our <code>epoll</code> thread.</p>
+<p>Next up is spawning our thread. We do this the exact same way as for the thread
+pool, but we name the thread <code>epoll</code>.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let epoll_thread = thread::Builder::new()
+    .name(&quot;epoll&quot;.to_string())
+    .spawn(move || {
+#}</code></pre></pre>
+<p>Now we're inside the <code>epoll</code> thread and will define what this thread needs to
+do to poll and handle events.</p>
+<p>First we allocate a buffer to hold event objects that we get from our <code>poll</code> instance.
+These objects contain information about the event that's occurred including a
+<code>token</code> we pass in when we register the event. This <code>token</code> identifies what event
+has occurred. In our case the token is a simple <code>usize</code>.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let mut events = minimio::Events::with_capacity(1024);
+#}</code></pre></pre>
+<p>We allocate the buffer here since we only allocate this once when we do it here,
+and we want to avoid allocating a new buffer on every turn of our <code>loop</code>.</p>
+<p>Basically, our <code>epoll</code> thread will run a loop which consciously polls for new
+events.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+loop {
+#}</code></pre></pre>
+<p>The interesting logic is inside the loop, and first we read the timeout value which
+should be synced with the next timeout that expires in our main loop.</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+let timeout = *epoll_timeout_handle;
+drop(epoll_timeout_handle);
+#}</code></pre></pre>
+<p>To do this we first need to <code>lock</code> the mutex so we know we have exclusive access
+to the <code>timeout</code> value. Now, <code>timeout</code> is of the type <code>Option&lt;i32&gt;</code>, since <code>i32</code>
+implements the <code>Copy</code> trait we can dereference it, which in this case will copy,
+the value and store it in our <code>timeout</code> variable.</p>
+<p><code>drop(epoll_timeout_handle)</code> is not something you'll see often. The <code>MutexGuard</code> we
+get in return when we call <code>epoll_timeout_clone.lock().unwrap()</code> is a <a href="https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization">RAII</a>
+guard. Which means that it will hold a resource (in this case the lock on the mutex)
+until it's deallocated(released). In Rust, the release happens when the value is
+<code>Dropped</code> which normally is by the end of a scope (<code>{...}</code>).</p>
+<p>We need to release the lock since the next call will block until an event occurs
+which means our lock wouldn't have been released and we would end up in a <code>deadlock</code>
+when trying to write a value to our <code>epoll_timeout</code> in our main thread.</p>
+<p>The next part is a handful, but bear in mind that much of what we do here is
+printing out information for us to observe.</p>
+<p>Calling <code>poll</code> will block the loop until an event occurs <strong>or</strong> the timeout has
+elapsed. <code>poll</code> takes in an exclusive reference to our event buffer, and an <code>Option&lt;i32&gt;</code>
+as a timeout. A value of <code>None</code> will block indefinitely.</p>
+<blockquote>
+<p>When we say <code>block</code> here we mean that the OS parks our thread, and switches
+context to another thread. However, it keeps track over that our <code>epoll</code> thread
+listens to events and wakes it up again when any of the events we have registered
+interests to has happened.</p>
+</blockquote>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+match poll.poll(&amp;mut events, timeout) {
+    Ok(v) if v &gt; 0 =&gt; {
+        for i in 0..v {
+            let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+            print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+            
+            let event = PollEvent::Epoll(event.id().value() as usize);
+            event_sender.send(event).expect(&quot;epoll event&quot;);
+        }
+    }
+    Ok(v) if v == 0 =&gt; {
+        print(&quot;epoll event timeout is ready&quot;);
+        event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+    }
+    Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+        print(&quot;recieved event of type: Close&quot;);
+        break;
+    }
+    Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+    _ =&gt; unreachable!(),
+}
+#}</code></pre></pre>
+<p>We <code>match</code> on the result of the <code>poll</code> so when the OS returns we choose what to do.</p>
+<p>We basically have 4 cases we are concerned about:</p>
+<ol>
+<li>We get an Ok(n) where n is larger than 0, in this case we have events to process</li>
+<li>We get an Ok(n) where n is 0, we know this either is a <code>spurious</code> wakeup or that a timeout has occurred</li>
+<li>We get an Err of kind <code>Interrupted</code>, in which case we treat this as a close signal and we close the loop</li>
+<li>We get an Err which is not of type <code>Interrupted</code>, we know something bad has happened, and we <code>panic!</code></li>
+</ol>
+<p>If you haven't seen the syntax <code>Ok(v) if v &gt; 0</code> before it's what we call a <code> match guard</code>
+which lets us refine what we're matching against. In this case, we only match on
+values of <code>v</code> larger than <code>0</code>.</p>
+<p>For completeness I'll also explain <code>Err(ref e) if e.kind()</code>, the <code>ref</code> keyword
+tells the compiler that we want a reference to <code>e</code> and don't want to take
+ownership over it.</p>
+<p>The last case <code>_ =&gt; unreachable!()</code> is just needed since the compiler doesn't realize that
+we're matching on all values of <code>Ok()</code> here. The value is of type <code>Ok(usize)</code> so
+it can't be negative, and we're telling the compiler here that we've got all
+cases covered.</p>
+<p>Lastly we create a <code>Runtime</code> struct and store all the data we've intialized so
+far into it:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+  Runtime {
+    available_threads: (0..4).collect(),
+    callbacks_to_run: vec![],
+    callback_queue: HashMap::new(),
+    epoll_pending_events: 0,
+    epoll_registrator: registrator,
+    epoll_thread,
+    epoll_timeout,
+    event_reciever,
+    identity_token: 0,
+    pending_events: 0,
+    thread_pool: threads,
+    timers: BTreeMap::new(),
+    timers_to_remove: vec![],
+}
+#}</code></pre></pre>
+<p>Worth noting is that we know all threads are available here so <code>(0..4).collect()</code>
+will just create a <code>Vec&lt;usize&gt;</code> with the values <code>[0, 1, 2, 3]</code>.</p>
+<p>In Rust, when we write...</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+...
+epoll_registrator: registrator,
+epoll_thread,
+...
+#}</code></pre></pre>
+<p>...we're in assigning <code>registrator</code> to <code>epoll_registrator</code> which is a
+bit more descriptive name. Since we have a variable with the name <code>epoll_thread</code>
+already we don't need to write <code>epoll_thread: epoll_thread</code> since the compiler
+figures that out for us.</p>
+<p>Now the final initialization code for our runtime breaks all &quot;best practices&quot; of
+how long methods you should have but for our case I find it easier to write about
+this if we don't need to jump between functions too much and can just cover all this
+logic from a-z:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl Runtime {
+    pub fn new() -&gt; Self {
+        // ===== THE REGULAR THREADPOOL =====
+        let (event_sender, event_reciever) = channel::&lt;PollEvent&gt;();
+        let mut threads = Vec::with_capacity(4);
+
+        for i in 0..4 {
+            let (evt_sender, evt_reciever) = channel::&lt;Task&gt;();
+            let event_sender = event_sender.clone();
+
+            let handle = thread::Builder::new()
+                .name(format!(&quot;pool{}&quot;, i))
+                .spawn(move || {
+
+                    while let Ok(task) = evt_reciever.recv() {
+                        print(format!(&quot;recived a task of type: {}&quot;, task.kind));
+                        
+                        if let ThreadPoolTaskKind::Close = task.kind {
+                            break;
+                        };
+
+                        let res = (task.task)();
+                        print(format!(&quot;finished running a task of type: {}.&quot;, task.kind));
+
+                        let event = PollEvent::Threadpool((i, task.callback_id, res));
+                        event_sender.send(event).expect(&quot;threadpool&quot;);
+                    }
+                })
+                .expect(&quot;Couldn't initialize thread pool.&quot;);
+
+            let node_thread = NodeThread {
+                handle,
+                sender: evt_sender,
+            };
+
+            threads.push(node_thread);
+        }
+
+        // ===== EPOLL THREAD =====
+        let mut poll = minimio::Poll::new().expect(&quot;Error creating epoll queue&quot;);
+        let registrator = poll.registrator();
+        let epoll_timeout = Arc::new(Mutex::new(None));
+        let epoll_timeout_clone = epoll_timeout.clone();
+
+        let epoll_thread = thread::Builder::new()
+            .name(&quot;epoll&quot;.to_string())
+            .spawn(move || {
+                let mut events = minimio::Events::with_capacity(1024);
+                
+                loop {
+                    let epoll_timeout_handle = epoll_timeout_clone.lock().unwrap();
+                    let timeout = *epoll_timeout_handle;
+                    drop(epoll_timeout_handle);
+
+                    match poll.poll(&amp;mut events, timeout) {
+                        Ok(v) if v &gt; 0 =&gt; {
+                            for i in 0..v {
+                                let event = events.get_mut(i).expect(&quot;No events in event list.&quot;);
+                                print(format!(&quot;epoll event {} is ready&quot;, event.id().value()));
+                                
+                                let event = PollEvent::Epoll(event.id().value() as usize);
+                                event_sender.send(event).expect(&quot;epoll event&quot;);
+                            }
+                        }
+                        Ok(v) if v == 0 =&gt; {
+                            print(&quot;epoll event timeout is ready&quot;);
+                            event_sender.send(PollEvent::Timeout).expect(&quot;epoll timeout&quot;);
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::Interrupted =&gt; {
+                            print(&quot;recieved event of type: Close&quot;);
+                            break;
+                        }
+                        Err(e) =&gt; panic!(&quot;{:?}&quot;, e),
+                        _ =&gt; unreachable!(),
+                    }
+                }
+            })
+            .expect(&quot;Error creating epoll thread&quot;);
+
+        Runtime {
+            available_threads: (0..4).collect(),
+            callbacks_to_run: vec![],
+            callback_queue: HashMap::new(),
+            epoll_pending_events: 0,
+            epoll_registrator: registrator,
+            epoll_thread,
+            epoll_timeout,
+            event_reciever,
+            identity_token: 0,
+            pending_events: 0,
+            thread_pool: threads,
+            timers: BTreeMap::new(),
+            timers_to_remove: vec![],
+        }
+    }
+} 
+#}</code></pre></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="8_1_the_main_loop.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="8_3_timers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="8_1_the_main_loop.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="8_3_timers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

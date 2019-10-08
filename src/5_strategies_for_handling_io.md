@@ -15,7 +15,7 @@ Now one way of accomplishing this is letting the OS take care of everything for 
 
 **Cons:**
 
-- OS level threads come with a rather large stack. If you have many tasks happening simultaneously (like in a webserver under heavy load) you'll run out of memory pretty soon.
+- OS level threads come with a rather large stack. If you have many tasks waiting simultaneously (like you would in a web-server under heavy load) you'll run out of memory pretty soon.
 - There are a lot of syscalls involved. This can be pretty costly when the number of tasks is high.
 - The OS has many things it needs to handle. It might not switch back to your thread as fast as you'd wish
 - The OS doesn't know which tasks to prioritize, and you might want to give som tasks a higher priority than others.
@@ -44,7 +44,7 @@ The third way we're covering today is the one that most closely matches an ideal
 
 The way this works is that we tell the OS that we're interested in knowing when data is arriving for us on the network card. The network card issues an interrupt when something has happened in which the driver let's the OS know that the data is ready. 
 
-Now, we still need a way to "suspend" many tasks while waiting, and this is where Nodes "runtime" or Rusts Futures come in to play. 
+Now, we still need a way to "suspend" many tasks while waiting, and this is where Nodes "runtime" or Rusts Futures come in to play.
 
 **Pros:**
 
