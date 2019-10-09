@@ -17,7 +17,7 @@ This book aims to take a look at the **why** and **how** of concurrent programmi
 a good foundation of basic knowledge, before we use that knowledge to investigate how Node.js works
 by building a Node-inspired runtime.
 
-> This book is developed in the open and has [it's repository here](https://github.com/cfsamson/book-investigating-async-basics).
+> This book is developed in the open and has [it's repository here](https://github.com/cfsamson/book-exploring-async-basics).
 > The book and the [accomanying code](https://github.com/cfsamson/examples-node-eventloop) is MIT licensed so feel free to clone away
 > and play with it.
 
@@ -113,7 +113,7 @@ I have no other interest in this than to share knowledge that can be hard to
 come by and make it easier for the next curious person to understand. If you want to
 contribute to make this better there are two places to go:
 
-1. [The base repo for this book](https://github.com/cfsamson/book-investigating-async-basics) for all feedback and content changes
+1. [The base repo for this book](https://github.com/cfsamson/book-exploring-async-basics) for all feedback and content changes
 2. [The base repo for the code example we use](https://github.com/cfsamson/examples-node-eventloop) for all improvements to the example code
 
 Everything from spelling mistakes to correcting errors or inaccuracies are greatly appreciated. It will only make this book better for the next person reading it.
@@ -132,7 +132,7 @@ reading the RFC's and discussions about Rusts async story:
 
 - [Green threads explained in 200 lines of Rust](https://app.gitbook.com/@cfsamson/s/green-threads-explained-in-200-lines-of-rust/)
 
-- [The Node Experiment - Exploring Async Basics with Rust](https://cfsamson.github.io/book-investigating-async-basics/) (this book)
+- [The Node Experiment - Exploring Async Basics with Rust](https://cfsamson.github.io/book-exploring-async-basics/) (this book)
 
 - [Exploring Epoll, Kqueue and IOCP with Rust](https://github.com/cfsamson/book-exploring-epoll-kqueue-iocp) a companion book to the "Async Basics" book
 
